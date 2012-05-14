@@ -11,6 +11,12 @@ statics = {
   }
 };
 
+MODE = {
+  NORMAL : 'normal',
+  NEURON : 'neurontoolactivated',
+  SYNAPSE : 'synapsetoolactivated'
+};
+
 Ext.define('Brain.Object', {
   x : 0,
   y : 0,
@@ -83,24 +89,25 @@ Ext.define('Brain.Neuron', {
   },
 
   draw : function() {
-    if (!Ext.isEmpty(this.drawComp)) {
-      if (Ext.isEmpty(this.s)) {
-        this.s = this.drawComp.surface.add({
+    var me = this;
+    if (!Ext.isEmpty(me.drawComp)) {
+      if (Ext.isEmpty(me.s)) {
+        me.s = me.drawComp.surface.add({
           draggable : true,
           type : 'path',
           fill : '#ff0000',
-          path : [ 'M0 0 L20 0 L10 10 Z' ].join(''),
-          x : this.x,
-          y : this.y
+          path : [ 'M', me.x, me.y, 'l 20 0 l -10 10 z'].join(' '),
+          x : me.x,
+          y : me.y
         });
-        this.registerListeners();
+        me.registerListeners();
       } else {
-        this.s.setAttributes({
-          x : this.x,
-          y : this.y
+        me.s.setAttributes({
+          x : me.x,
+          y : me.y
         });
       }
-      this.s.redraw();
+      me.s.redraw();
     }
   }
 });
@@ -158,15 +165,52 @@ Ext.define('Brain.Synapse', {
 });
 
 Ext.define('AM.view.neuronmap.NeuronMap', {
+  // DOM id
+  id : 'neuron-map',
   extend : 'Ext.container.Container',
   alias : 'widget.neuronmap',
   layout : {
     type : 'border',
     border : 2
   },
+
+  mode : MODE.NORMAL,
+
   items : [ {
-    xtype : 'panel',
-    title : 'ok',
+    xtype : 'toolbar',
+    items : [ {
+      iconCls : 'neuron-active-btn',
+      id : 'neuron-active-btn',
+      text : 'Neuron',
+      tooltip : 'Active Neuron tool',
+      toggleGroup : 'brainbuttons',
+      listeners : {
+        toggle : function(btn, pressed, opts) {
+          var neuronMap = btn.up('neuronmap');
+          if (pressed) {
+            neuronMap.mode = MODE.NEURON;
+          } else if (neuronMap.mode != MODE.SYNAPSE) {
+            neuronMap.mode = MODE.NORMAL;
+          }
+        }
+      }
+    }, {
+      iconCls : 'synapse-active-btn',
+      id : 'synapse-active-btn',
+      text : 'Synapse',
+      tooltip : 'Active Synapse tool',
+      toggleGroup : 'brainbuttons',
+      listeners : {
+        toggle : function(btn, pressed, opts) {
+          var neuronMap = btn.up('neuronmap');
+          if (pressed) {
+            neuronMap.mode = MODE.SYNAPSE;
+          } else if (neuronMap.mode != MODE.NEURON) {
+            neuronMap.mode = MODE.NORMAL;
+          }
+        }
+      }
+    } ],
     region : 'north',
   }, {
     xtype : 'draw',
@@ -186,13 +230,22 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       }
     } ]
   } ],
+
   // store: 'Users'
+
   afterRender : function() {
     var me = this;
     console.log('view ok');
     me.callParent(arguments);
+    var drawpanel = me.getComponent('drawpanel');
+    drawpanel.on('click', function(e, t, opts) {
+      console.log('hello dome');
+      if (me.mode == MODE.NEURON) {
+        me.addNeuron(drawpanel, e.getXY());
+      }
+    });
     var bno = Ext.create('Brain.Neuron', {
-      drawComp : me.getComponent('drawpanel'),
+      drawComp : drawpanel,
       x : 20,
       y : 20
     });
@@ -209,5 +262,14 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       }
     });
     syn.draw();
+  },
+
+  addNeuron : function(drawpanel, xy) {
+    var bno = Ext.create('Brain.Neuron', {
+      drawComp : drawpanel,
+      x : xy[0],
+      y : xy[1] -20
+    });
+    bno.draw();
   }
 });
