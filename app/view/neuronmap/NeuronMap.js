@@ -82,7 +82,8 @@ Ext.define('Brain.Neuron', {
 //                   this.width, '0 l', -this.width/2, this.height * 0.7, 'z'].join(' '),
           radius : this.radius,
           x : me.x,
-          y : me.y
+          y : me.y,
+          zIndex : 100
         });
         me.registerListeners();
       } else {
@@ -180,6 +181,7 @@ Ext.define('Brain.Synapse', {
           y : me.y
         });
       }
+      
       me.s.redraw();
       me.dot.redraw();
     }
@@ -243,6 +245,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     xtype : 'draw',
     region : 'center',
     itemId : 'drawpanel',
+    orderSpritesByZIndex : true,
     viewBox : false,
     /**this is the array to store the object that get the focus usually, only one get focuse,
      * when it get focus, this can prevent user from adding neuron when the mouse cusor is on 
