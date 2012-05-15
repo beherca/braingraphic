@@ -4,10 +4,6 @@ statics = {
     A : 'activated',
     R : 'rollover',
     D : 'dragover'
-  },
-  TYPE : {
-    N : 'neuron',
-    S : 'synapse'
   }
 };
 
@@ -68,8 +64,11 @@ Ext.define('Brain.Object', {
   x : 0,
   y : 0,
   z : 0,
+  //sprite than under managing
   s : null,
   state : statics.STATE.N,
+  
+  //svg surface component
   drawComp : null,
 
   constructor : function(args) {
@@ -111,6 +110,8 @@ Ext.define('Brain.Neuron', {
   radius : 20,
 
   synapses : [],
+  
+  axons : [],
 
   constructor : function(args) {
     Ext.apply(this, args);
@@ -148,6 +149,11 @@ Ext.define('Brain.Neuron', {
     var me = this;
     if (Ext.isEmpty(me.s))
       return;
+    //add custom method to Ext.draw.SpriteDD, after drop (actually an invalid drop because there is no drop zone)
+    me.s.dd.afterInvalidDrop = function(target, e, id){
+      console.log('after drag over');
+      me.updateXY();
+    };
     me.s.on('mouseover', function(sprite) {
       console.log('mouseover');
       me.drawComp.focusObjects.push(sprite);
@@ -174,6 +180,30 @@ Ext.define('Brain.Neuron', {
       var neuronMap = me.drawComp.neuronMap;
       neuronMap.registerNeuron(me);
     });
+    me.s.on('dragstart', function(dd) {
+      console.log('dragstart');
+    });
+  },
+  
+  /**
+   * This is called after dragging to update x y and redraw synapse
+   */
+  updateXY : function(){
+    console.log('update xy');
+    this.x = this.s.x + this.s.attr.translation.x;
+    this.y = this.s.y + this.s.attr.translation.y;
+    this.updateSynapse();
+  },
+  
+  updateSynapse : function() {
+    var me = this;
+    Ext.each(this.synapses,function(s){
+      s.updateXY(me.x, me.y);
+    });
+    
+    Ext.each(this.axons,function(s){
+      s.updateXY(me.x, me.y);
+    });
   }
 });
 
@@ -190,14 +220,12 @@ Ext.define('Brain.Synapse', {
 
   constructor : function(args) {
     Ext.apply(this, args);
-    this.x = this.preNeuron ? this.preNeuron.x : this.x;
-    this.y = this.preNeuron ? this.preNeuron.y : this.y;
-    this.endX = this.postNeuron ? this.postNeuron.x : this.endX;
-    this.endY = this.postNeuron ? this.postNeuron.y : this.endY;
+    this.updateXY();
     this.callParent(args);
   },
 
   isReverse : false,
+  
   draw : function() {
     var me = this;
     if (!Ext.isEmpty(me.drawComp)) {
@@ -223,18 +251,28 @@ Ext.define('Brain.Synapse', {
         // this.registerListeners();
       } else {
         me.s.setAttributes({
+          path : [ 'M', me.x, me.y, 'L', me.endX, me.endY ].join(' '),
           x : me.x,
           y : me.y
         });
         me.dot.setAttributes({
-          x : me.x,
-          y : me.y
+          path : Utils.getTriPath({x : (me.x + me.endX) / 2, y : (me.y + me.endY) / 2}, {x :me.endX, y : me.endY}, 20),
+          x : (me.x + me.endX) / 2,
+          y : (me.y + me.endY) / 2
         });
       }
 
       me.s.redraw();
       me.dot.redraw();
     }
+  },
+  
+  updateXY : function(){
+    this.x = this.preNeuron ? this.preNeuron.x : this.x;
+    this.y = this.preNeuron ? this.preNeuron.y : this.y;
+    this.endX = this.postNeuron ? this.postNeuron.x : this.endX;
+    this.endY = this.postNeuron ? this.postNeuron.y : this.endY;
+    this.draw();
   }
 
 });
@@ -257,6 +295,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
 
   items : [ {
     xtype : 'toolbar',
+    title : 'Brain Map Designer',
     itemId : 'brainMapMenu',
     items : [ {
       iconCls : 'neuron-active-btn',
@@ -306,6 +345,16 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
           }
         }
       }
+    },'->',{
+      iconCls : 'save-btn',
+      id : 'save-btn',
+      text : 'Save Map',
+      tooltip : 'Save the map',
+      listeners : {
+        click : function(btn, opts) {
+          console.log('save');
+        }
+      }
     }],
     region : 'north',
   }, {
@@ -320,7 +369,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
      * neuron when the mouse cusor is on existing another neuron
      */
     focusObjects : [],
-    neuronMap : null,
+    neuronMap : null/*,
     items : [ {
       type : 'rect',
       fill : '#79BB3F',
@@ -332,7 +381,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       style : {
         strokeWidth : 3
       }
-    } ]
+    } ]*/
   } ],
 
   // store: 'Users'
@@ -357,19 +406,19 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         }
       }
     });
-    var bno = Ext.create('Brain.Neuron', {
-      drawComp : drawpanel,
-      x : 40,
-      y : 40
-    });
+//    var bno = Ext.create('Brain.Neuron', {
+//      drawComp : drawpanel,
+//      x : 40,
+//      y : 40
+//    });
     // bno.draw();
-    var syn = Ext.create('Brain.Synapse', {
-      drawComp : me.getComponent('drawpanel'),
-      x : 10,
-      y : 10,
-      endX : 100,
-      endY : 100
-    });
+//    var syn = Ext.create('Brain.Synapse', {
+//      drawComp : me.getComponent('drawpanel'),
+//      x : 10,
+//      y : 10,
+//      endX : 100,
+//      endY : 100
+//    });
     // syn.draw();
   },
 
@@ -397,7 +446,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     if (me && (me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R)) {
       if (me.preNeuron && me.preNeuron != neuron) {// that means already has first neuron checked,this is the 2nd
         var synapse = me.addSynapse(me.preNeuron, neuron);
-        me.preNeuron.synapses.push(synapse);
+        me.preNeuron.axons.push(synapse);
         neuron.synapses.push(synapse);
         me.preNeuron = null;
       } else {
