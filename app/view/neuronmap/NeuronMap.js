@@ -14,7 +14,8 @@ statics = {
 MODE = {
   NORMAL : 'normal',
   NEURON : 'neurontoolactivated',
-  SYNAPSE : 'synapsetoolactivated'
+  SYNAPSE : 'synapsetoolactivated',
+  SYNAPSE_R : 'synapsereverttoolactivated'
 };
 
 Utils = {
@@ -268,7 +269,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
           var neuronMap = btn.up('neuronmap');
           if (pressed) {
             neuronMap.mode = MODE.NEURON;
-          } else if (neuronMap.mode != MODE.SYNAPSE) {
+          } else if (neuronMap.mode == MODE.NEURON) {
             neuronMap.mode = MODE.NORMAL;
           }
         }
@@ -284,12 +285,28 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
           var neuronMap = btn.up('neuronmap');
           if (pressed) {
             neuronMap.mode = MODE.SYNAPSE;
-          } else if (neuronMap.mode != MODE.NEURON) {
+          } else if (neuronMap.mode == MODE.SYNAPSE) {
             neuronMap.mode = MODE.NORMAL;
           }
         }
       }
-    } ],
+    },{
+      iconCls : 'synapse-r-active-btn',
+      id : 'synapse-r-active-btn',
+      text : 'Synapse Revert',
+      tooltip : 'Active Synapse tool',
+      toggleGroup : 'brainbuttons',
+      listeners : {
+        toggle : function(btn, pressed, opts) {
+          var neuronMap = btn.up('neuronmap');
+          if (pressed) {
+            neuronMap.mode = MODE.SYNAPSE_R;
+          } else if (neuronMap.mode == MODE.SYNAPSE_R) {
+            neuronMap.mode = MODE.NORMAL;
+          }
+        }
+      }
+    }],
     region : 'north',
   }, {
     xtype : 'draw',
@@ -335,7 +352,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
           var offset = me.getComponent('brainMapMenu').getHeight()
               + me.layout.border;
           me.addNeuron(drawpanel, e.getXY(), offset);
-        } else {
+        } else{
           me.preNeuron = null;
         }
       }
@@ -369,17 +386,16 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     var syn = Ext.create('Brain.Synapse', {
       drawComp : this.getComponent('drawpanel'),
       preNeuron : preNeuron,
-      postNeuron : postNeuron
+      postNeuron : postNeuron,
+      isReverse : this.mode == MODE.SYNAPSE_R
     });
     return syn;
   },
 
   registerNeuron : function(neuron) {
     var me = this;
-    if (me && me.mode == MODE.SYNAPSE) {
-      if (me.preNeuron && me.preNeuron != neuron) {// that means already has
-                                                    // first neuron checked,
-                                                    // this is the 2nd
+    if (me && (me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R)) {
+      if (me.preNeuron && me.preNeuron != neuron) {// that means already has first neuron checked,this is the 2nd
         var synapse = me.addSynapse(me.preNeuron, neuron);
         me.preNeuron.synapses.push(synapse);
         neuron.synapses.push(synapse);
