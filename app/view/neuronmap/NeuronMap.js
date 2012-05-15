@@ -29,17 +29,19 @@ Utils = {
     var disX = endP.x - startP.x;
     var disY = endP.y - startP.y;
     var angle = 0;
-    angle = Math.atan2(disY, -disX) + Math.PI * 0.5;//anti-clockwise 90 degree
+    var pi = Math.PI;
+    angle = Math.atan2(disY, -disX) + pi * 0.5;//anti-clockwise 90 degree
     console.log(angle*180/3.14);
     
     // triangle has 3 points, 1 is p0 which is origin point, p1, p2 is the rest
+    var cosLengh = Math.cos(pi/6);
     var p1 = {
       x : sideLength * 0.5,
-      y : sideLength * 0.866
+      y : sideLength * cosLengh
     };
     var p2 = {
       x : -sideLength * 0.5,
-      y : sideLength * 0.866
+      y : sideLength * cosLengh
     };
     var path = [ 'M', startP.x, startP.y,
         'L', 
@@ -213,7 +215,7 @@ Ext.define('Brain.Synapse', {
           stroke : 'blue',
           // path : [ 'M', (me.x + me.endX) / 2, (me.y + me.endY) / 2, 'L',
           // me.endX, me.endY ].join(' '),
-          path : Utils.getTriPath({x : (me.x + me.endX) / 2, y : (me.y + me.endY) / 2}, {x :me.endX, y : me.endY}, 70),
+          path : Utils.getTriPath({x : (me.x + me.endX) / 2, y : (me.y + me.endY) / 2}, {x :me.endX, y : me.endY}, 20),
           x : (me.x + me.endX) / 2,
           y : (me.y + me.endY) / 2
         });
