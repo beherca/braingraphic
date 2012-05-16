@@ -13,8 +13,92 @@ MODE = {
   SYNAPSE : 'synapsetoolactivated',
   SYNAPSE_R : 'synapsereverttoolactivated'
 };
+/**
+ * Origin Point
+ */  
+OP = {
+    x : 0, 
+    y : 0,
+    add : function (x, y){
+      return {x : x, y : y};
+    }
+};
 
 Utils = {
+  /**
+   * To get the curve path
+   * @test Utils.getCurvePath({x : 0, y :0}, {x : 100, y :0}, 20, 40)
+   * "M 0 0 C 0 20 30 20 50 20 S 100 20 100 0"
+   * Utils.getCurvePath({x : 0, y :0}, {x : 100, y :0}, 20, 50)
+   * "M 0 0 C 0 20 25 20 50 20 S 100 20 100 0"
+   * Utils.getCurvePath({x : 0, y :0}, {x : 100, y :0}, 20, 60)
+   * "M 0 0 C 0 20 20 20 50 20 S 100 20 100 0"
+   * Utils.getCurvePath({x : 0, y :0}, {x : 100, y :0}, 20, 20)
+   * "M 0 0 C 0 20 40 20 50 20 S 100 20 100 0"
+   * Utils.getCurvePath({x : 0, y :0}, {x : 100, y :100}, 20, 20)
+   * "M 0 0 C 0 20 40 70 50 70 S 100 70 100 100"
+   * @param startP
+   * @param endP
+   * @param curveHeight
+   * @param curveWidth
+   * @returns
+   */
+  getCurvePath : function(startP, endP, curveHeight, curveWidth){
+    var me = this;
+    var angle = me.getAngle(startP, endP, Math.PI);
+    var disXY = me.getDisXY(startP, endP);
+    var midPoint = {x : disXY/2, y :curveHeight};
+    var oringPoints = [/*P0*/OP, /*P1*/{x : 0, y : curveHeight},
+                  /*P2*/{x : midPoint.x, y : midPoint.y}, 
+                  /*P3*/{x : midPoint.x, y : midPoint.y },
+                  /*P4*/{x : disXY, y : curveHeight}, /*P5*/OP.add(disXY, 0)];
+    var points =[];
+    Ext.each(oringPoints, function (point){
+      points.push(me.rotate(point, angle, OP, startP));
+    });
+    var paths = ["M", points[0].x, points[0].y,
+                "C", points[1].x, points[1].y, points[2].x, points[2].y, points[3].x, points[3].y,
+                "S", points[4].x, points[4].y, points[5].x, points[5].y
+                ];
+    var path = paths.join(" ");
+    console.log('Snapse path:'+ path);
+    return path;
+  },
+  
+  rotate : function(point, angle, originPoint, offset){
+    offset = offset ? offset : OP;
+    originPoint = originPoint ? originPoint: OP;
+    var relativeX = point.x - originPoint.x;
+    var relativeY = point.y - originPoint.y;
+    return {
+       x : relativeX * Math.cos(angle) + relativeY * Math.sin(angle) + offset.x,
+       y : relativeY * Math.cos(angle) - relativeX * Math.sin(angle) + offset.y
+    };
+  },
+  
+  getAngle : function(startP, endP, offset){
+    var disX = this.getDisX(startP, endP);
+    var disY = this.getDisY(startP, endP);
+    var angle = 0;
+    angle = Math.atan2(disY, -disX) + (offset > 0 ? offset : 0);
+    console.log(angle*180/3.14);
+    return angle;
+  },
+  
+  getDisX : function(startP, endP){
+    return endP.x - startP.x;
+  },
+  
+  getDisY : function(startP, endP){
+    return endP.y - startP.y;
+  },
+  
+  getDisXY : function(startP, endP){
+    var disX = this.getDisX(startP, endP);
+    var disY = this.getDisY(startP, endP);
+    return Math.sqrt(disX*disX +disY*disY);
+  },
+  
   /**
    * Desc : this is the util to generate triagle path
    * 
@@ -23,13 +107,9 @@ Utils = {
    * @param sideLength is the side length of triagle
    */
   getTriPath : function(startP, endP, sideLength) {
-    var disX = endP.x - startP.x;
-    var disY = endP.y - startP.y;
-    var angle = 0;
+    var me = this;
     var pi = Math.PI;
-    angle = Math.atan2(disY, -disX) + pi * 0.5;//anti-clockwise 90 degree
-    console.log(angle*180/3.14);
-    
+    var angle = this.getAngle(startP, endP, pi * 0.5);//anti-clockwise 90 degree as offset;
     // triangle has 3 points, 1 is p0 which is origin point, p1, p2 is the rest
     var cosLengh = Math.cos(pi/6);
     var p1 = {
@@ -40,27 +120,25 @@ Utils = {
       x : -sideLength * 0.5,
       y : sideLength * cosLengh
     };
-    var path = [ 'M', startP.x, startP.y,
+    var origPoints = [startP, OP.add(p1.x, p1.y), OP.add(p2.x, p2.y)];
+    var points = [];
+    Ext.each(origPoints, function (point){
+      points.push(me.rotate(point, angle, OP, startP));
+    });
+    var path = [ 'M', points[0].x, points[0].y,
         'L', 
-        matrix(p1.x, p1.y, angle, startP.x)/* pointx */,
-        matrix(p1.y, -p1.x, angle, startP.y)/* pointy */, 
+        points[1].x, points[1].y,
         'L', 
-        matrix(p2.x, p2.y, angle, startP.x)/* pointx */,
-        matrix(p2.y, -p2.x, angle, startP.y)/* pointy */,
+        points[2].x, points[2].y,
         'z'
     ].join(' ');
-    
-    console.log(path);
-    
+//    console.log('tri path' + path);
     return path;
-    
-    function matrix(m1, m2, radians, offset) {
-      return m1 * Math.cos(angle) + m2 * Math.sin(angle) + offset;
-    };
   }
 };
 
 Ext.define('Brain.Object', {
+  id : 0,
   x : 0,
   y : 0,
   z : 0,
@@ -109,9 +187,11 @@ Ext.define('Brain.Neuron', {
 
   radius : 20,
 
-  synapses : [],
+  dendrites : [],
   
   axons : [],
+  
+  groupedPreNeurons : new Ext.util.HashMap(),
 
   constructor : function(args) {
     Ext.apply(this, args);
@@ -180,9 +260,36 @@ Ext.define('Brain.Neuron', {
       var neuronMap = me.drawComp.neuronMap;
       neuronMap.registerNeuron(me);
     });
-    me.s.on('dragstart', function(dd) {
-      console.log('dragstart');
+  },
+  
+  /**
+   * Add synapse as Axon
+   * @param preNeuron
+   * @param postNeuron
+   * @returns
+   */
+  addAxonSynapse : function(postNeuron, mode) {
+    var me = this;
+    var syn = Ext.create('Brain.Synapse', {
+      drawComp : me.drawComp,
+      preNeuron : this,
+      postNeuron : postNeuron,
+      isReverse : mode == MODE.SYNAPSE_R
     });
+    me.axons.push(syn);
+    postNeuron.addDendriteSynapse(syn);
+    me.updateSynapse();
+    return syn;
+  },
+  
+  addDendriteSynapse : function(synapse){
+    this.dendrites.push(synapse);
+    if(this.groupedPreNeurons.containsKey(synapse.preNeuron.id)){
+      this.groupedPreNeurons.get(synapse.preNeuron.id).push(synapse);
+    }else{
+      this.groupedPreNeurons.add(synapse.preNeuron.id, [synapse]);
+    }
+    this.updateSynapse();
   },
   
   /**
@@ -197,19 +304,26 @@ Ext.define('Brain.Neuron', {
   
   updateSynapse : function() {
     var me = this;
-    Ext.each(this.synapses,function(s){
-      s.updateXY(me.x, me.y);
+    Ext.each(me.dendrites,function(s){
+      s.updateXY(true);
+    });
+    me.groupedPreNeurons.each(function(key, value){
+      var dendrites = value;
+      Ext.each(dendrites, function(syn, index){
+        syn.updateLevel(index);
+      });
     });
     
-    Ext.each(this.axons,function(s){
-      s.updateXY(me.x, me.y);
+    Ext.each(me.axons,function(s){
+      s.updateXY();
     });
   }
 });
 
 Ext.define('Brain.Synapse', {
   extend : 'Brain.Object',
-  dot : null,
+  arrow : null,
+  arrowSideLength : 20,
 
   preNeuron : null,
 
@@ -217,62 +331,84 @@ Ext.define('Brain.Synapse', {
 
   endX : 0,
   endY : 0,
-
+  //use for set up curve height, this level is determine by queue number in where is this synapse 
+  level : 0,
+  levelStep : 20,
+  curveWidth : 20,
+  
   constructor : function(args) {
     Ext.apply(this, args);
-    this.updateXY();
+    this.setXY();// no draw() call ,because parent class will do 
     this.callParent(args);
   },
 
   isReverse : false,
   
+  /**
+   * Draw Synapse, will be call when initialed and redraw
+   */
   draw : function() {
     var me = this;
     if (!Ext.isEmpty(me.drawComp)) {
+      var sPath = Utils.getCurvePath(OP.add(me.x, me.y), OP.add(me.endX, me.endY), me.level * me.levelStep, me.curveWidth);
+        //[ 'M', me.x, me.y, 'Q', ((me.x + me.endX)/2 + 100), ((me.y + me.endY)/2 + 100), 'T', me.endX, me.endY ].join(' ');
+      var arrowPath = Utils.getTriPath({x : (me.x + me.endX) / 2, y : (me.y + me.endY) / 2}, {x :me.endX, y : me.endY}, me.arrowSideLength);
       if (Ext.isEmpty(me.s)) {
         me.s = this.drawComp.surface.add({
           type : 'path',
           fill : 'none',
           stroke : 'blue',
-          path : [ 'M', me.x, me.y, 'L', me.endX, me.endY ].join(' '),
+          path : sPath,
           x : me.x,
           y : me.y
         });
-        me.dot = me.drawComp.surface.add({
+        me.arrow = me.drawComp.surface.add({
           type : 'path',
           fill : me.isReverse ? '#ff' : '#ffffff',
           stroke : 'blue',
           // path : [ 'M', (me.x + me.endX) / 2, (me.y + me.endY) / 2, 'L',
           // me.endX, me.endY ].join(' '),
-          path : Utils.getTriPath({x : (me.x + me.endX) / 2, y : (me.y + me.endY) / 2}, {x :me.endX, y : me.endY}, 20),
+          path : arrowPath,
           x : (me.x + me.endX) / 2,
           y : (me.y + me.endY) / 2
         });
         // this.registerListeners();
       } else {
         me.s.setAttributes({
-          path : [ 'M', me.x, me.y, 'L', me.endX, me.endY ].join(' '),
+          path : sPath,
           x : me.x,
           y : me.y
         });
-        me.dot.setAttributes({
-          path : Utils.getTriPath({x : (me.x + me.endX) / 2, y : (me.y + me.endY) / 2}, {x :me.endX, y : me.endY}, 20),
+        me.arrow.setAttributes({
+          path : arrowPath,
           x : (me.x + me.endX) / 2,
           y : (me.y + me.endY) / 2
         });
       }
 
       me.s.redraw();
-      me.dot.redraw();
+      me.arrow.redraw();
     }
   },
   
-  updateXY : function(){
+  setXY :function(){
     this.x = this.preNeuron ? this.preNeuron.x : this.x;
     this.y = this.preNeuron ? this.preNeuron.y : this.y;
     this.endX = this.postNeuron ? this.postNeuron.x : this.endX;
     this.endY = this.postNeuron ? this.postNeuron.y : this.endY;
-    this.draw();
+  },
+  
+  updateXY : function(deferRender){
+    this.setXY();
+    if(!deferRender)
+      this.draw();
+  },
+  
+  updateLevel : function(index, deferRender){
+    var level = index > 0 ? (index + 1)/2 : 0;
+    this.level = index%2 == 0 ? level : -level;
+    if(!deferRender)
+      this.draw();
   }
 
 });
@@ -426,28 +562,17 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     var bno = Ext.create('Brain.Neuron', {
       drawComp : drawpanel,
       x : xy[0],
-      y : xy[1] - offset
+      y : xy[1] - offset,
+      id :Ext.data.IdGenerator.get('uuid').generate()
     });
     return bno;
-  },
-
-  addSynapse : function(preNeuron, postNeuron) {
-    var syn = Ext.create('Brain.Synapse', {
-      drawComp : this.getComponent('drawpanel'),
-      preNeuron : preNeuron,
-      postNeuron : postNeuron,
-      isReverse : this.mode == MODE.SYNAPSE_R
-    });
-    return syn;
   },
 
   registerNeuron : function(neuron) {
     var me = this;
     if (me && (me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R)) {
       if (me.preNeuron && me.preNeuron != neuron) {// that means already has first neuron checked,this is the 2nd
-        var synapse = me.addSynapse(me.preNeuron, neuron);
-        me.preNeuron.axons.push(synapse);
-        neuron.synapses.push(synapse);
+        me.preNeuron.addAxonSynapse(neuron, me.mode);
         me.preNeuron = null;
       } else {
         me.preNeuron = neuron;
