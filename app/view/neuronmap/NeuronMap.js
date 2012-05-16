@@ -56,13 +56,13 @@ Utils = {
     Ext.each(oringPoints, function (point){
       points.push(me.rotate(point, angle, OP, startP));
     });
-    var paths = ["M", points[0].x, points[0].y,
+    var path = ["M", points[0].x, points[0].y,
                 "C", points[1].x, points[1].y, points[2].x, points[2].y, points[3].x, points[3].y,
                 "S", points[4].x, points[4].y, points[5].x, points[5].y
-                ];
-    var path = paths.join(" ");
+                ].join(' ');
+    var pathObj = {path:path, points : points};
 //    console.log('Synapse path:'+ path);
-    return path;
+    return pathObj;
   },
   
   rotate : function(point, angle, originPoint, offset){
@@ -132,8 +132,9 @@ Utils = {
         points[2].x, points[2].y,
         'z'
     ].join(' ');
+    var pathObj = {path : path, points : points};
     console.log('tri path' + path);
-    return path;
+    return pathObj;
   }
 };
 
@@ -338,7 +339,7 @@ Ext.define('Brain.Synapse', {
   endY : 0,
   //use for set up curve height, this level is determine by queue number in where is this synapse 
   level : 0,
-  levelStep : 20,
+  levelStep : 10,
   curveWidth : 20,
   
   constructor : function(args) {
@@ -355,9 +356,12 @@ Ext.define('Brain.Synapse', {
   draw : function() {
     var me = this;
     if (!Ext.isEmpty(me.drawComp)) {
-      var sPath = Utils.getCurvePath(OP.add(me.x, me.y), OP.add(me.endX, me.endY), me.level * me.levelStep, me.curveWidth);
+      var sPathObj = Utils.getCurvePath(OP.add(me.x, me.y), OP.add(me.endX, me.endY), me.level * me.levelStep, me.curveWidth);
+      var sPath = sPathObj.path;
         //[ 'M', me.x, me.y, 'Q', ((me.x + me.endX)/2 + 100), ((me.y + me.endY)/2 + 100), 'T', me.endX, me.endY ].join(' ');
-      var arrowPath = Utils.getTriPath({x : (me.x + me.endX) / 2, y : (me.y + me.endY) / 2}, {x :me.endX, y : me.endY}, me.arrowSideLength);
+      var arrawStartP = sPathObj.points[2]; //the curve control point 
+      var arrawEndP = sPathObj.points[3]; //the curve control point 
+      var arrowPath = Utils.getTriPath(OP.add(arrawStartP.x, arrawStartP.y), OP.add(arrawEndP.x, arrawEndP.y), me.arrowSideLength).path;
       if (Ext.isEmpty(me.s)) {
         me.s = this.drawComp.surface.add({
           type : 'path',
