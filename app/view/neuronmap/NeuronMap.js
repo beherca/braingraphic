@@ -49,7 +49,7 @@ Utils = {
     var disXY = me.getDisXY(startP, endP);
     var midPoint = {x : disXY/2, y :curveHeight};
     var oringPoints = [/*P0*/OP, /*P1*/{x : 0, y : curveHeight},
-                  /*P2*/{x : midPoint.x, y : midPoint.y}, 
+                  /*P2*/{x : midPoint.x - curveWidth/2, y : midPoint.y}, 
                   /*P3*/{x : midPoint.x, y : midPoint.y },
                   /*P4*/{x : disXY, y : curveHeight}, /*P5*/OP.add(disXY, 0)];
     var points =[];
@@ -61,7 +61,7 @@ Utils = {
                 "S", points[4].x, points[4].y, points[5].x, points[5].y
                 ];
     var path = paths.join(" ");
-    console.log('Snapse path:'+ path);
+//    console.log('Synapse path:'+ path);
     return path;
   },
   
@@ -81,7 +81,7 @@ Utils = {
     var disY = this.getDisY(startP, endP);
     var angle = 0;
     angle = Math.atan2(disY, -disX) + (offset > 0 ? offset : 0);
-    console.log(angle*180/3.14);
+//    console.log(angle*180/3.14);
     return angle;
   },
   
@@ -120,7 +120,7 @@ Utils = {
       x : -sideLength * 0.5,
       y : sideLength * cosLengh
     };
-    var origPoints = [startP, OP.add(p1.x, p1.y), OP.add(p2.x, p2.y)];
+    var origPoints = [OP, OP.add(p1.x, p1.y), OP.add(p2.x, p2.y)];
     var points = [];
     Ext.each(origPoints, function (point){
       points.push(me.rotate(point, angle, OP, startP));
@@ -132,7 +132,7 @@ Utils = {
         points[2].x, points[2].y,
         'z'
     ].join(' ');
-//    console.log('tri path' + path);
+    console.log('tri path' + path);
     return path;
   }
 };
@@ -152,7 +152,7 @@ Ext.define('Brain.Object', {
   constructor : function(args) {
     Ext.apply(this, args);
     this.callParent(args);
-    this.draw();
+//    this.draw();
   },
 
   registerListeners : function() {
@@ -191,11 +191,13 @@ Ext.define('Brain.Neuron', {
   
   axons : [],
   
-  groupedPreNeurons : new Ext.util.HashMap(),
+  groupedPreNeurons : null,
 
   constructor : function(args) {
     Ext.apply(this, args);
+    this.groupedPreNeurons = new Ext.util.HashMap();
     this.callParent(args);
+    this.draw();
   },
 
   draw : function() {
@@ -231,11 +233,11 @@ Ext.define('Brain.Neuron', {
       return;
     //add custom method to Ext.draw.SpriteDD, after drop (actually an invalid drop because there is no drop zone)
     me.s.dd.afterInvalidDrop = function(target, e, id){
-      console.log('after drag over');
+//      console.log('after drag over');
       me.updateXY();
     };
     me.s.on('mouseover', function(sprite) {
-      console.log('mouseover');
+//      console.log('mouseover');
       me.drawComp.focusObjects.push(sprite);
       sprite.setAttributes({
         fill : 'ffff00',
@@ -247,7 +249,7 @@ Ext.define('Brain.Neuron', {
       sprite.redraw();
     });
     me.s.on('mouseout', function(sprite) {
-      console.log('mouseout');
+//      console.log('mouseout');
       me.drawComp.focusObjects.pop();
       sprite.setAttributes({
         fill : 'ff0000',
@@ -256,7 +258,7 @@ Ext.define('Brain.Neuron', {
       sprite.redraw();
     });
     me.s.on('click', function(sprite) {
-      console.log('click');
+//      console.log('click');
       var neuronMap = me.drawComp.neuronMap;
       neuronMap.registerNeuron(me);
     });
@@ -284,19 +286,22 @@ Ext.define('Brain.Neuron', {
   
   addDendriteSynapse : function(synapse){
     this.dendrites.push(synapse);
+    var neuron = null;
     if(this.groupedPreNeurons.containsKey(synapse.preNeuron.id)){
-      this.groupedPreNeurons.get(synapse.preNeuron.id).push(synapse);
+      neuron = this.groupedPreNeurons.get(synapse.preNeuron.id);
+      neuron.push(synapse);
     }else{
-      this.groupedPreNeurons.add(synapse.preNeuron.id, [synapse]);
+      neuron = this.groupedPreNeurons.add(synapse.preNeuron.id, [synapse]);
     }
-    this.updateSynapse();
+    //for performance concern, dont call updateSynapse which will update all synapses in dendrite and axon
+    synapse.updateLevel(neuron.length - 1);
   },
   
   /**
    * This is called after dragging to update x y and redraw synapse
    */
   updateXY : function(){
-    console.log('update xy');
+//    console.log('update xy');
     this.x = this.s.x + this.s.attr.translation.x;
     this.y = this.s.y + this.s.attr.translation.y;
     this.updateSynapse();
@@ -524,12 +529,12 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
 
   afterRender : function() {
     var me = this;
-    console.log('view ok');
+//    console.log('view ok');
     me.callParent(arguments);
     var drawpanel = me.getComponent('drawpanel');
     drawpanel.neuronMap = me;
     drawpanel.on('click', function(e, t, opts) {
-      console.log('draw panel click');
+//      console.log('draw panel click');
       if (drawpanel.focusObjects.length > 0) {
 
       } else {
