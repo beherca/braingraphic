@@ -30,10 +30,6 @@
             "files": [
                 {
                     "path": "",
-                    "name": "all-classes.js"
-                },
-                {
-                    "path": "",
                     "name": "app.js"
                 },
                 {
