@@ -7,7 +7,6 @@
 
 //Ext.onReady(function(){
   Ext.application({
-    requires : ['AM.view.Viewport'],
     name: 'AM',
     // automatically create an instance of AM.view.Viewport
     autoCreateViewport: true,

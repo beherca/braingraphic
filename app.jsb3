@@ -14,12 +14,24 @@
                     "name": "Viewport.js"
                 },
                 {
-                    "path": "app/controller/",
+                    "path": "app/model/",
                     "name": "NeuronMap.js"
+                },
+                {
+                    "path": "app/store/",
+                    "name": "NeuronMaps.js"
                 },
                 {
                     "path": "app/view/neuronmap/",
                     "name": "NeuronMap.js"
+                },
+                {
+                    "path": "app/controller/",
+                    "name": "NeuronMap.js"
+                },
+                {
+                    "path": "",
+                    "name": "app.js"
                 }
             ]
         },
@@ -29,20 +41,28 @@
             "compress": true,
             "files": [
                 {
-                    "path": "",
-                    "name": "app.js"
-                },
-                {
                     "path": "app/view/",
                     "name": "Viewport.js"
+                },
+                {
+                    "path": "app/model/",
+                    "name": "NeuronMap.js"
+                },
+                {
+                    "path": "app/store/",
+                    "name": "NeuronMaps.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
+                    "name": "NeuronMap.js"
                 },
                 {
                     "path": "app/controller/",
                     "name": "NeuronMap.js"
                 },
                 {
-                    "path": "app/view/neuronmap/",
-                    "name": "NeuronMap.js"
+                    "path": "",
+                    "name": "app.js"
                 }
             ]
         }
