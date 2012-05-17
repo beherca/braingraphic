@@ -3,6 +3,5 @@ Ext.define('AM.view.Viewport', {
     layout: 'fit',
     items: [{
         xtype: 'neuronmap',
-        title : 'shit'
     }]
 });
