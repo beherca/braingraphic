@@ -26,6 +26,10 @@
                     "name": "NeuronMap.js"
                 },
                 {
+                    "path": "app/view/neuronmap/",
+                    "name": "NeuronMapList.js"
+                },
+                {
                     "path": "app/controller/",
                     "name": "NeuronMap.js"
                 },
@@ -38,7 +42,10 @@
         {
             "name": "Application - Production",
             "target": "app-all.js",
-            "compress": true,
+            "compress": false,
+            "options": {
+                "debug": true
+            },
             "files": [
                 {
                     "path": "app/view/",
@@ -55,6 +62,10 @@
                 {
                     "path": "app/view/neuronmap/",
                     "name": "NeuronMap.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
+                    "name": "NeuronMapList.js"
                 },
                 {
                     "path": "app/controller/",
