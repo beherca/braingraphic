@@ -8,7 +8,7 @@ Ext.define('AM.store.NeuronMaps', {
     
     proxy: {
         type: 'rest',
-        url: '/movies',
+        url: '/neuronmaps',
         model: 'AM.model.NeuronMap',
         reader: {
             type: 'json',

@@ -31,14 +31,27 @@ Ext.define('AM.view.neuronmap.NeuronMapList', {
         xtype : 'textfield',
         allowBlank : false
       },
+      flex : 10
+    }, {
+      header : 'Update Time',
+      dataIndex : 'updatetime',
+      editable : false,
+      draggable : false,
+      resizable : false,
+      sortable : false,
+      renderer : Ext.util.Format.dateRenderer('m/d/Y'),
       flex : 1
     }, {
       xtype : 'actioncolumn',
-      width : 150,
+      width : 20,
       draggable : false,
       resizable : false,
+      sortable : false,
+      hidable : false,
+      menuDisabled : true,
       items : [ {
         icon : 'images/edit.png', // Use a URL in the icon config
+        flex : 1,
         tooltip : 'Edit',
         handler : function(grid, rowIndex, colIndex) {
           me.fireEvent('mapEdit', {
@@ -46,7 +59,16 @@ Ext.define('AM.view.neuronmap.NeuronMapList', {
             colIndex : colIndex
           });
         }
-      }, {
+      }]
+    }, {
+      xtype : 'actioncolumn',
+      width : 20,
+      draggable : false,
+      resizable : false,
+      sortable : false,
+      hidable : false,
+      menuDisabled : true,
+      items : [{
         icon : 'images/delete.png',
         tooltip : 'Delete',
         handler : function(grid, rowIndex, colIndex) {
@@ -55,8 +77,8 @@ Ext.define('AM.view.neuronmap.NeuronMapList', {
             colIndex : colIndex
           });
         }
-      } ]
-    } ];
+      }]
+    }];
     this.plugins = [ this.rowEditor ];
     this.tbar = [ '->', {
       xtype : 'button',
