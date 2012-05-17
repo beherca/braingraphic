@@ -139,7 +139,7 @@ Utils = {
 };
 
 Ext.define('Brain.Object', {
-  id : 0,
+  mapinternalId : 0,
   x : 0,
   y : 0,
   z : 0,
@@ -180,16 +180,31 @@ Ext.define('Brain.Object', {
       }
       me.s.redraw();
     }
+  },
+  
+  /**
+   * provide custom stringify
+   * @returns
+   */
+  toJSON : function(){
+    return JSON.stringify({
+      mapinternalId : this.mapinternalId,
+      x : this.x,
+      y : this.y,
+      z : this.z,
+      state : this.state
+    });
   }
 });
 
 Ext.define('Brain.Neuron', {
   extend : 'Brain.Object',
 
-  radius : 20,
+  radius : 10,
 
   dendrites : [],
   
+  //persistent 
   axons : [],
   
   groupedPreNeurons : null,
@@ -288,11 +303,11 @@ Ext.define('Brain.Neuron', {
   addDendriteSynapse : function(synapse){
     this.dendrites.push(synapse);
     var neuron = null;
-    if(this.groupedPreNeurons.containsKey(synapse.preNeuron.id)){
-      neuron = this.groupedPreNeurons.get(synapse.preNeuron.id);
+    if(this.groupedPreNeurons.containsKey(synapse.preNeuron.mapinternalId)){
+      neuron = this.groupedPreNeurons.get(synapse.preNeuron.mapinternalId);
       neuron.push(synapse);
     }else{
-      neuron = this.groupedPreNeurons.add(synapse.preNeuron.id, [synapse]);
+      neuron = this.groupedPreNeurons.add(synapse.preNeuron.mapinternalId, [synapse]);
     }
     //for performance concern, dont call updateSynapse which will update all synapses in dendrite and axon
     synapse.updateLevel(neuron.length - 1);
@@ -323,16 +338,28 @@ Ext.define('Brain.Neuron', {
     Ext.each(me.axons,function(s){
       s.updateXY();
     });
+  },
+  
+  toJSON : function(){
+    return JSON.stringify({
+      mapinternalId : this.mapinternalId,
+      x : this.x,
+      y : this.y,
+      z : this.z,
+      axons : this.axons,
+      state : statics.STATE.N
+    });
   }
 });
 
 Ext.define('Brain.Synapse', {
   extend : 'Brain.Object',
   arrow : null,
-  arrowSideLength : 20,
+  arrowSideLength : 10,
 
   preNeuron : null,
 
+  //persistent 
   postNeuron : null,
 
   endX : 0,
@@ -418,6 +445,16 @@ Ext.define('Brain.Synapse', {
     this.level = index%2 == 0 ? level : -level;
     if(!deferRender)
       this.draw();
+  },
+  
+  toJSON : function(){
+    return JSON.stringify({
+      mapinternalId : this.mapinternalId,
+      x : this.x,
+      y : this.y,
+      z : this.z,
+      postNeuron : {mapinternalId : this.postNeuron.mapinternalId}
+    });
   }
 
 });
@@ -425,6 +462,7 @@ Ext.define('Brain.Synapse', {
 Ext.define('AM.view.neuronmap.NeuronMap', {
   // DOM id
   id : 'neuron-map',
+  itemId : 'neuronMap',
   extend : 'Ext.container.Container',
   alias : 'widget.neuronmap',
 
@@ -434,6 +472,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   },
 
   mode : MODE.NORMAL,
+  
+  neurons : [],
 
   /** This is the neurons to be connected */
   preNeuron : null,
@@ -494,6 +534,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       iconCls : 'save-btn',
       id : 'save-btn',
       text : 'Save Map',
+      action: 'save',
       tooltip : 'Save the map',
       listeners : {
         click : function(btn, opts) {
@@ -572,8 +613,9 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       drawComp : drawpanel,
       x : xy[0],
       y : xy[1] - offset,
-      id :Ext.data.IdGenerator.get('uuid').generate()
+      mapinternalId :Ext.data.IdGenerator.get('uuid').generate()
     });
+    this.neurons.push(bno);
     return bno;
   },
 
