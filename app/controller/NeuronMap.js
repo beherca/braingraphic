@@ -1,21 +1,25 @@
 Ext.define('AM.controller.NeuronMap', {
   extend : 'Ext.app.Controller',
-  view : [ {
-    xtype : 'neuronmap'
-  } ],
+  
+  models : [ 'NeuronMap'],
+
+  stores : [ 'NeuronMaps' ],
+
+  view : [ 'neuronmap.NeuronMap'],
+  
   init : function() {
-    console.log('NeuronMap Controller Start');
+    console.log('NeuronMap Controller Start OK');
     this.control({
       'container > toolbar>button[action=save]' : {
         click : this.saveMap
       }
     });
   },
-  
-  saveMap : function(btn){
+
+  saveMap : function(btn) {
     console.log('saving map');
     var me = this;
-    var nm = btn.up('neuronmap');
+    var nm = btn.up('neuronmapview');
     var json = Ext.JSON.encode(nm.neurons);
     console.log(json);
   }

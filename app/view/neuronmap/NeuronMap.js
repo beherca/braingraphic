@@ -21,7 +21,7 @@ OP = {
     y : 0,
     add : function (x, y){
       return {x : x, y : y};
-    }
+    } 
 };
 
 Utils = {
@@ -275,8 +275,8 @@ Ext.define('Brain.Neuron', {
     });
     me.s.on('click', function(sprite) {
 //      console.log('click');
-      var neuronMap = me.drawComp.neuronMap;
-      neuronMap.registerNeuron(me);
+      var neuronmapview = me.drawComp.neuronmapview;
+      neuronmapview.registerNeuron(me);
     });
   },
   
@@ -465,7 +465,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   id : 'neuron-map',
   itemId : 'neuronMap',
   extend : 'Ext.container.Container',
-  alias : 'widget.neuronmap',
+  alias : 'widget.neuronmapview',
 
   layout : {
     type : 'border',
@@ -491,11 +491,11 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       toggleGroup : 'brainbuttons',
       listeners : {
         toggle : function(btn, pressed, opts) {
-          var neuronMap = btn.up('neuronmap');
+          var neuronmapview = btn.up('neuronmapview');
           if (pressed) {
-            neuronMap.mode = MODE.NEURON;
-          } else if (neuronMap.mode == MODE.NEURON) {
-            neuronMap.mode = MODE.NORMAL;
+            neuronmapview.mode = MODE.NEURON;
+          } else if (neuronmapview.mode == MODE.NEURON) {
+            neuronmapview.mode = MODE.NORMAL;
           }
         }
       }
@@ -507,11 +507,11 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       toggleGroup : 'brainbuttons',
       listeners : {
         toggle : function(btn, pressed, opts) {
-          var neuronMap = btn.up('neuronmap');
+          var neuronmapview = btn.up('neuronmapview');
           if (pressed) {
-            neuronMap.mode = MODE.SYNAPSE;
-          } else if (neuronMap.mode == MODE.SYNAPSE) {
-            neuronMap.mode = MODE.NORMAL;
+            neuronmapview.mode = MODE.SYNAPSE;
+          } else if (neuronmapview.mode == MODE.SYNAPSE) {
+            neuronmapview.mode = MODE.NORMAL;
           }
         }
       }
@@ -523,11 +523,11 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       toggleGroup : 'brainbuttons',
       listeners : {
         toggle : function(btn, pressed, opts) {
-          var neuronMap = btn.up('neuronmap');
+          var neuronmapview = btn.up('neuronmapview');
           if (pressed) {
-            neuronMap.mode = MODE.SYNAPSE_R;
-          } else if (neuronMap.mode == MODE.SYNAPSE_R) {
-            neuronMap.mode = MODE.NORMAL;
+            neuronmapview.mode = MODE.SYNAPSE_R;
+          } else if (neuronmapview.mode == MODE.SYNAPSE_R) {
+            neuronmapview.mode = MODE.NORMAL;
           }
         }
       }
@@ -556,7 +556,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
      * neuron when the mouse cusor is on existing another neuron
      */
     focusObjects : [],
-    neuronMap : null/*,
+    neuronmapview : null/*,
     items : [ {
       type : 'rect',
       fill : '#79BB3F',
@@ -578,7 +578,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
 //    console.log('view ok');
     me.callParent(arguments);
     var drawpanel = me.getComponent('drawpanel');
-    drawpanel.neuronMap = me;
+    drawpanel.neuronmapview = me;
     drawpanel.on('click', function(e, t, opts) {
 //      console.log('draw panel click');
       if (drawpanel.focusObjects.length > 0) {
