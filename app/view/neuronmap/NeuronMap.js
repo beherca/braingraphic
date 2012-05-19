@@ -33,7 +33,8 @@ MODE = {
   NORMAL : 'normal',
   NEURON : 'neurontoolactivated',
   SYNAPSE : 'synapsetoolactivated',
-  SYNAPSE_R : 'synapsereverttoolactivated'
+  SYNAPSE_R : 'synapsereverttoolactivated',
+  DELETE : 'delete'
 };
 /**
  * Origin Point
@@ -662,6 +663,22 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
             }
           }
         }
+      }, '|' ,{
+        iconCls : 'remove-btn',
+        id : 'remove-btn',
+        text : 'Remove',
+        tooltip : 'Remove Synapse or Neuron',
+        toggleGroup : 'brainbuttons',
+        listeners : {
+          toggle : function(btn, pressed, opts) {
+            var neuronmapview = btn.up('neuronmapview');
+            if (pressed) {
+              neuronmapview.mode = MODE.DELETE;
+            } else if (neuronmapview.mode == MODE.DELETE) {
+              neuronmapview.mode = MODE.NORMAL;
+            }
+          }
+        }
       }, '->', {
         iconCls : 'save-btn',
         id : 'save-btn',
@@ -766,22 +783,41 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       x : xy[0],
       y : xy[1] - offset
     });
-    bno.on('stateChanged' , me.updateFocus, this);
-    bno.on('stateChanged' , me.manageConnect, this);
+    bno.on('stateChanged' , me.neuronScHandler, this);
     this.neurons.push(bno);
     return bno;
   },
   
+  neuronScHandler : function(state, neuron){
+    if(state == STATE.A){//one neuron is activated
+      this.updateFocus(state, neuron);
+      this.manageConnect(state, neuron);
+      this.removeClick(state, neuron);
+    }
+  },
+  
+  removeClick : function(state, neuron){
+    var me = this;
+    if(me.mode ==MODE.DELETE){//one neuron is activated
+      if(me.activatedNeuron == neuron){
+        me.activatedNeuron = null;
+      }
+      if(me.candidateNeuron == neuron){
+        me.candidateNeuron = null;
+      }
+      Ext.Array.remove(me.neurons, neuron);
+      neuron.destroy();
+    }
+  },
+  
   updateFocus : function(state, neuron){
     var me = this;
-    if(state == STATE.A){//one neuron is activated
-      if(!Ext.isEmpty(me.activatedNeuron) && me.activatedNeuron != neuron){
-        //change last neuron back to Normal
-        me.activatedNeuron.updateState(STATE.N);
-      }
-      //neuron already state == Activated
-      me.activatedNeuron = neuron;
+    if(!Ext.isEmpty(me.activatedNeuron) && me.activatedNeuron != neuron){
+      //change last neuron back to Normal
+      me.activatedNeuron.updateState(STATE.N);
     }
+    //neuron already state == Activated
+    me.activatedNeuron = neuron;
   },
   
   removeFocus : function(){
@@ -793,14 +829,12 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   manageConnect : function(state, neuron){
     var me = this;
     if(me && (me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R)){
-      if(state == STATE.A && neuron){
-        if(!Ext.isEmpty(me.candidateNeuron) && me.candidateNeuron != neuron){
-          // going to connect both
-          me.candidateNeuron.addAxonSynapse(neuron, me.mode);
-          me.candidateNeuron = null;
-        }else{//can not start connecting, reset state
-          me.candidateNeuron = neuron;
-        }
+      if(!Ext.isEmpty(me.candidateNeuron) && me.candidateNeuron != neuron){
+        // going to connect both
+        me.candidateNeuron.addAxonSynapse(neuron, me.mode);
+        me.candidateNeuron = null;
+      }else{//can not start connecting, reset state
+        me.candidateNeuron = neuron;
       }
     }
   },
