@@ -20,13 +20,23 @@ Ext.define('AM.controller.NeuronMap', {
     this.control({
       'neuronmapview' : {
         mapSave : this.saveMap,
-        mapListShow : this.showMapList
+        mapListShow : this.listMap
       },
       'neuronmaplist' : {
-        mapAdd : this.showBrainDesigner,
-        mapDelete : this.deleteMap
+        mapAdd : this.addMap,
+        mapDelete : this.deleteMap,
+        mapEdit : this.editMap
       }
     });
+  },
+  
+  editMap : function(evtData){
+    var designer = this.getDesigner();
+    designer.show();
+    var store = this.getNeuronMapsStore();
+    var record = store.getAt(evtData.rowIndex);
+    designer.startEngine(record);
+    this.getList().hide();
   },
   
   deleteMap : function(evtData){
@@ -38,14 +48,16 @@ Ext.define('AM.controller.NeuronMap', {
     }
   },
 
-  showMapList : function() {
+  listMap : function() {
     this.getList().show();
     this.getDesigner().hide();
   },
 
-  showBrainDesigner : function() {
+  addMap : function() {
     this.getList().hide();
-    this.getDesigner().show();
+    var designer = this.getDesigner();
+    designer.clean();
+    designer.show();
   },
 
   saveMap : function(data) {
