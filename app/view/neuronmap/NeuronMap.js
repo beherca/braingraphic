@@ -154,7 +154,7 @@ Utils = {
     var me = this;
     var pi = Math.PI;
     var angle = this.getAngle(startP, endP, pi * 0.5);// anti-clockwise 90
-                                                      // degree as offset;
+    // degree as offset;
     // triangle has 3 points, 1 is p0 which is origin point, p1, p2 is the rest
     var cosLengh = Math.cos(pi / 6);
     var p1 = {
@@ -260,11 +260,11 @@ Ext.define('Brain.Neuron', {
     var me = this;
     Ext.apply(this, config);
     this.groupedPreNeurons = new Ext.util.HashMap();
-    this.listeners = {
-      stateChanged : me.updateState
-    };
+    this.axons = new Ext.util.HashMap();
+    this.dendrites = new Ext.util.HashMap();
     this.addEvents('stateChanged');
     this.callParent(config);
+    this.on('stateChanged', me.updateState);
     this.draw();
   },
 
@@ -307,27 +307,19 @@ Ext.define('Brain.Neuron', {
     };
     me.s.on('mouseover', function(sprite) {
       // console.log('mouseover');
-      me.drawComp.focusObjects.push(sprite);
-      if(me.state == STATE.N){
-        me.fireEvent('stateChanged', STATE.R);
+      if (me.state == STATE.N) {
+        me.fireEvent('stateChanged', STATE.R, me);
       }
     });
     me.s.on('mouseout', function(sprite) {
       // console.log('mouseout');
-      me.drawComp.focusObjects.pop();
-      if (me.state == STATE.R){
-        me.fireEvent('stateChanged', STATE.N);
+      if (me.state == STATE.R) {
+        me.fireEvent('stateChanged', STATE.N, me);
       }
     });
     me.s.on('click', function(sprite) {
       // console.log('click');
-      var neuronmapview = me.drawComp.neuronmapview;
-      neuronmapview.registerNeuron(me);
-      if(me.state == STATE.A){
-        me.fireEvent('stateChanged', STATE.N);
-      }else{
-        me.fireEvent('stateChanged', STATE.A);
-      }
+      me.fireEvent('stateChanged', STATE.A, me);
     });
   },
 
@@ -369,14 +361,14 @@ Ext.define('Brain.Neuron', {
       postNeuron : postNeuron,
       isReverse : mode == MODE.SYNAPSE_R
     });
-    me.axons[syn.iid] = syn;
+    me.axons.add(syn.iid, syn);
     postNeuron.addDendriteSynapse(syn);
     me.updateSynapse();
     return syn;
   },
 
   addDendriteSynapse : function(synapse) {
-    this.dendrites[synapse.iid] = synapse;
+    this.dendrites.add(synapse.iid, synapse);
     // neuron that has grouped synapses.
     var neuron = null;
     if (this.groupedPreNeurons.containsKey(synapse.preNeuron.iid)) {
@@ -393,14 +385,8 @@ Ext.define('Brain.Neuron', {
 
   // this remove the synapses from the array
   removeSynapse : function(synapse) {
-    if (Ext.isEmpty(this.axons[synapse.iid])) {
-      delete this.axons[synapse.iid];
-    } else if (Ext.isEmpty(this.dendrites[synapse.iid])) {
-      delete this.dendrites[synapse.iid];
-    } else {
-      return false;
-    }
-    return true;
+    this.axons.removeAtKey(synapse.iid);
+    this.dendrites.removeAtKey(synapse.iid);
   },
 
   /**
@@ -415,9 +401,10 @@ Ext.define('Brain.Neuron', {
 
   updateSynapse : function() {
     var me = this;
-    Ext.each(me.dendrites, function(s) {
-      s.updateXY(true);
+    me.dendrites.each(function(key, value) {
+      value.updateXY(true);
     });
+    
     me.groupedPreNeurons.each(function(key, value) {
       var dendrites = value;
       Ext.each(dendrites, function(syn, index) {
@@ -425,18 +412,18 @@ Ext.define('Brain.Neuron', {
       });
     });
 
-    Ext.each(me.axons, function(s) {
-      s.updateXY();
+    me.axons.each(function(key, value) {
+      value.updateXY();
     });
   },
 
   destroy : function() {
-    Ext.each(this.dendrites, function(d) {
-      d.destroy();
+    this.dendrites.each(function(key, value) {
+      value.destroy();
     });
     dendrites = null;
-    Ext.each(this.axons, function(a) {
-      a.destroy();
+    this.axons.each(function(key, value) {
+      value.destroy();
     });
     this.axons = null;
     this.groupedPreNeurons = null;
@@ -601,6 +588,9 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
 
   /** This is the neurons to be connected */
   activatedNeuron : null,
+  
+  // the neuron to be connected
+  candidateNeuron : null,
 
   offset : null,
 
@@ -610,193 +600,213 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   initComponent : function() {
     var me = this;
     this.addEvents([ 'mapSave', 'mapListShow' ]);
-    this.items = [
-        {
-          xtype : 'toolbar',
-          title : 'Brain Map Designer',
-          itemId : 'brainMapMenu',
-          items : [ {
-            iconCls : 'show-list-btn',
-            id : 'show-list-btn',
-            text : 'Back to List',
-            tooltip : 'Back to map list',
-            listeners : {
-              click : function() {
-                me.fireEvent('mapListShow');
-              }
-            }
-          }, '|', {
-            iconCls : 'neuron-active-btn',
-            id : 'neuron-active-btn',
-            text : 'Neuron',
-            tooltip : 'Active Neuron tool',
-            toggleGroup : 'brainbuttons',
-            listeners : {
-              toggle : function(btn, pressed, opts) {
-                var neuronmapview = btn.up('neuronmapview');
-                if (pressed) {
-                  neuronmapview.mode = MODE.NEURON;
-                } else if (neuronmapview.mode == MODE.NEURON) {
-                  neuronmapview.mode = MODE.NORMAL;
-                }
-              }
-            }
-          }, {
-            iconCls : 'synapse-active-btn',
-            id : 'synapse-active-btn',
-            text : 'Synapse',
-            tooltip : 'Active Synapse tool',
-            toggleGroup : 'brainbuttons',
-            listeners : {
-              toggle : function(btn, pressed, opts) {
-                var neuronmapview = btn.up('neuronmapview');
-                if (pressed) {
-                  neuronmapview.mode = MODE.SYNAPSE;
-                } else if (neuronmapview.mode == MODE.SYNAPSE) {
-                  neuronmapview.mode = MODE.NORMAL;
-                }
-              }
-            }
-          }, {
-            iconCls : 'synapse-r-active-btn',
-            id : 'synapse-r-active-btn',
-            text : 'Synapse Revert',
-            tooltip : 'Active Synapse tool',
-            toggleGroup : 'brainbuttons',
-            listeners : {
-              toggle : function(btn, pressed, opts) {
-                var neuronmapview = btn.up('neuronmapview');
-                if (pressed) {
-                  neuronmapview.mode = MODE.SYNAPSE_R;
-                } else if (neuronmapview.mode == MODE.SYNAPSE_R) {
-                  neuronmapview.mode = MODE.NORMAL;
-                }
-              }
-            }
-          }, '->', {
-            iconCls : 'save-btn',
-            id : 'save-btn',
-            text : 'Save Map',
-            action : 'save',
-            tooltip : 'Save the map',
-            listeners : {
-              click : function(btn, opts) {
-                console.log('save');
-                if (!me.saveWindow) {
-                  var form = Ext.widget('form', {
-                    layout : {
-                      type : 'vbox',
-                      align : 'stretch'
-                    },
-                    border : false,
-                    bodyPadding : 10,
-
-                    fieldDefaults : {
-                      labelAlign : 'top',
-                      labelWidth : 100,
-                      labelStyle : 'font-weight:bold'
-                    },
-                    items : [ {
-                      xtype : 'textfield',
-                      fieldLabel : 'Map Name',
-                      allowBlank : true
-                    } ],
-
-                    buttons : [ {
-                      text : 'Cancel',
-                      handler : function() {
-                        this.up('form').getForm().reset();
-                        this.up('window').hide();
-                      }
-                    }, {
-                      text : 'Save',
-                      handler : function() {
-                        var form = this.up('form').getForm();
-                        if (form.isValid()) {
-                          me.fireEvent('mapSave', {
-                            name : this.up('form').query('textfield')[0].value,
-                            neurons : me.neurons
-                          });
-                          form.reset();
-                          me.saveWindow.hide();
-                        }
-                      }
-                    } ]
-                  });
-                  me.saveWindow = Ext.widget('window', {
-                    title : 'Save Map',
-                    closeAction : 'hide',
-                    layout : 'fit',
-                    resizable : true,
-                    modal : true,
-                    items : form
-                  });
-                  me.add(me.saveWindow);
-                }
-                me.saveWindow.show();
-              }
-            }
-          } ],
-          region : 'north',
-        },
-        {
-          xtype : 'draw',
-          region : 'center',
-          itemId : 'drawpanel',
-          orderSpritesByZIndex : true,
-          viewBox : false,
-          /**
-           * this is the array to store the object that get the focus usually,
-           * only one get focuse, when it get focus, this can prevent user from
-           * adding neuron when the mouse cusor is on existing another neuron
-           */
-          focusObjects : [],
-          neuronmapview : this,
-          listeners : {
-            click : function(e, t, opts) {
-              // console.log('draw panel click');
-              //only happen when user click on the neruon object
-              if (e.target instanceof SVGRectElement) {
-                if (me.mode == MODE.NEURON) {
-                  me.offset = e.currentTarget.getBoundingClientRect().top;
-                  me.addNeuron(this, e.getXY(), me.offset);
-                } else {
-                  if(me.activatedNeuron){
-                    me.activatedNeuron.updateState(STATE.N);
-                    me.activatedNeuron = null;
-                  }
-                }
-              }
+    this.items = [ {
+      xtype : 'toolbar',
+      title : 'Brain Map Designer',
+      itemId : 'brainMapMenu',
+      items : [ {
+        iconCls : 'show-list-btn',
+        id : 'show-list-btn',
+        text : 'Back to List',
+        tooltip : 'Back to map list',
+        listeners : {
+          click : function() {
+            me.fireEvent('mapListShow');
+          }
+        }
+      }, '|', {
+        iconCls : 'neuron-active-btn',
+        id : 'neuron-active-btn',
+        text : 'Neuron',
+        tooltip : 'Active Neuron tool',
+        toggleGroup : 'brainbuttons',
+        listeners : {
+          toggle : function(btn, pressed, opts) {
+            var neuronmapview = btn.up('neuronmapview');
+            if (pressed) {
+              neuronmapview.mode = MODE.NEURON;
+            } else if (neuronmapview.mode == MODE.NEURON) {
+              neuronmapview.mode = MODE.NORMAL;
             }
           }
-        } ];
+        }
+      }, {
+        iconCls : 'synapse-active-btn',
+        id : 'synapse-active-btn',
+        text : 'Synapse',
+        tooltip : 'Active Synapse tool',
+        toggleGroup : 'brainbuttons',
+        listeners : {
+          toggle : function(btn, pressed, opts) {
+            var neuronmapview = btn.up('neuronmapview');
+            if (pressed) {
+              neuronmapview.mode = MODE.SYNAPSE;
+            } else if (neuronmapview.mode == MODE.SYNAPSE) {
+              neuronmapview.mode = MODE.NORMAL;
+            }
+          }
+        }
+      }, {
+        iconCls : 'synapse-r-active-btn',
+        id : 'synapse-r-active-btn',
+        text : 'Synapse Revert',
+        tooltip : 'Active Synapse tool',
+        toggleGroup : 'brainbuttons',
+        listeners : {
+          toggle : function(btn, pressed, opts) {
+            var neuronmapview = btn.up('neuronmapview');
+            if (pressed) {
+              neuronmapview.mode = MODE.SYNAPSE_R;
+            } else if (neuronmapview.mode == MODE.SYNAPSE_R) {
+              neuronmapview.mode = MODE.NORMAL;
+            }
+          }
+        }
+      }, '->', {
+        iconCls : 'save-btn',
+        id : 'save-btn',
+        text : 'Save Map',
+        action : 'save',
+        tooltip : 'Save the map',
+        listeners : {
+          click : function(btn, opts) {
+            console.log('save');
+            if (!me.saveWindow) {
+              var form = Ext.widget('form', {
+                layout : {
+                  type : 'vbox',
+                  align : 'stretch'
+                },
+                border : false,
+                bodyPadding : 10,
+
+                fieldDefaults : {
+                  labelAlign : 'top',
+                  labelWidth : 100,
+                  labelStyle : 'font-weight:bold'
+                },
+                items : [ {
+                  xtype : 'textfield',
+                  fieldLabel : 'Map Name',
+                  allowBlank : true
+                } ],
+
+                buttons : [ {
+                  text : 'Cancel',
+                  handler : function() {
+                    this.up('form').getForm().reset();
+                    this.up('window').hide();
+                  }
+                }, {
+                  text : 'Save',
+                  handler : function() {
+                    var form = this.up('form').getForm();
+                    if (form.isValid()) {
+                      me.fireEvent('mapSave', {
+                        name : this.up('form').query('textfield')[0].value,
+                        neurons : me.neurons
+                      });
+                      form.reset();
+                      me.saveWindow.hide();
+                    }
+                  }
+                } ]
+              });
+              me.saveWindow = Ext.widget('window', {
+                title : 'Save Map',
+                closeAction : 'hide',
+                layout : 'fit',
+                resizable : true,
+                modal : true,
+                items : form
+              });
+              me.add(me.saveWindow);
+            }
+            me.saveWindow.show();
+          }
+        }
+      } ],
+      region : 'north',
+    }, {
+      xtype : 'draw',
+      region : 'center',
+      itemId : 'drawpanel',
+      orderSpritesByZIndex : true,
+      viewBox : false,
+      /**
+       * this is the array to store the object that get the focus usually, only
+       * one get focuse, when it get focus, this can prevent user from adding
+       * neuron when the mouse cusor is on existing another neuron
+       */
+      focusObjects : [],
+      neuronmapview : this,
+      listeners : {
+        click : function(e, t, opts) {
+          // console.log('draw panel click');
+          // only happen when user click on the neruon object
+          if (e.target instanceof SVGRectElement) {
+            if (me.mode == MODE.NEURON) {
+              me.offset = e.currentTarget.getBoundingClientRect().top;
+              me.addNeuron(this, e.getXY(), me.offset);
+            } else if(me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R){
+              me.cancelConnect();
+              me.removeFocus();
+            }
+          }
+        }
+      }
+    } ];
     this.callParent(arguments);
   },
 
   addNeuron : function(drawpanel, xy, offset) {
+    var me = this;
     var bno = Ext.create('Brain.Neuron', {
       drawComp : drawpanel,
       x : xy[0],
       y : xy[1] - offset
     });
+    bno.on('stateChanged' , me.updateFocus, this);
+    bno.on('stateChanged' , me.manageConnect, this);
     this.neurons.push(bno);
     return bno;
   },
-
-  registerNeuron : function(neuron) {
+  
+  updateFocus : function(state, neuron){
     var me = this;
-    if (me && (me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R)) {
-      if (me.activatedNeuron && me.activatedNeuron != neuron) {// that means already has
-                                                    // first neuron checked,this
-                                                    // is the 2nd
-        me.activatedNeuron.addAxonSynapse(neuron, me.mode);
-        neuron.updateState(STATE.N);
-        me.activatedNeuron = null;
-      } else {
-        me.activatedNeuron = neuron;
-        neuron.updateState(STATE.A);
+    if(state == STATE.A){//one neuron is activated
+      if(!Ext.isEmpty(me.activatedNeuron) && me.activatedNeuron != neuron){
+        //change last neuron back to Normal
+        me.activatedNeuron.updateState(STATE.N);
+      }
+      //neuron already state == Activated
+      me.activatedNeuron = neuron;
+    }
+  },
+  
+  removeFocus : function(){
+    var me = this;
+    me.activatedNeuron.updateState(STATE.N);
+    me.activatedNeuron = null;
+  },
+  
+  manageConnect : function(state, neuron){
+    var me = this;
+    if(me && (me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R)){
+      if(state == STATE.A && neuron){
+        if(!Ext.isEmpty(me.candidateNeuron) && me.candidateNeuron != neuron){
+          // going to connect both
+          me.candidateNeuron.addAxonSynapse(neuron, me.mode);
+          me.candidateNeuron = null;
+        }else{//can not start connecting, reset state
+          me.candidateNeuron = neuron;
+        }
       }
     }
+  },
+  
+  cancelConnect : function(){
+    this.candidateNeuron = null;
   },
 
   startEngine : function(record) {
