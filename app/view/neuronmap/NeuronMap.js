@@ -758,9 +758,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
               //only happen when user click on the neruon object
               if (e.target instanceof SVGRectElement) {
                 if (me.mode == MODE.NEURON) {
-                  me.offset = me.offset ? me.offset : me.getComponent(
-                      'brainMapMenu').getHeight()
-                      + me.layout.border;
+                  me.offset = e.currentTarget.getBoundingClientRect().top;
                   me.addNeuron(this, e.getXY(), me.offset);
                 } else {
                   if(me.activatedNeuron){
