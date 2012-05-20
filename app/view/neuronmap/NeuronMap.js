@@ -250,10 +250,10 @@ Ext.define('Brain.Neuron', {
 
   radius : 10,
 
-  dendrites : [],
+  dendrites : null,
 
   // persistent
-  axons : [],
+  axons : null,
 
   groupedPreNeurons : null,
 
@@ -388,6 +388,8 @@ Ext.define('Brain.Neuron', {
   removeSynapse : function(synapse) {
     this.axons.removeAtKey(synapse.iid);
     this.dendrites.removeAtKey(synapse.iid);
+    synapse.destroy();
+    synapse = null;
   },
 
   /**
@@ -422,13 +424,14 @@ Ext.define('Brain.Neuron', {
     this.dendrites.each(function(key, value) {
       value.destroy();
     });
-    dendrites = null;
+    this.dendrites = null;
     this.axons.each(function(key, value) {
       value.destroy();
     });
     this.axons = null;
     this.groupedPreNeurons = null;
     this.s.destroy();
+    this.s = null;
   },
 
   toJSON : function() {
@@ -548,8 +551,6 @@ Ext.define('Brain.Synapse', {
     me.arrow.destroy();
     me.preNeuron.removeSynapse(me);
     me.postNeuron.removeSynapse(me);
-    me = null;
-    return true;
   },
 
   toJSON : function() {
@@ -763,8 +764,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
           // only happen when user click on the neruon object
           if (e.target instanceof SVGRectElement) {
             if (me.mode == MODE.NEURON) {
-              me.offset = e.currentTarget.getBoundingClientRect().top;
-              me.addNeuron(this, e.getXY(), me.offset);
+              me.addNeuron(OP.add(e.getXY()[0], e.getXY()[1]));
             } else if(me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R){
               me.cancelConnect();
               me.removeFocus();
@@ -776,12 +776,13 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.callParent(arguments);
   },
 
-  addNeuron : function(drawpanel, xy, offset) {
-    var me = this;
+  addNeuron : function(xy, offset) {
+    var me = this, drawComp = me.down('draw');
+    me.offset = me.offset ? me.offset : drawComp.getBox().y;
     var bno = Ext.create('Brain.Neuron', {
-      drawComp : drawpanel,
-      x : xy[0],
-      y : xy[1] - offset
+      drawComp : drawComp,
+      x : xy.x,
+      y : xy.y - (offset ? offset: 0) - me.offset
     });
     bno.on('stateChanged' , me.neuronScHandler, this);
     this.neurons.push(bno);
@@ -805,7 +806,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       if(me.candidateNeuron == neuron){
         me.candidateNeuron = null;
       }
-      Ext.Array.remove(me.neurons, neuron);
+      me.neurons = Ext.Array.remove(me.neurons, neuron);
       neuron.destroy();
     }
   },
@@ -843,16 +844,31 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.candidateNeuron = null;
   },
 
-  startEngine : function(record) {
-
+  startEngine : function(mapsdata) {
+    this.clean();
+    ParseEngine(mapsdata, this.engAddHandler, this.engConnHandler, this);
   },
 
+  engAddHandler : function(neuron){
+    this.addNeuron(OP.add(neuron.x, neuron.y));
+  },
+  
+  engConnHandler : function(synapse){
+    
+  },
+  
   clean : function() {
     // clean title
     this.setTitle(this.viewName);
+    var drawComp = this.down('draw');
+    drawComp.surface.removeAll(true);
     // destroy neurons, neuron will handle detail ifseft
     Ext.each(this.neurons, function(n) {
       n.destroy();
+      n = null;
     });
+    this.activatedNeuron = null;
+    this.candidateNeuron = null;
+    this.neurons = [];
   }
 });
