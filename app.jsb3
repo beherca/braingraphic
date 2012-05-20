@@ -8,7 +8,10 @@
             "options": {
                 "debug": true
             },
-            "files": [
+            "files": [{
+                    "path": "",
+                    "name": "engine.js"
+                },
                 {
                     "path": "app/view/",
                     "name": "Viewport.js"
@@ -46,7 +49,10 @@
             "options": {
                 "debug": true
             },
-            "files": [
+            "files": [{
+                    "path": "",
+                    "name": "engine.js"
+                },
                 {
                     "path": "app/view/",
                     "name": "Viewport.js"

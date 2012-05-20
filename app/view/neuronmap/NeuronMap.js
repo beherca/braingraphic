@@ -437,7 +437,7 @@ Ext.define('Brain.Neuron', {
       x : this.x,
       y : this.y,
       z : this.z,
-      axons : this.axons,
+      axons : this.axons.getValues(),
       state : this.state
     });
   }
