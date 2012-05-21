@@ -1,4 +1,4 @@
-ParseEngine = function(json, addNeuron, connectNeuron, scope) {
+ParseEngine = function(json, addNeuron, connectNeuron, onFinish, scope) {
   if (typeof (json) != 'string' || !addNeuron || !connectNeuron)
     return;
   var neurons = '';
@@ -10,7 +10,8 @@ ParseEngine = function(json, addNeuron, connectNeuron, scope) {
   var i = 0;
   for (; i < neurons.length; i++) {
     var neuron = neurons[i];
-    addNeuron.apply(scope, [neuron]);
+    // the real neuron object return from implementation
+    var implNeuron = addNeuron.apply(scope, [neuron]);
     if(neuron.axons && neuron.axons.length > 0){
       var k = 0;
       var axons = neuron.axons, 
@@ -22,8 +23,9 @@ ParseEngine = function(json, addNeuron, connectNeuron, scope) {
         } catch (e) {
           throw new Error('Invalid Synapse Json : ', e);
         }
-        connectNeuron.apply(scope, [synpase]);
+        connectNeuron.apply(scope, [implNeuron, synpase]);
       }
     }
   }
+  onFinish.apply(scope,[]);
 };

@@ -388,8 +388,9 @@ Ext.define('Brain.Neuron', {
   removeSynapse : function(synapse) {
     this.axons.removeAtKey(synapse.iid);
     this.dendrites.removeAtKey(synapse.iid);
-    synapse.destroy();
-    synapse = null;
+    //no need to handle destroy here, synapse will handle this
+//    synapse.destroy();
+//    synapse = null;
   },
 
   /**
@@ -463,14 +464,14 @@ Ext.define('Brain.Synapse', {
   level : 0,
   levelStep : 10,
   curveWidth : 20,
+  
+  isReverse : false,
 
   constructor : function(config) {
     Ext.apply(this, config);
     this.setXY();// no draw() call ,because parent class will do
     this.callParent(config);
   },
-
-  isReverse : false,
 
   /**
    * Draw Synapse, will be call when initialed and redraw
@@ -549,8 +550,8 @@ Ext.define('Brain.Synapse', {
     var me = this;
     me.s.destroy();
     me.arrow.destroy();
-    me.preNeuron.removeSynapse(me);
-    me.postNeuron.removeSynapse(me);
+//    me.preNeuron.removeSynapse(me);
+//    me.postNeuron.removeSynapse(me);
   },
 
   toJSON : function() {
@@ -559,6 +560,7 @@ Ext.define('Brain.Synapse', {
       x : this.x,
       y : this.y,
       z : this.z,
+      isReverse : this.isReverse,
       postNeuron : {
         iid : this.postNeuron.iid
       }
@@ -597,6 +599,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   offset : null,
 
   saveWindow : null,
+  
+  synapseCache : [],
 
   // store: 'Users'
   initComponent : function() {
@@ -846,15 +850,38 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
 
   startEngine : function(mapsdata) {
     this.clean();
-    ParseEngine(mapsdata, this.engAddHandler, this.engConnHandler, this);
+    ParseEngine(mapsdata, this.engAddHandler, this.engConnHandler, this.onEngineFinish, this);
   },
 
   engAddHandler : function(neuron){
-    this.addNeuron(OP.add(neuron.x, neuron.y));
+    newNeuron = this.addNeuron(OP.add(neuron.x, neuron.y));
+    return newNeuron;
   },
   
-  engConnHandler : function(synapse){
-    
+  engConnHandler : function(neuron, synapse){
+    this.synapseCache.push({neuron : neuron, synapse : synapse});
+  },
+  
+  onEngineFinish : function(){
+    //rebuild the synapse
+    var me = this;
+    Ext.each(me.synapseCache, function(sc){
+      var results = me.findNeuron(sc.synapse.postNeuron);
+      if (results && results.length > 0){
+        var pn = results[0];
+        sc.neuron.addAxonSynapse(pn, sc.synapse.isReverse ? MODE.SYNAPSE_R : MODE.SYNAPSE);
+      }
+    });
+  },
+  
+  findNeuron : function(neuron){
+    var results = Ext.Array.filter(this.neurons, function(item){
+      if(item && item.iid == neuron.iid){
+        return true;
+      }
+      return false;
+    }, this);
+    return results;
   },
   
   clean : function() {
@@ -870,5 +897,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.activatedNeuron = null;
     this.candidateNeuron = null;
     this.neurons = [];
+    this.synapseCache = [];
+    IID.reset();
   }
 });
