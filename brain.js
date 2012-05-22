@@ -171,7 +171,9 @@ Cortex.prototype = {
     var len = this.inputs.length > inputs.length ? inputs.length
         : this.inputs.length;
     for (; i < len; i++) {
-      this.inputs[i] = inputs[i];
+      var neuron = this.inputs[i];
+      neuron.output = inputs[i];
+      neuron.fire();
     }
   },
 
