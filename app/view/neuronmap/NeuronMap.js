@@ -34,7 +34,9 @@ MODE = {
   NEURON : 'neurontoolactivated',
   SYNAPSE : 'synapsetoolactivated',
   SYNAPSE_R : 'synapsereverttoolactivated',
-  DELETE : 'delete'
+  DELETE : 'delete',
+  INPUT : 'input',
+  OUTPUT : 'output'
 };
 /**
  * Origin Point
@@ -330,15 +332,15 @@ Ext.define('Brain.Neuron', {
     if (state == STATE.N) {
       if (state == STATE.N) {
         me.s.setAttributes({
-          fill : 'ff0000',
+          fill : '#ff0000',
           stroke : 'none'
         }, true);
         me.s.redraw();
       }
     } else if (state == STATE.A || state == STATE.R) {
       me.s.setAttributes({
-        fill : 'ffff00',
-        stroke : '00ff00',
+        fill : '#ffff00',
+        stroke : '#00ff00',
         style : {
           strokeWidth : 1
         }
@@ -385,12 +387,15 @@ Ext.define('Brain.Neuron', {
   },
 
   // this remove the synapses from the array
-  removeSynapse : function(synapse) {
+  removeAxonSynapse : function(synapse) {
     this.axons.removeAtKey(synapse.iid);
+  },
+  
+  removeDendriteSynapse :function(synapse){
     this.dendrites.removeAtKey(synapse.iid);
-    //no need to handle destroy here, synapse will handle this
-//    synapse.destroy();
-//    synapse = null;
+    var synapses = this.groupedPreNeurons.get(synapse.preNeuron.iid);
+    synapses = Ext.Array.remove(synapses, synapse);
+    this.groupedPreNeurons.replace(synapse.preNeuron.iid, synapses);
   },
 
   /**
@@ -550,8 +555,8 @@ Ext.define('Brain.Synapse', {
     var me = this;
     me.s.destroy();
     me.arrow.destroy();
-//    me.preNeuron.removeSynapse(me);
-//    me.postNeuron.removeSynapse(me);
+    me.preNeuron.removeAxonSynapse(me);
+    me.postNeuron.removeDendriteSynapse(me);
   },
 
   toJSON : function() {
@@ -567,6 +572,108 @@ Ext.define('Brain.Synapse', {
     });
   }
 
+});
+
+Ext.define('Brain.Input', {
+  extend : 'Brain.Neuron',
+  
+  draw : function() {
+    var me = this;
+    if (!Ext.isEmpty(me.drawComp)) {
+      if (Ext.isEmpty(me.s)) {
+        me.s = me.drawComp.surface.add({
+          draggable : true,
+          type : 'circle',
+          fill : '#0f00ff',
+          radius : me.radius,
+          x : me.x,
+          y : me.y,
+          zIndex : 200
+        });
+        me.registerListeners();
+      } else {
+        me.s.setAttributes({
+          x : me.x,
+          y : me.y
+        });
+      }
+      me.s.redraw();
+    }
+  },
+  
+  updateState : function(state) {
+    var me = this;
+    me.state = state;
+    if (state == STATE.N) {
+      if (state == STATE.N) {
+        me.s.setAttributes({
+          fill : '#0f00ff',
+          stroke : 'none'
+        }, true);
+        me.s.redraw();
+      }
+    } else if (state == STATE.A || state == STATE.R) {
+      me.s.setAttributes({
+        fill : '#0f00ff',
+        stroke : '#ff0000',
+        style : {
+          strokeWidth : 1
+        }
+      }, true);
+      me.s.redraw();
+    }
+  }
+});
+
+Ext.define('Brain.Output', {
+  extend : 'Brain.Neuron',
+
+  draw : function() {
+    var me = this;
+    if (!Ext.isEmpty(me.drawComp)) {
+      if (Ext.isEmpty(me.s)) {
+        me.s = me.drawComp.surface.add({
+          draggable : true,
+          type : 'circle',
+          fill : '#ff00ff',
+          radius : me.radius,
+          x : me.x,
+          y : me.y,
+          zIndex : 200
+        });
+        me.registerListeners();
+      } else {
+        me.s.setAttributes({
+          x : me.x,
+          y : me.y
+        });
+      }
+      me.s.redraw();
+    }
+  },
+  
+  updateState : function(state) {
+    var me = this;
+    me.state = state;
+    if (state == STATE.N) {
+      if (state == STATE.N) {
+        me.s.setAttributes({
+          fill : '#ff00ff',
+          stroke : 'none'
+        }, true);
+        me.s.redraw();
+      }
+    } else if (state == STATE.A || state == STATE.R) {
+      me.s.setAttributes({
+        fill : '#ff00ff',
+        stroke : '#ff0000',
+        style : {
+          strokeWidth : 1
+        }
+      }, true);
+      me.s.redraw();
+    }
+  }
 });
 
 Ext.define('AM.view.neuronmap.NeuronMap', {
@@ -589,6 +696,10 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   mode : MODE.NORMAL,
 
   neurons : [],
+  
+  inputs : [],
+  
+  outputs : [],
 
   /** This is the neurons to be connected */
   activatedNeuron : null,
@@ -605,7 +716,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   // store: 'Users'
   initComponent : function() {
     var me = this;
-    this.addEvents([ 'mapSave', 'mapListShow' ]);
+    this.addEvents([ 'mapSave', 'mapListShow', 'modeChanged' ]);
     this.items = [ {
       xtype : 'toolbar',
       title : 'Brain Map Designer',
@@ -634,6 +745,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
             } else if (neuronmapview.mode == MODE.NEURON) {
               neuronmapview.mode = MODE.NORMAL;
             }
+            neuronmapview.fireEvent('modeChanged');
           }
         }
       }, {
@@ -650,12 +762,13 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
             } else if (neuronmapview.mode == MODE.SYNAPSE) {
               neuronmapview.mode = MODE.NORMAL;
             }
+            neuronmapview.fireEvent('modeChanged');
           }
         }
       }, {
         iconCls : 'synapse-r-active-btn',
         id : 'synapse-r-active-btn',
-        text : 'Synapse Revert',
+        text : 'Inhibit Synapse',
         tooltip : 'Active Synapse tool',
         toggleGroup : 'brainbuttons',
         listeners : {
@@ -666,6 +779,41 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
             } else if (neuronmapview.mode == MODE.SYNAPSE_R) {
               neuronmapview.mode = MODE.NORMAL;
             }
+            neuronmapview.fireEvent('modeChanged');
+          }
+        }
+      }, '|' ,{
+        iconCls : 'input-btn',
+        id : 'input-btn',
+        text : 'Input',
+        tooltip : 'Input Neuron',
+        toggleGroup : 'brainbuttons',
+        listeners : {
+          toggle : function(btn, pressed, opts) {
+            var neuronmapview = btn.up('neuronmapview');
+            if (pressed) {
+              neuronmapview.mode = MODE.INPUT;
+            } else if (neuronmapview.mode == MODE.INPUT) {
+              neuronmapview.mode = MODE.NORMAL;
+            }
+            neuronmapview.fireEvent('modeChanged');
+          }
+        }
+      }, {
+        iconCls : 'output-btn',
+        id : 'output-btn',
+        text : 'Output',
+        tooltip : 'Output Neuron',
+        toggleGroup : 'brainbuttons',
+        listeners : {
+          toggle : function(btn, pressed, opts) {
+            var neuronmapview = btn.up('neuronmapview');
+            if (pressed) {
+              neuronmapview.mode = MODE.OUTPUT;
+            } else if (neuronmapview.mode == MODE.OUTPUT) {
+              neuronmapview.mode = MODE.NORMAL;
+            }
+            neuronmapview.fireEvent('modeChanged');
           }
         }
       }, '|' ,{
@@ -767,26 +915,38 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
           // console.log('draw panel click');
           // only happen when user click on the neruon object
           if (e.target instanceof SVGRectElement) {
+            me.offset = me.offset ? me.offset : me.down('draw').getBox().y;
             if (me.mode == MODE.NEURON) {
-              me.addNeuron(OP.add(e.getXY()[0], e.getXY()[1]));
+              me.addNeuron(OP.add(e.getXY()[0], e.getXY()[1]), -me.offset);
             } else if(me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R){
-              me.cancelConnect();
-              me.removeFocus();
+              if(me.candidateNeuron){
+                me.cancelConnect();
+              }
+              if(me.activatedNeuron){
+                me.removeFocus();
+              }
+            }else if(me.mode == MODE.INPUT){
+              me.addInput(OP.add(e.getXY()[0], e.getXY()[1]), -me.offset);
+            }else if(me.mode == MODE.OUTPUT){
+              me.addOutput(OP.add(e.getXY()[0], e.getXY()[1]), -me.offset);
             }
           }
         }
       }
     } ];
+    this.on('modeChanged', function(){
+      me.removeFocus();
+      me.cancelConnect();
+    });
     this.callParent(arguments);
   },
 
   addNeuron : function(xy, offset) {
     var me = this, drawComp = me.down('draw');
-    me.offset = me.offset ? me.offset : drawComp.getBox().y;
     var bno = Ext.create('Brain.Neuron', {
       drawComp : drawComp,
       x : xy.x,
-      y : xy.y - (offset ? offset: 0) - me.offset
+      y : xy.y + (offset ? offset: 0)
     });
     bno.on('stateChanged' , me.neuronScHandler, this);
     this.neurons.push(bno);
@@ -827,18 +987,29 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   
   removeFocus : function(){
     var me = this;
-    me.activatedNeuron.updateState(STATE.N);
-    me.activatedNeuron = null;
+    if(me.activatedNeuron){
+      me.activatedNeuron.updateState(STATE.N);
+      me.activatedNeuron = null;
+    }
   },
   
   manageConnect : function(state, neuron){
     var me = this;
     if(me && (me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R)){
       if(!Ext.isEmpty(me.candidateNeuron) && me.candidateNeuron != neuron){
-        // going to connect both
-        me.candidateNeuron.addAxonSynapse(neuron, me.mode);
+        if(!(neuron instanceof Brain.Input)){//the neuron to connect must not be input
+          if( me.candidateNeuron instanceof Brain.Input  && neuron instanceof Brain.Output) {
+            //input can not connect to output directly
+            Ext.Msg.alert('Message', 'You can not connect input to output directly');
+          }else{
+            // going to connect both
+            me.candidateNeuron.addAxonSynapse(neuron, me.mode);
+          }
+        }else{
+          Ext.Msg.alert('Message', 'You can not connect neuron to Input');
+        }
         me.candidateNeuron = null;
-      }else{//can not start connecting, reset state
+      }else if(!(neuron instanceof Brain.Output)) {//can not start connecting, reset state
         me.candidateNeuron = neuron;
       }
     }
@@ -848,13 +1019,40 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.candidateNeuron = null;
   },
 
-  startEngine : function(mapsdata) {
+  addInput : function(xy, offset) {
+    var me = this, drawComp = me.down('draw');
+    var input = Ext.create('Brain.Input', {
+      drawComp : drawComp,
+      x : xy.x,
+      y : xy.y + (offset ? offset: 0)
+    });
+    input.on('stateChanged' , me.neuronScHandler, this);
+    this.inputs.push(input);
+    return input;
+  },
+  
+  addOutput : function(xy, offset) {
+    var me = this, drawComp = me.down('draw');
+    var output = Ext.create('Brain.Output', {
+      drawComp : drawComp,
+      x : xy.x,
+      y : xy.y + (offset ? offset: 0)
+    });
+    output.on('stateChanged' , me.neuronScHandler, this);
+    this.outputs.push(output);
+    return output;
+  },
+  
+  startEngine : function(mapsdata, name) {
     this.clean();
+    this.setTitle (this.viewName + ' : ' + name);
     ParseEngine(mapsdata, this.engAddHandler, this.engConnHandler, this.onEngineFinish, this);
   },
 
   engAddHandler : function(neuron){
     newNeuron = this.addNeuron(OP.add(neuron.x, neuron.y));
+    //override the auto generated id with stored id
+    newNeuron.iid = neuron.iid;
     return newNeuron;
   },
   
@@ -897,6 +1095,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.activatedNeuron = null;
     this.candidateNeuron = null;
     this.neurons = [];
+    this.inputs = [];
+    this.ouputs = [];
     this.synapseCache = [];
     IID.reset();
   }

@@ -36,7 +36,7 @@ Ext.define('AM.controller.NeuronMap', {
     var store = this.getNeuronMapsStore();
     var record = store.getAt(evtData.rowIndex);
     if(record){
-      designer.startEngine(record.get('mapsdata'));
+      designer.startEngine(record.get('mapsdata'), record.get('name'));
     }
     this.getList().hide();
   },
