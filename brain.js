@@ -46,6 +46,11 @@ var Neuron = function() {
    */
   this.decayRate = 0.5;
   this.isWatched = false;
+  
+  /*
+   * function which neuron can call to register itself to cortex watch list 
+   */
+  this.addWatch = null;
 };
 /**
  * Synapse is the connection between two neuron
@@ -95,6 +100,7 @@ var Cortex = function() {
   this.inputs = [];
 
   this.outputs = [];
+
 };
 
 /**
@@ -150,6 +156,7 @@ Cortex.prototype = {
   addNeuron : function(iid) {
     var neuron = new Neuron();
     neuron.iid = isEmpty(iid) ? this.idCount++ : iid;
+    neuron.addWatch = this.addWatch();
     this.neurons.push(neuron);
     return neuron;
   },
@@ -184,6 +191,7 @@ Cortex.prototype = {
       var neuron = this.outputs[i];
       outputs.push(neuron.getNormalizedOutput());
     }
+    return outputs;
   },
 
   addNeurons : function(numofNeurons) {
@@ -252,7 +260,7 @@ Neuron.prototype = {
     // once call, means that this should be watched
     if (!this.isWatched) {
       this.isWatched = true;
-      Cortex.addWatch(this);
+      this.addWatch(this);
     }
     this.output += synapse.getOutput();
     if (this.output > this.threshold) {// if the sum is bigger than threshold
@@ -330,7 +338,7 @@ var BrainBuilder = function(mapsdata) {
   this.cortex = null;
   this.mapsdata = mapsdata;
 };
-var Brain = {
+var gBrain = {
   cortex : null, // cortex instance
 
   set : function(inputs) {
@@ -353,7 +361,7 @@ var Brain = {
 BrainBuilder.prototype = {
   startEngine : function() {
     this.cortex = new Cortex();
-    Brain.cortex = this.cortex;// explore the cortex for global access
+    gBrain.cortex = this.cortex;// explore the cortex for global access
     ParseEngine(this.mapsdata, this.engAddN, this.engAddI, this.engAddO,
         this.engConnHandler, this.engFinish, this);
   },
@@ -386,22 +394,24 @@ BrainBuilder.prototype = {
     var gsp = {};// grouped Synapse By PostNeuron iid
     for (; i < this.synapseCache.length; i++) {
       var sc = this.synapseCache[i];
-      if (isEmpty(gsp[sc.postNeuron.iid])) {
-        gsp[sc.postNeuron.iid] = [ sc ];
+      if (isEmpty(gsp[sc.synapse.postNeuron.iid])) {
+        gsp[sc.synapse.postNeuron.iid] = [ sc ];
       } else {
-        gsp[sc.postNeuron.iid].push(sc);
+        gsp[sc.synapse.postNeuron.iid].push(sc);
       }
     }
     for ( var iid in gsp) {
       var pn = this.findNeuron(iid); // post neuron
-      var snCachedObjs = gsp[iid]; // cached object in the synapseCache
-      var k = 0;
-      for (; k < snCachedObjs.length; k++) {
-        var sco = snCachedObjs[k];
-        var soma = sco.neuron; // pre synapse neuron, which is soma
-        var sobj = sco.synapse;
-        var s = this.cortex.connect(soma, pn);
-        s.iid = sobj.iid;
+      if(pn){
+        var snCachedObjs = gsp[iid]; // cached object in the synapseCache
+        var k = 0;
+        for (; k < snCachedObjs.length; k++) {
+          var sco = snCachedObjs[k];
+          var soma = sco.neuron; // pre synapse neuron, which is soma
+          var sobj = sco.synapse;
+          var s = this.cortex.connect(soma, pn);
+          s.iid = sobj.iid;
+        }
       }
     }
   },
