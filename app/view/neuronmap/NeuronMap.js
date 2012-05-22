@@ -874,6 +874,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
                     if (form.isValid()) {
                       me.fireEvent('mapSave', {
                         name : this.up('form').query('textfield')[0].value,
+                        inputs : me.inputs,
+                        outputs : me.outputs,
                         neurons : me.neurons
                       });
                       form.reset();
@@ -1089,6 +1091,11 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     drawComp.surface.removeAll(true);
     // destroy neurons, neuron will handle detail ifseft
     Ext.each(this.neurons, function(n) {
+      n.destroy();
+      n = null;
+    });
+    // destroy input and output, neuron will handle detail ifseft
+    Ext.each(this.inputs.concat(this.outputs), function(n) {
       n.destroy();
       n = null;
     });
