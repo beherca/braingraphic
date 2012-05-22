@@ -38,7 +38,6 @@ Ext.define('AM.view.neuronmap.NeuronMapList', {
       editable : false,
       draggable : false,
       resizable : false,
-      sortable : false,
       renderer : Ext.util.Format.dateRenderer('m/d/Y'),
       flex : 1
     }, {
