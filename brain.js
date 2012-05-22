@@ -156,7 +156,7 @@ Cortex.prototype = {
   addNeuron : function(iid) {
     var neuron = new Neuron();
     neuron.iid = isEmpty(iid) ? this.idCount++ : iid;
-    neuron.addWatch = this.addWatch();
+    neuron.addWatch = this.addWatch;
     this.neurons.push(neuron);
     return neuron;
   },
