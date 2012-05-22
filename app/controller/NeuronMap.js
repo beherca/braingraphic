@@ -65,7 +65,7 @@ Ext.define('AM.controller.NeuronMap', {
   saveMap : function(data) {
 //    console.log('saving map');
     var store = this.getNeuronMapsStore();
-    var nJson = Ext.JSON.encode(data.neurons);
+    var nJson = data.nJson;
 //    console.log(nJson);
     store.add({
       name : data.name,

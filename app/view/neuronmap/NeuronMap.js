@@ -739,13 +739,12 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         toggleGroup : 'brainbuttons',
         listeners : {
           toggle : function(btn, pressed, opts) {
-            var neuronmapview = btn.up('neuronmapview');
             if (pressed) {
-              neuronmapview.mode = MODE.NEURON;
-            } else if (neuronmapview.mode == MODE.NEURON) {
-              neuronmapview.mode = MODE.NORMAL;
+              me.mode = MODE.NEURON;
+            } else if (me.mode == MODE.NEURON) {
+              me.mode = MODE.NORMAL;
             }
-            neuronmapview.fireEvent('modeChanged');
+            me.fireEvent('modeChanged');
           }
         }
       }, {
@@ -756,13 +755,12 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         toggleGroup : 'brainbuttons',
         listeners : {
           toggle : function(btn, pressed, opts) {
-            var neuronmapview = btn.up('neuronmapview');
             if (pressed) {
-              neuronmapview.mode = MODE.SYNAPSE;
-            } else if (neuronmapview.mode == MODE.SYNAPSE) {
-              neuronmapview.mode = MODE.NORMAL;
+              me.mode = MODE.SYNAPSE;
+            } else if (me.mode == MODE.SYNAPSE) {
+              me.mode = MODE.NORMAL;
             }
-            neuronmapview.fireEvent('modeChanged');
+            me.fireEvent('modeChanged');
           }
         }
       }, {
@@ -773,13 +771,12 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         toggleGroup : 'brainbuttons',
         listeners : {
           toggle : function(btn, pressed, opts) {
-            var neuronmapview = btn.up('neuronmapview');
             if (pressed) {
-              neuronmapview.mode = MODE.SYNAPSE_R;
-            } else if (neuronmapview.mode == MODE.SYNAPSE_R) {
-              neuronmapview.mode = MODE.NORMAL;
+              me.mode = MODE.SYNAPSE_R;
+            } else if (me.mode == MODE.SYNAPSE_R) {
+              me.mode = MODE.NORMAL;
             }
-            neuronmapview.fireEvent('modeChanged');
+            me.fireEvent('modeChanged');
           }
         }
       }, '|' ,{
@@ -790,13 +787,12 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         toggleGroup : 'brainbuttons',
         listeners : {
           toggle : function(btn, pressed, opts) {
-            var neuronmapview = btn.up('neuronmapview');
             if (pressed) {
-              neuronmapview.mode = MODE.INPUT;
-            } else if (neuronmapview.mode == MODE.INPUT) {
-              neuronmapview.mode = MODE.NORMAL;
+              me.mode = MODE.INPUT;
+            } else if (me.mode == MODE.INPUT) {
+              me.mode = MODE.NORMAL;
             }
-            neuronmapview.fireEvent('modeChanged');
+            me.fireEvent('modeChanged');
           }
         }
       }, {
@@ -807,13 +803,12 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         toggleGroup : 'brainbuttons',
         listeners : {
           toggle : function(btn, pressed, opts) {
-            var neuronmapview = btn.up('neuronmapview');
             if (pressed) {
-              neuronmapview.mode = MODE.OUTPUT;
-            } else if (neuronmapview.mode == MODE.OUTPUT) {
-              neuronmapview.mode = MODE.NORMAL;
+              me.mode = MODE.OUTPUT;
+            } else if (me.mode == MODE.OUTPUT) {
+              me.mode = MODE.NORMAL;
             }
-            neuronmapview.fireEvent('modeChanged');
+            me.fireEvent('modeChanged');
           }
         }
       }, '|' ,{
@@ -824,15 +819,24 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         toggleGroup : 'brainbuttons',
         listeners : {
           toggle : function(btn, pressed, opts) {
-            var neuronmapview = btn.up('neuronmapview');
             if (pressed) {
-              neuronmapview.mode = MODE.DELETE;
-            } else if (neuronmapview.mode == MODE.DELETE) {
-              neuronmapview.mode = MODE.NORMAL;
+              me.mode = MODE.DELETE;
+            } else if (me.mode == MODE.DELETE) {
+              me.mode = MODE.NORMAL;
             }
           }
         }
       }, '->', {
+        iconCls : 'run-btn',
+        id : 'run-btn',
+        text : 'Run',
+        tooltip : 'Run Brain',
+        listeners : {
+          click : function(btn) {
+            me.buildBrain();
+          }
+        }
+      }, {
         iconCls : 'save-btn',
         id : 'save-btn',
         text : 'Save Map',
@@ -874,9 +878,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
                     if (form.isValid()) {
                       me.fireEvent('mapSave', {
                         name : this.up('form').query('textfield')[0].value,
-                        inputs : me.inputs,
-                        outputs : me.outputs,
-                        neurons : me.neurons
+                        nJson : me.toJson()
                       });
                       form.reset();
                       me.saveWindow.hide();
@@ -995,6 +997,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     }
   },
   
+  //TODO I hate this implementation, will seperate the logic for input and output,
+  // keep it simple and clean
   manageConnect : function(state, neuron){
     var me = this;
     if(me && (me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R)){
@@ -1048,11 +1052,25 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   startEngine : function(mapsdata, name) {
     this.clean();
     this.setTitle (this.viewName + ' : ' + name);
-    ParseEngine(mapsdata, this.engAddHandler, this.engConnHandler, this.onEngineFinish, this);
+    ParseEngine(mapsdata, this.engAddN, this.engAddI, this.engAddO, this.engConnHandler, this.engFinish, this);
   },
 
-  engAddHandler : function(neuron){
-    newNeuron = this.addNeuron(OP.add(neuron.x, neuron.y));
+  engAddN : function(neuron){
+    var newNeuron = this.addNeuron(OP.add(neuron.x, neuron.y));
+    //override the auto generated id with stored id
+    newNeuron.iid = neuron.iid;
+    return newNeuron;
+  },
+  
+  engAddI : function(neuron){
+    newNeuron = this.addInput(OP.add(neuron.x, neuron.y));
+    //override the auto generated id with stored id
+    newNeuron.iid = neuron.iid;
+    return newNeuron;
+  },
+  
+  engAddO : function(neuron){
+    var newNeuron = this.addOutput(OP.add(neuron.x, neuron.y));
     //override the auto generated id with stored id
     newNeuron.iid = neuron.iid;
     return newNeuron;
@@ -1062,7 +1080,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.synapseCache.push({neuron : neuron, synapse : synapse});
   },
   
-  onEngineFinish : function(){
+  engFinish : function(){
     //rebuild the synapse
     var me = this;
     Ext.each(me.synapseCache, function(sc){
@@ -1075,13 +1093,20 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   },
   
   findNeuron : function(neuron){
-    var results = Ext.Array.filter(this.neurons, function(item){
+    var all = this.neurons.concat(this.outputs);
+    var results = Ext.Array.filter(all, function(item){
       if(item && item.iid == neuron.iid){
         return true;
       }
       return false;
     }, this);
     return results;
+  },
+  
+  buildBrain : function(){
+    var nJson = this.toJson();
+    var brainBuilder = new BrainBuilder(nJson);
+    brainBuilder.startEngine();
   },
   
   clean : function() {
@@ -1095,7 +1120,11 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       n = null;
     });
     // destroy input and output, neuron will handle detail ifseft
-    Ext.each(this.inputs.concat(this.outputs), function(n) {
+    Ext.each(this.inputs, function(n) {
+      n.destroy();
+      n = null;
+    });
+    Ext.each(this.outputs, function(n) {
       n.destroy();
       n = null;
     });
@@ -1103,8 +1132,17 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.candidateNeuron = null;
     this.neurons = [];
     this.inputs = [];
-    this.ouputs = [];
+    this.outputs = [];
     this.synapseCache = [];
     IID.reset();
+  },
+  
+  toJson : function(){
+    var me = this;
+    return Ext.JSON.encode({
+      inputs : me.inputs,
+      outputs : me.outputs,
+      neurons : me.neurons
+    });
   }
 });

@@ -13,6 +13,10 @@
                     "name": "engine.js"
                 },
                 {
+                    "path": "",
+                    "name": "brain.js"
+                },
+                {
                     "path": "app/view/",
                     "name": "Viewport.js"
                 },
@@ -52,6 +56,10 @@
             "files": [{
                     "path": "",
                     "name": "engine.js"
+                },
+                {
+                    "path": "",
+                    "name": "brain.js"
                 },
                 {
                     "path": "app/view/",

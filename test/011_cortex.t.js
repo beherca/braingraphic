@@ -8,12 +8,12 @@ StartTest(function(t) {
     t.diag("Create first neuron");
     var neuron = Cortex.addNeuron();
     t.ok(neuron, 'neuron created');
-    t.is(neuron.id, 0, 'initial neuron id is 0');
+    t.is(neuron.iid, 0, 'initial neuron iid is 0');
     
     t.diag("Create sec neuron");
     var sec_n = Cortex.addNeuron();
     t.ok(sec_n, 'neuron created');
-    t.is(sec_n.id, 1, 'second neuron id is 1');
+    t.is(sec_n.iid, 1, 'second neuron iid is 1');
     
     t.diag("Connect both neuron");
     var s = Cortex.connect(neuron, sec_n);//connect() return synapse
