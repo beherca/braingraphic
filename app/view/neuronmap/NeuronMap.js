@@ -362,7 +362,7 @@ Ext.define('Brain.Neuron', {
       drawComp : me.drawComp,
       preNeuron : this,
       postNeuron : postNeuron,
-      isReverse : mode == MODE.SYNAPSE_R
+      isInhibit : mode == MODE.SYNAPSE_R
     });
     me.axons.add(syn.iid, syn);
     postNeuron.addDendriteSynapse(syn);
@@ -470,7 +470,7 @@ Ext.define('Brain.Synapse', {
   levelStep : 10,
   curveWidth : 20,
   
-  isReverse : false,
+  isInhibit : false,
 
   constructor : function(config) {
     Ext.apply(this, config);
@@ -504,7 +504,7 @@ Ext.define('Brain.Synapse', {
         });
         me.arrow = me.drawComp.surface.add({
           type : 'path',
-          fill : me.isReverse ? '#ff' : '#ffffff',
+          fill : me.isInhibit ? '#ff' : '#ffffff',
           stroke : 'blue',
           // path : [ 'M', (me.x + me.endX) / 2, (me.y + me.endY) / 2, 'L',
           // me.endX, me.endY ].join(' '),
@@ -565,7 +565,7 @@ Ext.define('Brain.Synapse', {
       x : this.x,
       y : this.y,
       z : this.z,
-      isReverse : this.isReverse,
+      isInhibit : this.isInhibit,
       postNeuron : {
         iid : this.postNeuron.iid
       }
@@ -1087,7 +1087,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       var results = me.findNeuron(sc.synapse.postNeuron);
       if (results && results.length > 0){
         var pn = results[0];
-        sc.neuron.addAxonSynapse(pn, sc.synapse.isReverse ? MODE.SYNAPSE_R : MODE.SYNAPSE);
+        sc.neuron.addAxonSynapse(pn, sc.synapse.isInhibit ? MODE.SYNAPSE_R : MODE.SYNAPSE);
       }
     });
   },

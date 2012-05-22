@@ -61,7 +61,7 @@ var Neuron = function() {
  *          is where the synapse to
  * @returns
  */
-var Synapse = function(soma, postSynapse) {
+var Synapse = function(soma, postSynapse, isInhibit) {
   this.iid = 0;
   this.soma = soma;
   this.postSynapse = postSynapse;
@@ -73,7 +73,7 @@ var Synapse = function(soma, postSynapse) {
    * it here
    */
   this.strength = 0.1;
-  this.isInhibiting = false;
+  this.isInhibit = isInhibit;
 };
 
 /**
@@ -234,9 +234,9 @@ Cortex.prototype = {
     }
   },
 
-  connect : function(soma, postSynapse) {
+  connect : function(soma, postSynapse, isInhibit) {
     if (soma && postSynapse) {
-      var synapse = new Synapse(soma, postSynapse);
+      var synapse = new Synapse(soma, postSynapse, isInhibit);
       soma.addAxons(synapse);
       return synapse;
     } else {
@@ -321,7 +321,7 @@ Synapse.prototype = {
   // no latency.
   getOutput : function() {
     var out = this.soma.getNormalizedOutput() * this.strength;
-    return this.isInhibiting ? -out : out;
+    return this.isInhibit ? -out : out;
   },
 
   destory : function() {
@@ -409,7 +409,7 @@ BrainBuilder.prototype = {
           var sco = snCachedObjs[k];
           var soma = sco.neuron; // pre synapse neuron, which is soma
           var sobj = sco.synapse;
-          var s = this.cortex.connect(soma, pn);
+          var s = this.cortex.connect(soma, pn, sobj.isInhibit);
           s.iid = sobj.iid;
         }
       }
