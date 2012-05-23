@@ -711,7 +711,11 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
 
   saveWindow : null,
   
+  settingWindow : null,
+  
   synapseCache : [],
+  
+  brainDriver : null,
 
   // store: 'Users'
   initComponent : function() {
@@ -831,9 +835,69 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         id : 'run-btn',
         text : 'Run',
         tooltip : 'Run Brain',
+        toggleGroup : 'runbrainbtn',
         listeners : {
-          click : function(btn) {
-            me.buildBrain();
+          toggle : function(btn, pressed, opts) {
+//          console.log('save');
+            if (pressed) {
+              btn.setText('Stop');
+              btn.setTooltip('Stop Brain');
+              if (!me.settingWindow) {
+                var form = Ext.widget('form', {
+                  layout : {
+                    type : 'vbox',
+                    align : 'stretch'
+                  },
+                  border : false,
+                  bodyPadding : 10,
+
+                  fieldDefaults : {
+                    labelAlign : 'top',
+                    labelWidth : 100,
+                    labelStyle : 'font-weight:bold'
+                  },
+                  items : [ {
+                    xtype : 'textfield',
+                    fieldLabel : 'Interval Time',
+                    value : 1000,
+                    allowBlank : false
+                  } ],
+
+                  buttons : [ {
+                    text : 'Cancel',
+                    handler : function() {
+                      this.up('form').getForm().reset();
+                      this.up('window').hide();
+                    }
+                  }, {
+                    text : 'Run',
+                    handler : function() {
+                      var form = this.up('form').getForm();
+                      if (form.isValid()) {
+                        var interval = this.up('form').query('textfield')[0].value;
+                        me.buildBrain(interval);
+                        form.reset();
+                        me.settingWindow.hide();
+                      }
+                    }
+                  } ]
+                });
+                me.settingWindow = Ext.widget('window', {
+                  title : 'Save Map',
+                  closeAction : 'hide',
+                  layout : 'fit',
+                  resizable : true,
+                  modal : true,
+                  items : form
+                });
+                me.add(me.settingWindow);
+              }
+              me.settingWindow.show();
+            }else{
+              btn.setText('Run');
+              btn.setTooltip('Run Brain');
+              me.stopBrain();
+            }
           }
         }
       }, {
@@ -844,7 +908,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         tooltip : 'Save the map',
         listeners : {
           click : function(btn, opts) {
-            console.log('save');
+//            console.log('save');
             if (!me.saveWindow) {
               var form = Ext.widget('form', {
                 layout : {
@@ -1103,10 +1167,27 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     return results;
   },
   
-  buildBrain : function(){
+  buildBrain : function(interval){
     var nJson = this.toJson();
     var brainBuilder = new BrainBuilder(nJson);
     brainBuilder.startEngine();
+    if(this.brainDriver){
+      this.brainDriver.destroy();
+    }
+    interval = !Ext.isEmpty(interval) && Ext.isNumber(interval) ? interval : 1000;
+    this.brainDriver = new Ext.util.TaskRunner();
+    this.brainDriver.start({
+      interval : interval,
+      run: function(){
+        brainBuilder.run(brainBuilder);
+      }
+    });
+  },
+  
+  stopBrain : function(){
+    if(this.brainDriver){
+      this.brainDriver.destroy();
+    }
   },
   
   clean : function() {
@@ -1134,6 +1215,9 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.inputs = [];
     this.outputs = [];
     this.synapseCache = [];
+    if(this.brainDriver){
+      this.brainDriver.destroy();
+    }
     IID.reset();
   },
   

@@ -26,7 +26,7 @@ var g_maxNeurons = 1000;
  * neuron should be removed from watched list, less than this value mean that
  * neuron is in silent for a long enough time.
  */
-var g_g_minWatchValue = 0.1;
+var g_minWatchValue = 0.1;
 
 /**
  * Neuron Act like a differentiator, multi-synapses as inputs, and
@@ -48,9 +48,9 @@ var Neuron = function() {
   this.isWatched = false;
   
   /*
-   * function which neuron can call to register itself to cortex watch list 
+   * cortex
    */
-  this.addWatch = null;
+  this.cortex = null;
 };
 /**
  * Synapse is the connection between two neuron
@@ -156,7 +156,7 @@ Cortex.prototype = {
   addNeuron : function(iid) {
     var neuron = new Neuron();
     neuron.iid = isEmpty(iid) ? this.idCount++ : iid;
-    neuron.addWatch = this.addWatch;
+    neuron.cortex = this;
     this.neurons.push(neuron);
     return neuron;
   },
@@ -214,7 +214,9 @@ Cortex.prototype = {
     if (neuron.iid != null && neuron.iid < g_maxNeurons
         && !this.watchedNeurons[neuron.iid]) {
       this.watchedNeurons[neuron.iid] = neuron;
+      return true;
     }
+    return null;
   },
 
   /**
@@ -222,12 +224,14 @@ Cortex.prototype = {
    * interval is TBD
    */
   updateWatch : function() {
+    console.log('update watch');
     var i = 0;
     for (; i < this.watchedNeurons.length; i++) {
       var neuron = this.watchedNeurons[i];
+      if(!neuron) continue;
       if (!neuron.stillExcited()) {
         neuron.isWatched = false;
-        this.watchedNeurons[neuron.iid] = null;
+        this.watchedNeurons[neuron.iid].splice(i, 1);
       } else {
         neuron.decay();
       }
@@ -259,8 +263,7 @@ Neuron.prototype = {
   compute : function(synapse) {
     // once call, means that this should be watched
     if (!this.isWatched) {
-      this.isWatched = true;
-      this.addWatch(this);
+      this.isWatched = this.cortex.addWatch(this);
     }
     this.output += synapse.getOutput();
     if (this.output > this.threshold) {// if the sum is bigger than threshold
@@ -426,5 +429,11 @@ BrainBuilder.prototype = {
       }
     }
     return null;
+  },
+  
+  run : function(scope){
+    if(scope.cortex){
+      scope.cortex.updateWatch();
+    }
   }
 };
