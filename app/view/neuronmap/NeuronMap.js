@@ -934,7 +934,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
                       btn.setText('Run');
                       btn.setTooltip('Run Brain');
                       btn.toggle(false);
-                      this.up('form').getForm().reset();
+//                      this.up('form').getForm().reset();
                       this.up('window').hide();
                     }
                   }, {
@@ -1264,7 +1264,6 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     var nJson = this.toJson();
     var brainBuilder = new BrainBuilder(nJson);
     brainBuilder.startEngine();
-    interval = !Ext.isEmpty(interval) && Ext.isNumber(interval) ? interval : 1000;
     this.worldTick = Ext.TaskManager.start({
       interval : worldInterval,
       run: function(){
