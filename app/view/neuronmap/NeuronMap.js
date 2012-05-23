@@ -195,6 +195,8 @@ Ext.define('Brain.Object', {
   z : 0,
   // sprite than under managing
   s : null,
+  //text on object
+  t : null, 
   state : STATE.N,
 
   // svg surface component
@@ -207,7 +209,33 @@ Ext.define('Brain.Object', {
     this.callParent(config);
     // this.draw();
   },
-
+  
+  appendText : function(x, y){
+    var me = this;
+    x = (Ext.isEmpty(x) ? (me.x) : x) + 10;
+    y =  Ext.isEmpty(y) ? me.y : y;
+    if (!Ext.isEmpty(me.drawComp)) {
+      if (Ext.isEmpty(me.t)) {
+        me.t = me.drawComp.surface.add({
+          type : 'text',
+          text : me.iid,
+          fill : 'black',
+          font : '14px "Lucida Grande", Helvetica, Arial, sans-serif;',
+          x : x,
+          y : y,
+          zIndex : 201 //one level up 
+        });
+      }else {
+        me.t.setAttributes({
+          text : me.iid,
+          x : x,
+          y : y
+        });
+      }
+      me.t.redraw();
+    }
+  },
+  
   draw : function() {
     var me = this;
     if (!Ext.isEmpty(me.drawComp)) {
@@ -231,6 +259,11 @@ Ext.define('Brain.Object', {
     }
   },
 
+  destroy : function(){
+    me.t.destroy();
+    me.t = null;
+  },
+  
   /**
    * provide custom stringify
    * 
@@ -295,6 +328,7 @@ Ext.define('Brain.Neuron', {
         });
       }
       me.s.redraw();
+      me.appendText();
     }
   },
 
@@ -405,6 +439,7 @@ Ext.define('Brain.Neuron', {
     // console.log('update xy');
     this.x = this.s.x + this.s.attr.translation.x;
     this.y = this.s.y + this.s.attr.translation.y;
+    this.appendText();
     this.updateSynapse();
   },
 
@@ -512,7 +547,6 @@ Ext.define('Brain.Synapse', {
           x : (me.x + me.endX) / 2,
           y : (me.y + me.endY) / 2
         });
-        // this.registerListeners();
       } else {
         me.s.setAttributes({
           path : sPath,
@@ -525,7 +559,7 @@ Ext.define('Brain.Synapse', {
           y : (me.y + me.endY) / 2
         });
       }
-
+      me.appendText(arrawStartP.x, arrawStartP.y);
       me.s.redraw();
       me.arrow.redraw();
     }
@@ -540,15 +574,17 @@ Ext.define('Brain.Synapse', {
 
   updateXY : function(deferRender) {
     this.setXY();
-    if (!deferRender)
+    if (!deferRender){
       this.draw();
+    }
   },
 
   updateLevel : function(index, deferRender) {
     var level = index > 0 ? (index + 1) / 2 : 0;
     this.level = index % 2 == 0 ? level : -level;
-    if (!deferRender)
+    if (!deferRender){
       this.draw();
+    }
   },
 
   destroy : function() {
@@ -598,6 +634,7 @@ Ext.define('Brain.Input', {
         });
       }
       me.s.redraw();
+      me.appendText();
     }
   },
   
@@ -649,6 +686,7 @@ Ext.define('Brain.Output', {
         });
       }
       me.s.redraw();
+      me.appendText();
     }
   },
   
@@ -918,7 +956,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
                           inputs = [];
                         }
                         me.buildBrain(interval, decayRate, synapseStrength, worldInterval, inputs);
-                        form.reset();
+//                        form.reset();
                         me.settingWindow.hide();
                       }
                     }
