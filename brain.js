@@ -224,7 +224,6 @@ Cortex.prototype = {
    * interval is TBD
    */
   updateWatch : function() {
-    console.log('update watch');
     var i = 0;
     for (; i < this.watchedNeurons.length; i++) {
       var neuron = this.watchedNeurons[i];
