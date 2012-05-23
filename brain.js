@@ -12,21 +12,6 @@ GNU General Public License Usage
 This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
  */
-/**
- * global g_accuracy, back to 6 decimal
- */
-var g_accuracy = 6;
-
-/**
- * g_maxNeurons is the max number of neurons in current cortex
- */
-var g_maxNeurons = 1000;
-/**
- * g_minWatchValue is the threshold for WatchedNeurons to determine whether the
- * neuron should be removed from watched list, less than this value mean that
- * neuron is in silent for a long enough time.
- */
-var g_minWatchValue = 0.1;
 
 /**
  * Neuron Act like a differentiator, multi-synapses as inputs, and
@@ -34,9 +19,9 @@ var g_minWatchValue = 0.1;
  * 
  * @returns
  */
-var Neuron = function() {
+var Neuron = function(iid, decayRate) {
   /* default id as null, DO NOT CHANGE THIS */
-  this.iid = null;
+  this.iid = isEmpty(iid)? 0 : iid;
   this.output = 0;
   this.axons = [];
   this.threshold = 1;
@@ -44,7 +29,7 @@ var Neuron = function() {
    * This decay Rate is for multiple output, output will be decay in a fixed
    * time
    */
-  this.decayRate = 0.5;
+  this.decayRate = isEmpty(decayRate) ? 0.5 : decayRate;
   this.isWatched = false;
   
   /*
@@ -61,7 +46,7 @@ var Neuron = function() {
  *          is where the synapse to
  * @returns
  */
-var Synapse = function(soma, postSynapse, isInhibit) {
+var Synapse = function(soma, postSynapse, isInhibit, strength) {
   this.iid = 0;
   this.soma = soma;
   this.postSynapse = postSynapse;
@@ -71,8 +56,9 @@ var Synapse = function(soma, postSynapse, isInhibit) {
    * strength is controlled by postSynapse, strength should not be the property
    * of axon's synapse's property, however, to simple the implementation, I put
    * it here
+   * functionally, it means that whether this creature is easy to exited 
    */
-  this.strength = 0.1;
+  this.strength = strength;
   this.isInhibit = isInhibit;
 };
 
@@ -100,6 +86,32 @@ var Cortex = function() {
   this.inputs = [];
 
   this.outputs = [];
+  
+  /**
+   * global g_accuracy, back to 6 decimal
+   */
+  this.g_accuracy = 6;
+
+  /**
+   * g_maxNeurons is the max number of neurons in current cortex
+   */
+  this.g_maxNeurons = 1000;
+  /**
+   * g_minWatchValue is the threshold for WatchedNeurons to determine whether the
+   * neuron should be removed from watched list, less than this value mean that
+   * neuron is in silent for a long enough time.
+   */
+  this.g_minWatchValue = 0.1;
+
+  /**
+   * g_decayRate is rate to decay the activity of neurons
+   */
+  this.g_decayRate = 0.5;
+  
+  /**
+   * for detail, please check out the description in Synapse Object
+   */
+  this.g_synapseStrength = 0.1;
 
 };
 
@@ -154,8 +166,8 @@ var Engine = {
 
 Cortex.prototype = {
   addNeuron : function(iid) {
-    var neuron = new Neuron();
-    neuron.iid = isEmpty(iid) ? this.idCount++ : iid;
+    iid = isEmpty(iid) ? this.idCount++ : iid;
+    var neuron = new Neuron(iid, this.g_decayRate);
     neuron.cortex = this;
     this.neurons.push(neuron);
     return neuron;
@@ -196,7 +208,7 @@ Cortex.prototype = {
 
   addNeurons : function(numofNeurons) {
     if (numofNeurons && numofNeurons > 0
-        && numofNeurons < (g_maxNeurons - this.neurons.length)) {
+        && numofNeurons < (this.g_maxNeurons - this.neurons.length)) {
       var i = 0;
       for (; i < numofNeurons; i++) {
         this.addNeuron();
@@ -211,7 +223,7 @@ Cortex.prototype = {
    * this function is called by new activated neuron, which will register itself
    */
   addWatch : function(neuron) {
-    if (neuron.iid != null && neuron.iid < g_maxNeurons
+    if (neuron.iid != null && neuron.iid < this.g_maxNeurons
         && !this.watchedNeurons[neuron.iid]) {
       this.watchedNeurons[neuron.iid] = neuron;
       return true;
@@ -228,7 +240,8 @@ Cortex.prototype = {
     for (; i < this.watchedNeurons.length; i++) {
       var neuron = this.watchedNeurons[i];
       if(!neuron) continue;
-      if (!neuron.stillExcited()) {
+      //check whether neuron's output meet the watching stander 
+      if ((neuron.output - this.g_minWatchValue) > 0.001) {
         neuron.isWatched = false;
         this.watchedNeurons[neuron.iid].splice(i, 1);
       } else {
@@ -239,7 +252,7 @@ Cortex.prototype = {
 
   connect : function(soma, postSynapse, isInhibit) {
     if (soma && postSynapse) {
-      var synapse = new Synapse(soma, postSynapse, isInhibit);
+      var synapse = new Synapse(soma, postSynapse, isInhibit, this.g_synapseStrength);
       soma.addAxons(synapse);
       return synapse;
     } else {
@@ -287,10 +300,6 @@ Neuron.prototype = {
         nextNeuron.compute(synapse);
       }
     }
-  },
-
-  stillExcited : function() {
-    return (this.output - g_minWatchValue) > 0.001;
   },
 
   getNormalizedOutput : function() {
