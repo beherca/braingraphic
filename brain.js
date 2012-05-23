@@ -243,7 +243,7 @@ Cortex.prototype = {
       //check whether neuron's output meet the watching stander 
       if ((neuron.output - this.g_minWatchValue) > 0.001) {
         neuron.isWatched = false;
-        this.watchedNeurons[neuron.iid].splice(i, 1);
+        this.watchedNeurons.splice(i, 1);
       } else {
         neuron.decay();
       }
