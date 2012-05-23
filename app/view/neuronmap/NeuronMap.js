@@ -20,7 +20,8 @@ IID = {
   },
   // set offset
   set : function(offset) {
-    this.iid = offset;
+    offset++;
+    this.iid = (this.iid < offset) ? offset : this.iid;
   },
 
   // reset to
@@ -203,7 +204,7 @@ Ext.define('Brain.Object', {
   drawComp : null,
 
   constructor : function(config) {
-    this.iid = IID.get();
+    this.iid = Ext.isEmpty(this.iid) ? IID.get() : this.iid;
     Ext.apply(this, config);
     this.mixins.observable.constructor.call(this, config);
     this.callParent(config);
@@ -390,13 +391,14 @@ Ext.define('Brain.Neuron', {
    * @param postNeuron
    * @returns
    */
-  addAxonSynapse : function(postNeuron, mode) {
+  addAxonSynapse : function(postNeuron, mode, iid) {
     var me = this;
     var syn = Ext.create('Brain.Synapse', {
       drawComp : me.drawComp,
       preNeuron : this,
       postNeuron : postNeuron,
-      isInhibit : mode == MODE.SYNAPSE_R
+      isInhibit : mode == MODE.SYNAPSE_R,
+      iid : iid
     });
     me.axons.add(syn.iid, syn);
     postNeuron.addDendriteSynapse(syn);
@@ -1089,12 +1091,13 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.callParent(arguments);
   },
 
-  addNeuron : function(xy, offset) {
+  addNeuron : function(xy, offset, iid) {
     var me = this, drawComp = me.down('draw');
     var bno = Ext.create('Brain.Neuron', {
       drawComp : drawComp,
       x : xy.x,
-      y : xy.y + (offset ? offset: 0)
+      y : xy.y + (offset ? offset: 0),
+      iid : iid
     });
     bno.on('stateChanged' , me.neuronScHandler, this);
     this.neurons.push(bno);
@@ -1175,24 +1178,26 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.candidateNeuron = null;
   },
 
-  addInput : function(xy, offset) {
+  addInput : function(xy, offset, iid) {
     var me = this, drawComp = me.down('draw');
     var input = Ext.create('Brain.Input', {
       drawComp : drawComp,
       x : xy.x,
-      y : xy.y + (offset ? offset: 0)
+      y : xy.y + (offset ? offset: 0),
+      iid : iid
     });
     input.on('stateChanged' , me.neuronScHandler, this);
     this.inputs.push(input);
     return input;
   },
   
-  addOutput : function(xy, offset) {
+  addOutput : function(xy, offset, iid) {
     var me = this, drawComp = me.down('draw');
     var output = Ext.create('Brain.Output', {
       drawComp : drawComp,
       x : xy.x,
-      y : xy.y + (offset ? offset: 0)
+      y : xy.y + (offset ? offset: 0),
+      iid : iid
     });
     output.on('stateChanged' , me.neuronScHandler, this);
     this.outputs.push(output);
@@ -1206,23 +1211,23 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   },
 
   engAddN : function(neuron){
-    var newNeuron = this.addNeuron(OP.add(neuron.x, neuron.y));
-    //override the auto generated id with stored id
-    newNeuron.iid = neuron.iid;
+    //let IID has the correct offset
+    IID.set(neuron.iid);
+    var newNeuron = this.addNeuron(OP.add(neuron.x, neuron.y), 0, neuron.iid);
     return newNeuron;
   },
   
   engAddI : function(neuron){
-    newNeuron = this.addInput(OP.add(neuron.x, neuron.y));
-    //override the auto generated id with stored id
-    newNeuron.iid = neuron.iid;
+    //let IID has the correct offset
+    IID.set(neuron.iid);
+    newNeuron = this.addInput(OP.add(neuron.x, neuron.y), 0, neuron.iid);
     return newNeuron;
   },
   
   engAddO : function(neuron){
-    var newNeuron = this.addOutput(OP.add(neuron.x, neuron.y));
-    //override the auto generated id with stored id
-    newNeuron.iid = neuron.iid;
+    //let IID has the correct offset
+    IID.set(neuron.iid);
+    var newNeuron = this.addOutput(OP.add(neuron.x, neuron.y), 0, neuron.iid);
     return newNeuron;
   },
   
@@ -1237,7 +1242,9 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       var results = me.findNeuron(sc.synapse.postNeuron);
       if (results && results.length > 0){
         var pn = results[0];
-        sc.neuron.addAxonSynapse(pn, sc.synapse.isInhibit ? MODE.SYNAPSE_R : MODE.SYNAPSE);
+        IID.set(sc.synapse.iid);
+        sc.neuron.addAxonSynapse(pn, sc.synapse.isInhibit ? MODE.SYNAPSE_R : MODE.SYNAPSE, sc.synapse.iid);
+        //let IID has the correct offset
       }
     });
   },
