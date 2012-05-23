@@ -1038,7 +1038,13 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       if(me.candidateNeuron == neuron){
         me.candidateNeuron = null;
       }
-      me.neurons = Ext.Array.remove(me.neurons, neuron);
+      if(neuron instanceof Brain.Input){
+        me.inputs = Ext.Array.remove(me.inputs, neuron);
+      }else if(neuron instanceof Brain.Output){
+        me.outputs = Ext.Array.remove(me.outputs, neuron);
+      }else {
+        me.neurons = Ext.Array.remove(me.neurons, neuron);
+      }
       neuron.destroy();
     }
   },
