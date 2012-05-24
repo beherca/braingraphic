@@ -24,7 +24,7 @@ This file may be used under the terms of the GNU General Public License version 
  * 
  * @returns
  */
-var Neuron = function(iid, decayRate) {g_accuracy
+var Neuron = function(iid, decayRate) {
   /* default id as null, DO NOT CHANGE THIS */
   this.iid = isEmpty(iid)? 0 : iid;
   this.output = 0;
@@ -241,7 +241,7 @@ Cortex.prototype = {
       var neuron = this.watchedNeurons[i];
       if(!neuron) continue;
       //check whether neuron's output meet the watching stander 
-      if ((neuron.output - this.g_minWatchValue) < 0) {
+      if (((neuron.output > 0 ? neuron.output : -neuron.output) - this.g_minWatchValue) < 0) {
         neuron.isWatched = false;
         this.watchedNeurons.splice(i, 1);
       } else {
