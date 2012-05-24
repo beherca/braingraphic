@@ -6,8 +6,8 @@ Harness.configure({
     preload     : [
         '../extjs/resources/css/ext-all.css',
         '../extjs/ext-all-debug.js',
-        '../brain.js',
-        '../engine.js'
+        '../app/core/brain.js',
+        '../app/core/engine.js'
     ]
 });
 

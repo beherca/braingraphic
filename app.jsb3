@@ -1,7 +1,54 @@
 {
     "projectName": "Project Name",
     "licenseText": "Copyright(c) 2012 Company Name",
-    "builds": [
+    "builds": [{
+            "name": "All Classes",
+            "target": "all-classes-play.js",
+            "options": {
+                "debug": true
+            },
+            "files": [{
+                    "path": "app/core/",
+                    "name": "engine.js"
+                },
+                {
+                    "path": "app/core/",
+                    "name": "brain.js"
+                },
+                {
+                    "path": "play/",
+                    "name": "Viewport.js"
+                },
+                {
+                    "path": "app/model/",
+                    "name": "NeuronMap.js"
+                },
+                {
+                    "path": "app/store/",
+                    "name": "NeuronMaps.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
+                    "name": "BrainDashboard.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
+                    "name": "NeuronMap.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
+                    "name": "NeuronMapList.js"
+                },
+                {
+                    "path": "app/controller/",
+                    "name": "NeuronMap.js"
+                },
+                {
+                    "path": "",
+                    "name": "app.js"
+                }
+            ]
+        },
         {
             "name": "All Classes",
             "target": "all-classes.js",
@@ -9,11 +56,11 @@
                 "debug": true
             },
             "files": [{
-                    "path": "",
+                    "path": "app/core/",
                     "name": "engine.js"
                 },
                 {
-                    "path": "",
+                    "path": "app/core/",
                     "name": "brain.js"
                 },
                 {
@@ -27,6 +74,10 @@
                 {
                     "path": "app/store/",
                     "name": "NeuronMaps.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
+                    "name": "BrainDashboard.js"
                 },
                 {
                     "path": "app/view/neuronmap/",
@@ -54,11 +105,11 @@
                 "debug": true
             },
             "files": [{
-                    "path": "",
+                    "path": "app/core/",
                     "name": "engine.js"
                 },
                 {
-                    "path": "",
+                    "path": "app/core/",
                     "name": "brain.js"
                 },
                 {
@@ -72,6 +123,10 @@
                 {
                     "path": "app/store/",
                     "name": "NeuronMaps.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
+                    "name": "BrainDashboard.js"
                 },
                 {
                     "path": "app/view/neuronmap/",
