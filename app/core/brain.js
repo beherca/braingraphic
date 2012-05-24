@@ -13,13 +13,18 @@ This file may be used under the terms of the GNU General Public License version 
 
  */
 
+  /**
+   * global g_accuracy, back to 6 decimal
+   */
+  var g_accuracy = 6;
+  
 /**
  * Neuron Act like a differentiator, multi-synapses as inputs, and
  * multi-synapses as output
  * 
  * @returns
  */
-var Neuron = function(iid, decayRate) {
+var Neuron = function(iid, decayRate) {g_accuracy
   /* default id as null, DO NOT CHANGE THIS */
   this.iid = isEmpty(iid)? 0 : iid;
   this.output = 0;
@@ -87,11 +92,6 @@ var Cortex = function() {
 
   this.outputs = [];
   
-  /**
-   * global g_accuracy, back to 6 decimal
-   */
-  this.g_accuracy = 6;
-
   /**
    * g_maxNeurons is the max number of neurons in current cortex
    */
@@ -241,7 +241,7 @@ Cortex.prototype = {
       var neuron = this.watchedNeurons[i];
       if(!neuron) continue;
       //check whether neuron's output meet the watching stander 
-      if ((neuron.output - this.g_minWatchValue) > 0.001) {
+      if ((neuron.output - this.g_minWatchValue) < 0) {
         neuron.isWatched = false;
         this.watchedNeurons.splice(i, 1);
       } else {
@@ -277,7 +277,7 @@ Neuron.prototype = {
     if (!this.isWatched) {
       this.isWatched = this.cortex.addWatch(this);
     }
-    this.output += synapse.getOutput();
+    this.output = round(synapse.getOutput() + this.output, g_accuracy);
     if (this.output > this.threshold) {// if the sum is bigger than threshold
       this.fire();
     }
@@ -310,7 +310,7 @@ Neuron.prototype = {
    * this will slow the activity of neuron, simulate the water drop of neuron
    */
   decay : function() {
-    this.output = this.output * this.decayRate;
+    this.output = round(this.output * this.decayRate, g_accuracy);
   },
 
   destory : function() {
@@ -331,7 +331,7 @@ Synapse.prototype = {
   // immediatly
   // no latency.
   getOutput : function() {
-    var out = this.soma.getNormalizedOutput() * this.strength;
+    var out = round(this.soma.getNormalizedOutput() * this.strength, g_accuracy);
     return this.isInhibit ? -out : out;
   },
 
@@ -342,6 +342,15 @@ Synapse.prototype = {
 
 var isEmpty = function(obj) {
   return obj == null || typeof (obj) == "undefined";
+};
+
+var round = function(value, accuracy){
+  var e = Math.pow(10, accuracy);
+  var v = (parseInt (value * e))/e;
+  if((v > 0 && v < 1/e) || (v < 0 && v > -1/e)){
+    v = 0;
+  }
+  return v;
 };
 
 var BrainBuilder = function(mapsdata) {

@@ -14,8 +14,10 @@ Ext.define('AM.view.neuronmap.BrainDashboard', {
   },
   modal : true,
   autoShow : true,
-  height : 600,
-  width : 900,
+  closeAction : 'hide',
+  
+  height : 400,
+  width : 1000,
 
   defaults : {
     split : true
@@ -81,7 +83,7 @@ Ext.define('AM.view.neuronmap.BrainDashboard', {
           allowBlank : false
         }, {
           xtype : 'numberfield',
-          itemId : 'decayRate',
+          itemId : 'wIntTime',
           fieldLabel : 'World Interval Time',
           value : 300,
           step : 100,
@@ -91,15 +93,37 @@ Ext.define('AM.view.neuronmap.BrainDashboard', {
           itemId : 'inputs',
           fieldLabel : 'Inputs Array',
           allowBlank : true
+        }],
+        dockedItems: [{
+          xtype: 'toolbar',
+          layout : {
+            type : 'hbox',
+            align : 'top'
+          },
+          dock: 'bottom',
+          ui: 'footer',
+          defaults: {minWidth: 45},
+          items: [
+            {
+              text : 'Reset',
+              handler : function() {
+                var form = me.down('form').getForm();
+                form.reset();
+              } 
+            },{
+              text : 'Pause',
+              handler : function() {
+                me.pause();
+              }
+            },{
+              text : 'Update',
+              handler : function() {
+                me.updateSettings();
+              }
+            }
+          ]
         }]
       }],
-
-      buttons : [{
-        text : 'Update',
-        handler : function() {
-          me.updateSettings();
-        }
-      }]
     }, {
       xtype : 'dbcharts',
       region : 'center',
@@ -107,13 +131,7 @@ Ext.define('AM.view.neuronmap.BrainDashboard', {
     }];
     this.callParent(arguments);
   },
-  
-  render : function(){
-    var me = this;
-    me.updateSettings();
-    this.callParent(arguments);
-  },
-  
+
   updateSettings : function(){
     var me = this;
     var form = me.down('form').getForm();
@@ -135,8 +153,21 @@ Ext.define('AM.view.neuronmap.BrainDashboard', {
         inputs = [];
       }
       if(me.neuronsMapView){
-        me.neuronsMapView.buildBrain(interval, decayRate, synapseStrength, worldInterval, inputs);
+        me.neuronsMapView.updateBrain(interval, decayRate, synapseStrength, worldInterval, inputs);
       }
+    }
+  },
+  
+  pause : function(){
+    if(this.neuronsMapView){
+      this.neuronsMapView.stopBrain();
+    }
+  },
+  
+  refresh : function(neurons){
+    var dbchart = this.query('.dbcharts')[0];
+    if(dbchart){
+      dbchart.refresh(neurons);
     }
   }
 });

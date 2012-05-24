@@ -755,11 +755,11 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   
   synapseCache : [],
   
-  brainRunner : null,
-  
   brainTick : null,
   
   worldTick : null,
+  
+  brainBuilder : null,
 
   // store: 'Users'
   initComponent : function() {
@@ -897,6 +897,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
                 });
                 me.add(me.settingWindow);
               }
+              me.buildBrain();
               me.settingWindow.show();
             }else{
               btn.setText('Run');
@@ -1183,28 +1184,44 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     return results;
   },
   
-  buildBrain : function(interval, decayRate, synapseStrength, worldInterval, inputs){
+  buildBrain : function(){
     var nJson = this.toJson();
-    var brainBuilder = new BrainBuilder(nJson);
-    brainBuilder.startEngine();
+    this.brainBuilder = new BrainBuilder(nJson);
+    this.brainBuilder.startEngine();
+  },
+  
+  startBrain : function(interval, decayRate, synapseStrength, worldInterval, inputs){
+    var me = this;
     this.worldTick = Ext.TaskManager.start({
       interval : worldInterval,
       run: function(){
-        gBrain.set(inputs);
+        me.brainBuilder.cortex.set(inputs);
       }
     });
     this.brainTick = Ext.TaskManager.start({
       interval : interval,
       run: function(){
-        brainBuilder.run(brainBuilder);
-        console.log(gBrain.get());
+        me.brainBuilder.run(me.brainBuilder);
+        if(me.settingWindow){
+          me.settingWindow.refresh(me.brainBuilder.cortex.neurons);
+        }
       }
     });
   },
   
   stopBrain : function(){
-    Ext.TaskManager.stop(this.worldTick);
-    Ext.TaskManager.stop(this.brainTick);
+    if(this.worldTick){
+      Ext.TaskManager.stop(this.worldTick);
+    }
+    if(this.brainTick){
+      Ext.TaskManager.stop(this.brainTick);
+    }
+  },
+  
+  updateBrain : function(interval, decayRate, synapseStrength, worldInterval, inputs){
+    var me = this;
+    me.stopBrain();
+    me.startBrain(interval, decayRate, synapseStrength, worldInterval, inputs);
   },
   
   clean : function() {
@@ -1237,6 +1254,9 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     }
     if(this.brainTick){
       Ext.TaskManager.stop(this.brainTick);
+    }
+    if(this.brainBuilder){
+      this.brainBuilder = null;
     }
     IID.reset();
   },
