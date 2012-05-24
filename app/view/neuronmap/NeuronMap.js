@@ -887,90 +887,13 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
               btn.setText('Stop');
               btn.setTooltip('Stop Brain');
               if (!me.settingWindow) {
-                var form = Ext.widget('form', {
-                  layout : {
-                    type : 'vbox',
-                    align : 'stretch'
-                  },
-                  border : false,
-                  bodyPadding : 10,
-
-                  fieldDefaults : {
-                    labelAlign : 'top',
-                    labelWidth : 100,
-                    labelStyle : 'font-weight:bold'
-                  },
-                  items : [ {
-                    xtype : 'textfield',
-                    fieldLabel : 'Cortex Interval Time',
-                    value : 1000,
-                    allowBlank : false
-                  },{
-                    xtype : 'textfield',
-                    fieldLabel : 'Neuron Decay Rate',
-                    value : 0.5,
-                    tooltip : 'it is about the short term memory of the creature',
-                    allowBlank : false
-                  },{
-                    xtype : 'textfield',
-                    fieldLabel : 'synapse strength step',
-                    value : 0.1,
-                    tooltip : 'it is about how easy the creature would be excited',
-                    allowBlank : false
-                  }, {
-                    xtype : 'textfield',
-                    fieldLabel : 'World Interval Time',
-                    value : 300,
-                    allowBlank : false
-                  }, {
-                    xtype : 'textfield',
-                    fieldLabel : 'Inputs Array',
-                    allowBlank : true
-                  }],
-
-                  buttons : [ {
-                    text : 'Cancel',
-                    handler : function() {
-                      btn.setText('Run');
-                      btn.setTooltip('Run Brain');
+                me.settingWindow = Ext.widget('braindashboard', {
+                  neuronsMapView : me,
+                  listeners : {
+                    beforeclose : function(){
                       btn.toggle(false);
-//                      this.up('form').getForm().reset();
-                      this.up('window').hide();
                     }
-                  }, {
-                    text : 'Run',
-                    handler : function() {
-                      var form = this.up('form').getForm();
-                      if (form.isValid()) {
-                        var txts = this.up('form').query('textfield');
-                        var interval = parseFloat(txts[0].value);
-                        var decayRate = parseFloat(txts[1].value);
-                        var synapseStrength = parseFloat(txts[2].value);
-                        var worldInterval = parseFloat(txts[3].value);
-                        var inputs = '[' + txts[4].value + ']';
-                        try{
-                          inputs = eval(inputs);
-                          if(!(inputs instanceof Array)){
-                            inputs = [];
-                          }
-                        }catch(e){
-                          console.log('Input error');
-                          inputs = [];
-                        }
-                        me.buildBrain(interval, decayRate, synapseStrength, worldInterval, inputs);
-//                        form.reset();
-                        me.settingWindow.hide();
-                      }
-                    }
-                  } ]
-                });
-                me.settingWindow = Ext.widget('window', {
-                  title : 'Brain Settings',
-                  closeAction : 'hide',
-                  layout : 'fit',
-                  resizable : true,
-                  modal : true,
-                  items : form
+                  }
                 });
                 me.add(me.settingWindow);
               }
