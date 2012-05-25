@@ -261,8 +261,9 @@ Ext.define('Brain.Object', {
   },
 
   destroy : function(){
-    me.t.destroy();
-    me.t = null;
+    this.t.destroy();
+    this.t = null;
+    this.callParent(arguments);
   },
   
   /**
@@ -475,6 +476,7 @@ Ext.define('Brain.Neuron', {
     this.groupedPreNeurons = null;
     this.s.destroy();
     this.s = null;
+    this.callParent(arguments);
   },
 
   toJSON : function() {
@@ -595,6 +597,7 @@ Ext.define('Brain.Synapse', {
     me.arrow.destroy();
     me.preNeuron.removeAxonSynapse(me);
     me.postNeuron.removeDendriteSynapse(me);
+    this.callParent(arguments);
   },
 
   toJSON : function() {
