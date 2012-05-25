@@ -68,6 +68,7 @@ Utils = {
       for(var key in from){
         target[key] = from[key];
       }
+      return target;
     },
     /**
      * To get the curve path

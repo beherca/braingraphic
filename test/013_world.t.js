@@ -8,16 +8,18 @@ StartTest(function(t) {
     t.ok(World.Object, 'World Object is defined');
     t.ok(World.Point, 'World Point is defined');
     t.ok(World.Circle, 'World Circle is defined');
-    t.ok(World.Engine, 'World Engine is defined');
+    t.ok(World.LinkEngine, 'World LinkEngine is defined');
     
-    var world = World.create({op : {x : 0}});
-    var preP = world.add({type: 'point', x : 100, y : 100});
-    var postP = world.add({type: 'point', x : 100, y : 200});
+    var world = World.create({x : 300, y : 300});
+    t.ok(world, 'World Created');
+    t.is(world instanceof World.World, true, 'world is instance');
+    var pre = world.add({type: 'point', x : 100, y : 100});
+    var post = world.add({type: 'point', x : 100, y : 200});
     var link = world.link({pre : pre, post : post, distance : 10, effDis : 20, isDual: true});
     link.destroy();
-    link = preP.link2(postP);
+    link = pre.link2(post);
     link.destroy();
-    link = postP.link2(preP, false);//true for one way link
+    link = post.link2(pre, false);//true for one way link
     world.tick();
 //    Ext.TaskManager.start({
 //      interval : 1000,

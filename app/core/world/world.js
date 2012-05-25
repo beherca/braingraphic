@@ -5,7 +5,7 @@
  */
 var World = {
   create : function(config){
-    return new World(Utils.apply({world:this}, config));
+    return new World.World(Utils.apply({world:this}, config));
   }
 };
 World.World = function(config){
@@ -23,15 +23,17 @@ World.World.prototype = {
   add : function(config){
     var p = new World.Point(Utils.apply({world : this, iid : this.iid.get()}, config));
     this.points[p.iid] = p;
+    return p;
   },
   
   tick : function(){
     World.LinkEngine.run(this.links);
   },
   
-  link :  function(pre, post, config){
-    var link = new World.Link(Utils.apply({iid : this.iid.get()}, config));
+  link :  function(config){
+    var link = new World.Link(Utils.apply({world : this, iid : this.iid.get()}, config));
     this.links[link.iid] = link;
+    return link;
   }
 };
 
@@ -45,8 +47,8 @@ World.Point = function(config){
 };
 
 World.Point.prototype = {
-   link : function(post, config){
-     this.world.link(this, post, config);
+   link2 : function(post, config){
+     return this.world.link(Utils.apply({pre : this, post : post}, config));
    },
    
    destroy : function(){
@@ -100,11 +102,13 @@ World.LinkEngine = {
       var link = links[key];
       var pre = link.pre;
       var post = link.post;
-      var point = World.LinkEngine.calc(post, pre, link);
-      Utils.apply(post, point);
-      if(link.isDual){
-        point = World.LinkEngine.calc(pre, post, link);
-        Utils.apply(pre, point);
+      if(Utils.getDisXY(pre, post) < link.effDis){
+        var point = World.LinkEngine.calc(post, pre, link);
+        Utils.apply(post, point);
+        if(link.isDual){
+          point = World.LinkEngine.calc(pre, post, link);
+          Utils.apply(pre, point);
+        }
       }
     }
   },
@@ -114,7 +118,7 @@ World.LinkEngine = {
     var uf = link.unitForce ?  link.unitForce : 1;
     var w = post.weight ?  post.weight : 1;
     for (var key in point){
-      point[key] = post[key] + (pre[key] - post[key])/(uf * w);
+      point[key] = post[key] + (pre[key] - post[key] + link.distance)/(uf * w);
     }
     return point;
   }
