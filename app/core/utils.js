@@ -47,6 +47,11 @@ OP = {
 };
 
 Utils = {
+    apply : function(target, from){
+      for(var key in from){
+        target[key] = from[key];
+      }
+    },
     /**
      * To get the curve path
      * 
