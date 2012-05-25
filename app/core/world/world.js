@@ -4,20 +4,24 @@
  * for present visual world
  */
 var World = {
-    create : function(config){
-      return new World(config);
-    }
+  create : function(config){
+    return new World(Utils.apply({world:this}, config));
+  }
 };
-World.World = function(rate){
-  this.rate = rate;
+World.World = function(config){
+  this.x = 0;
+  this.y = 0;
+  this.z = 0;
   this.links = {};
   this.points = {};
   this.objects = {};
+  this.iid = new Iid();
+  Utils.apply(this, config);
 };
 
 World.World.prototype = {
   add : function(config){
-    var p = new World.Point(config);
+    var p = new World.Point(Utils.apply({world : this, iid : this.iid.get()}, config));
     this.points[p.iid] = p;
   },
   
@@ -26,7 +30,7 @@ World.World.prototype = {
   },
   
   link :  function(pre, post, config){
-    var link = new World.Link(Utils.apply({pre : pre, post : post}, config));
+    var link = new World.Link(Utils.apply({iid : this.iid.get()}, config));
     this.links[link.iid] = link;
   }
 };
@@ -35,8 +39,19 @@ World.Point = function(config){
   this.x = 0;
   this.y = 0;
   this.z = 0;
+  this.world;
   this.weight = 1;
   Utils.apply(this, config);
+};
+
+World.Point.prototype = {
+   link : function(post, config){
+     this.world.link(this, post, config);
+   },
+   
+   destroy : function(){
+     delete this.world.points[this.iid];
+   }
 };
 
 World.Object = function(config){
@@ -45,12 +60,14 @@ World.Object = function(config){
 };
 
 World.Circle = function(config){
-  this.radius;
+  this.radius = 10;
+  this.edgePoints = 6;
 //  World.Circle.prototype.constructor.call(World.Circle.prototype, config);
   Utils.apply(this, config);
 };
 
 World.Circle.prototype = new World.Object();
+World.Circle.prototype.constructor = World.Circle;
 
 /**
  * 
@@ -59,14 +76,22 @@ World.Circle.prototype = new World.Object();
  * @returns {World.Link}
  */
 World.Link = function(config){
-  this.pre, 
-  this.post, 
-  this.distance,
-  this.effDis, 
-  this.iid, 
-  this.unitForce,
+  this.pre = null;
+  this.post = null;
+  this.distance = 10;
+  this.effDis = 200;
+  this.iid = 0;
+  this.unitForce = 2;
+  this.isDual = true;
+  this.world = null;
   
   Utils.apply(this, config);
+};
+
+World.Link.prototype = {
+  destroy : function(){
+    delete this.world.links[this.iid];
+  }  
 };
 
 World.LinkEngine = {
@@ -75,19 +100,21 @@ World.LinkEngine = {
       var link = links[key];
       var pre = link.pre;
       var post = link.post;
-      var point = World.LinkEngine.calc(pre, post, link);
-      Utils.apply(pre, point);
-      point = World.LinkEngine.calc(post, pre, link);
+      var point = World.LinkEngine.calc(post, pre, link);
       Utils.apply(post, point);
+      if(link.isDual){
+        point = World.LinkEngine.calc(pre, post, link);
+        Utils.apply(pre, point);
+      }
     }
   },
   
   calc : function(pre, post, link){
     var point = {x : 0, y : 0, z : 0};
     var uf = link.unitForce ?  link.unitForce : 1;
-    var w = pre.weight ?  pre.weight : 1;
+    var w = post.weight ?  post.weight : 1;
     for (var key in point){
-      point[key] = pre[key] + (post[key] - pre[key])/(uf * w);
+      point[key] = post[key] + (pre[key] - post[key])/(uf * w);
     }
     return point;
   }

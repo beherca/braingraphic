@@ -31,7 +31,24 @@ IID = {
     this.iid = 0;
   }
 };
+var Iid = function(){};
+Iid.prototype = {
+    iid : 0,
 
+    get : function() {
+      return this.iid++;
+    },
+    // set offset
+    set : function(offset) {
+      offset++;
+      this.iid = (this.iid < offset) ? offset : this.iid;
+    },
+
+    // reset to
+    reset : function() {
+      this.iid = 0;
+    }
+}
 /**
  * Origin Point
  */
