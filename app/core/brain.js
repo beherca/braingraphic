@@ -379,9 +379,8 @@ var gBrain = {
 };
 
 BrainBuilder.prototype = {
-  startEngine : function() {
+  build : function() {
     this.cortex = new Cortex();
-    gBrain.cortex = this.cortex;// explore the cortex for global access
     ParseEngine(this.mapsdata, this.engAddN, this.engAddI, this.engAddO,
         this.engConnHandler, this.engFinish, this);
   },

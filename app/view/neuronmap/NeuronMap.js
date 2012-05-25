@@ -895,6 +895,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
                   listeners : {
                     beforeclose : function(){
                       btn.toggle(false);
+                      me.settingWindow = null;
                     }
                   }
                 });
@@ -1190,7 +1191,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   buildBrain : function(){
     var nJson = this.toJson();
     this.brainBuilder = new BrainBuilder(nJson);
-    this.brainBuilder.startEngine();
+    this.brainBuilder.build();
+    gBrain.cortex = this.brainBuilder.cortex;// explore the cortex for global access
   },
   
   startBrain : function(interval, decayRate, synapseStrength, worldInterval, inputs){

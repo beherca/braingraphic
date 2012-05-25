@@ -14,7 +14,7 @@ Ext.define('AM.view.neuronmap.BrainDashboard', {
   },
   modal : true,
   autoShow : true,
-  closeAction : 'hide',
+  closeAction : 'destroy',
   
   height : 600,
   width : 1000,
