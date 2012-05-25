@@ -1201,7 +1201,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     this.brainTick = Ext.TaskManager.start({
       interval : interval,
       run: function(){
-        me.brainBuilder.run(me.brainBuilder);
+        me.brainBuilder.run.call(me.brainBuilder);
         if(me.settingWindow){
           me.settingWindow.refresh(me.brainBuilder.cortex.neurons);
         }

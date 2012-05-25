@@ -84,7 +84,7 @@ var Cortex = function() {
    * output, update interval would be 1/30 s(TBD) the neuron which has output as
    * 0 will be remove from this array, because it is inactivated
    */
-  this.watchedNeurons = [];
+  this.watchedNeurons = {};
 
   this.idCount = 0;
 
@@ -101,7 +101,7 @@ var Cortex = function() {
    * neuron should be removed from watched list, less than this value mean that
    * neuron is in silent for a long enough time.
    */
-  this.g_minWatchValue = 0.1;
+  this.g_minWatchValue = 1/Math.pow(10, g_accuracy);
 
   /**
    * g_decayRate is rate to decay the activity of neurons
@@ -192,7 +192,7 @@ Cortex.prototype = {
     for (; i < len; i++) {
       var neuron = this.inputs[i];
       neuron.output = inputs[i];
-      neuron.fire();
+      neuron.fire.call(neuron);
     }
   },
 
@@ -201,7 +201,7 @@ Cortex.prototype = {
     var outputs = [];
     for (; i < this.outputs.length; i++) {
       var neuron = this.outputs[i];
-      outputs.push(neuron.getNormalizedOutput());
+      outputs.push(neuron.getNormalizedOutput.call(neuron));
     }
     return outputs;
   },
@@ -236,14 +236,13 @@ Cortex.prototype = {
    * interval is TBD
    */
   updateWatch : function() {
-    var i = 0;
-    for (; i < this.watchedNeurons.length; i++) {
-      var neuron = this.watchedNeurons[i];
+    for (var key in this.watchedNeurons) {
+      var neuron = this.watchedNeurons[key];
       if(!neuron) continue;
       //check whether neuron's output meet the watching stander 
       if (((neuron.output > 0 ? neuron.output : -neuron.output) - this.g_minWatchValue) < 0) {
         neuron.isWatched = false;
-        this.watchedNeurons.splice(i, 1);
+        delete this.watchedNeurons[key];
       } else {
         neuron.decay();
       }
@@ -253,7 +252,7 @@ Cortex.prototype = {
   connect : function(soma, postSynapse, isInhibit) {
     if (soma && postSynapse) {
       var synapse = new Synapse(soma, postSynapse, isInhibit, this.g_synapseStrength);
-      soma.addAxons(synapse);
+      soma.addAxons.call(soma, synapse);
       return synapse;
     } else {
       console.log("invalid soma or postSynape");
@@ -263,7 +262,8 @@ Cortex.prototype = {
   destroy : function() {
     this.watchedNeurons = null;
     for ( var i = 0; i < this.neurons.length; i++) {
-      this.neurons[i].destroy();
+      var n =this.neurons[i];
+      n.destroy.call(n);
     }
     this.neurons = null;
     this.inputs = null;
@@ -277,7 +277,7 @@ Neuron.prototype = {
     if (!this.isWatched) {
       this.isWatched = this.cortex.addWatch(this);
     }
-    this.output = round(synapse.getOutput() + this.output, g_accuracy);
+    this.output = round(synapse.getOutput.call(synapse) + this.output, g_accuracy);
     if (this.output > this.threshold) {// if the sum is bigger than threshold
       this.fire();
     }
@@ -293,11 +293,11 @@ Neuron.prototype = {
       var synapse = this.axons[i];
       // ###### IMPORTANT #####
       // synapse strength will be strength since soma fired
-      synapse.fired();
+      synapse.fired.call(synapse);
       // ###### IMPORTANT #####
       var nextNeuron = synapse.postSynapse;
       if (nextNeuron) {
-        nextNeuron.compute(synapse);
+        nextNeuron.compute.call(nextNeuron, synapse);
       }
     }
   },
@@ -331,7 +331,7 @@ Synapse.prototype = {
   // immediatly
   // no latency.
   getOutput : function() {
-    var out = round(this.soma.getNormalizedOutput() * this.strength, g_accuracy);
+    var out = round(this.soma.getNormalizedOutput.call(this.soma) * this.strength, g_accuracy);
     return this.isInhibit ? -out : out;
   },
 
@@ -448,9 +448,7 @@ BrainBuilder.prototype = {
     return null;
   },
   
-  run : function(scope){
-    if(scope.cortex){
-      scope.cortex.updateWatch();
-    }
+  run : function(){
+    this.cortex.updateWatch.apply(this.cortex);
   }
 };
