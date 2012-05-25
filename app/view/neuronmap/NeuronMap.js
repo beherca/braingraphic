@@ -881,14 +881,28 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         iconCls : 'run-btn',
         id : 'run-btn',
         text : 'Run',
-        tooltip : 'Run Brain',
+        tooltip : 'Run',
         toggleGroup : 'runbrainbtn',
         listeners : {
           toggle : function(btn, pressed, opts) {
 //          console.log('save');
             if (pressed) {
-              btn.setText('Stop');
-              btn.setTooltip('Stop Brain');
+            }else{
+            }
+          }
+        }
+      }, {
+        iconCls : 'statistic-btn',
+        id : 'statistic-btn',
+        text : 'Statistic',
+        tooltip : 'Brain\'s Statistic',
+        toggleGroup : 'runbrainbtn',
+        listeners : {
+          toggle : function(btn, pressed, opts) {
+//          console.log('save');
+            if (pressed) {
+              btn.setText('Hide Statistic');
+              btn.setTooltip('Stop Statistic');
               if (!me.settingWindow) {
                 me.settingWindow = Ext.widget('braindashboard', {
                   neuronsMapView : me,
@@ -904,8 +918,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
               me.buildBrain();
               me.settingWindow.show();
             }else{
-              btn.setText('Run');
-              btn.setTooltip('Run Brain');
+              btn.setText('Statistic');
+              btn.setTooltip('Brain\'s Statistic');
               me.stopBrain();
             }
           }

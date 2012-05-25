@@ -10,6 +10,10 @@ Ext.define('AM.view.neuronmap.BrainCharts', {
   width : 870,
   height : 720,
   
+  defaults : {
+    split : true
+  },
+  
   neuronData : [],
   
   ds : null,
@@ -73,7 +77,7 @@ Ext.define('AM.view.neuronmap.BrainCharts', {
       flex : 0.60,
       store : this.ds,
       title : 'Neurons Data',
-
+      collapsible : true,
       columns : [ {
         id : 'iid',
         text : 'IID',
@@ -189,16 +193,18 @@ Ext.define('AM.view.neuronmap.BrainCharts', {
     })());
     
     this.items = [{
-      height : 200,
+      xtype : 'container',
+      flex :2, 
       layout : 'fit',
       margin : '0 0 3 0',
       items : [ barChart ]
     }, {
+      xtype : 'container',
       layout : {
         type : 'hbox',
         align : 'stretch'
       },
-      flex : 3,
+      flex : 1,
       border : false,
       bodyStyle : 'background-color: transparent',
 

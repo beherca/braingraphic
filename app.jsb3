@@ -8,11 +8,11 @@
                 "debug": true
             },
             "files": [{
-                    "path": "app/core/",
+                    "path": "app/core/brain/",
                     "name": "engine.js"
                 },
                 {
-                    "path": "app/core/",
+                    "path": "app/core/brain/",
                     "name": "brain.js"
                 },
                 {
@@ -60,11 +60,11 @@
                 "debug": true
             },
             "files": [{
-                    "path": "app/core/",
+                    "path": "app/core/brain/",
                     "name": "engine.js"
                 },
                 {
-                    "path": "app/core/",
+                    "path": "app/core/brain/",
                     "name": "brain.js"
                 },
                 {
@@ -113,11 +113,11 @@
                 "debug": true
             },
             "files": [{
-                    "path": "app/core/",
+                    "path": "app/core/brain/",
                     "name": "engine.js"
                 },
                 {
-                    "path": "app/core/",
+                    "path": "app/core/brain/",
                     "name": "brain.js"
                 },
                 {
