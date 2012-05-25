@@ -8,6 +8,14 @@
                 "debug": true
             },
             "files": [{
+                    "path": "app/core/",
+                    "name": "utils.js"
+                },
+                {
+                    "path": "app/core/world/",
+                    "name": "world.js"
+                },
+                {
                     "path": "app/core/brain/",
                     "name": "engine.js"
                 },
@@ -60,6 +68,14 @@
                 "debug": true
             },
             "files": [{
+                    "path": "app/core/",
+                    "name": "utils.js"
+                },
+                {
+                    "path": "app/core/world/",
+                    "name": "world.js"
+                },
+                {
                     "path": "app/core/brain/",
                     "name": "engine.js"
                 },
@@ -113,6 +129,14 @@
                 "debug": true
             },
             "files": [{
+                    "path": "app/core/",
+                    "name": "utils.js"
+                },
+                {
+                    "path": "app/core/world/",
+                    "name": "world.js"
+                },
+                {
                     "path": "app/core/brain/",
                     "name": "engine.js"
                 },

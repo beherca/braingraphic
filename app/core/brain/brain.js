@@ -340,19 +340,6 @@ Synapse.prototype = {
   }
 };
 
-var isEmpty = function(obj) {
-  return obj == null || typeof (obj) == "undefined";
-};
-
-var round = function(value, accuracy){
-  var e = Math.pow(10, accuracy);
-  var v = (parseInt (value * e))/e;
-  if((v > 0 && v < 1/e) || (v < 0 && v > -1/e)){
-    v = 0;
-  }
-  return v;
-};
-
 var BrainBuilder = function(mapsdata) {
   this.synapseCache = [];
   this.cortex = null;

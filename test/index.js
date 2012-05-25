@@ -6,13 +6,13 @@ Harness.configure({
     preload     : [
         '../extjs/resources/css/ext-all.css',
         '../extjs/ext-all-debug.js',
-        '../app/core/brain.js',
-        '../app/core/engine.js'
+        '../all-classes.js'
     ]
 });
 
 Harness.start(
     '010_brain.t.js',
     '011_cortex.t.js',
-    '012_engine.t.js'
+    '012_engine.t.js',
+    '013_world.t.js'
 );
