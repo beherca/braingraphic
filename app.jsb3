@@ -16,6 +16,10 @@
                     "name": "world.js"
                 },
                 {
+                    "path": "app/view/ground/",
+                    "name": "Ground.js"
+                },
+                {
                     "path": "app/core/brain/",
                     "name": "engine.js"
                 },
@@ -74,6 +78,10 @@
                 {
                     "path": "app/core/world/",
                     "name": "world.js"
+                },
+                {
+                    "path": "app/view/ground/",
+                    "name": "Ground.js"
                 },
                 {
                     "path": "app/core/brain/",
@@ -135,6 +143,10 @@
                 {
                     "path": "app/core/world/",
                     "name": "world.js"
+                },
+                {
+                    "path": "app/view/ground/",
+                    "name": "Ground.js"
                 },
                 {
                     "path": "app/core/brain/",

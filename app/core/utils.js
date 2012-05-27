@@ -48,7 +48,7 @@ Iid.prototype = {
     reset : function() {
       this.iid = 0;
     }
-}
+};
 /**
  * Origin Point
  */

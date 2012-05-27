@@ -555,7 +555,7 @@ Ext.define('Brain.Output', {
 });
 
 Ext.define('AM.view.neuronmap.NeuronMap', {
-  requires : [ 'Ext.data.UuidGenerator' ],
+//  requires : [ 'Ext.data.UuidGenerator' ],
   // DOM id
   id : 'neuron-map',
   itemId : 'neuronMap',

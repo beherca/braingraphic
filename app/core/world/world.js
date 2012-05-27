@@ -103,10 +103,10 @@ World.LinkEngine = {
       var pre = link.pre;
       var post = link.post;
       if(Utils.getDisXY(pre, post) < link.effDis){
-        var point = World.LinkEngine.calc(post, pre, link);
+        var point = World.LinkEngine.calc(pre, post, link);
         Utils.apply(post, point);
         if(link.isDual){
-          point = World.LinkEngine.calc(pre, post, link);
+          point = World.LinkEngine.calc(post, pre, link);
           Utils.apply(pre, point);
         }
       }
@@ -118,7 +118,7 @@ World.LinkEngine = {
     var uf = link.unitForce ?  link.unitForce : 1;
     var w = post.weight ?  post.weight : 1;
     for (var key in point){
-      point[key] = post[key] + (pre[key] - post[key] + link.distance)/(uf * w);
+      point[key] = post[key] - (post[key] - pre[key] + link.distance)/(uf * w);
     }
     return point;
   }
