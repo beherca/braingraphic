@@ -8,6 +8,7 @@ var World = {
     return new World.World(Utils.apply({world:this}, config));
   }
 };
+
 World.World = function(config){
   this.x = 0;
   this.y = 0;
@@ -37,16 +38,36 @@ World.World.prototype = {
   }
 };
 
+World.Segment = function(config){
+  this.points = {};
+  this.x = 0;
+  this.y = 0;
+  this.z = 0;
+  Utils.apply(this, config);
+};
+
 World.Point = function(config){
   this.x = 0;
   this.y = 0;
   this.z = 0;
+  this.vx = 0;
+  this.vy = 0;
+  this.vz = 0;
   this.world;
   this.weight = 1;
+  this.crashable = true;
+  this.neighbours = {};
+  this.iid = 0;
   Utils.apply(this, config);
 };
 
 World.Point.prototype = {
+   move : function(){
+     this.x += this.vx;
+     this.y += this.vy;
+     this.z += this.vz;
+   },
+   
    link2 : function(post, config){
      return this.world.link(Utils.apply({pre : this, post : post}, config));
    },
@@ -56,20 +77,33 @@ World.Point.prototype = {
    }
 };
 
+/**
+ * Actually is a set of points
+ */
 World.Object = function(config){
-  this.x, this.y, this.z, this.iid;
+  this.x = 0;
+  this.y = 0;
+  this.z = 0;
+  this.iid = 0;
   Utils.apply(this, config);
 };
+
 
 World.Circle = function(config){
   this.radius = 10;
   this.edgePoints = 6;
 //  World.Circle.prototype.constructor.call(World.Circle.prototype, config);
   Utils.apply(this, config);
+  this.init();
 };
 
 World.Circle.prototype = new World.Object();
 World.Circle.prototype.constructor = World.Circle;
+World.Circle.prototype = {
+  init : function(){
+    
+  }
+};
 
 /**
  * 
@@ -86,44 +120,51 @@ World.Link = function(config){
   this.unitForce = 2;
   this.isDual = true;
   this.world = null;
-  
+  this.type = 'softLink';
   Utils.apply(this, config);
 };
 
 World.Link.prototype = {
+  TYPE : {S : 'softLink', H : 'hardLink'},
+  
+  fn : {x : Math.cos, y : Math.sin/*, z : Math.sin*/},
+  
+  calc : function() {
+    var pre = this.pre;
+    var post = this.post;
+    var linkType = this.type;
+    var linkImpl = isFunction(this[linkType]) ? this[linkType] : {};
+    var angle = Utils.getAngle(post, pre);
+    if(Utils.getDisXY(pre, post) < this.effDis){
+      linkImpl.call(this, pre, post, angle);
+      if(this.isDual){
+        prev = linkImpl.call(this, post, pre, angle);
+      }
+    }
+  },
+  
+  softLink : function(pre, post, angle){
+    var postv = {}; // velocity of post
+    var uf = this.unitForce ?  this.unitForce : 1;
+    var w = post.weight ?  post.weight : 1;
+    for (var key in this.fn){
+      var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
+      postv['v' + key] = parseInt((pre[key] - axisDis - post[key]) * uf/w);
+    }
+    Utils.apply(post, postv); 
+    post.move();
+  },
+  
   destroy : function(){
     delete this.world.links[this.iid];
-  }  
+  }
 };
 
 World.LinkEngine = {
   run : function(links){
     for(var key in links){
       var link = links[key];
-      var pre = link.pre;
-      var post = link.post;
-      if(Utils.getDisXY(pre, post) < link.effDis){
-        var point = World.LinkEngine.calc(pre, post, link);
-        Utils.apply(post, point); 
-        if(link.isDual){
-          point = World.LinkEngine.calc(post, pre, link);
-          Utils.apply(pre, point);
-        }
-      }
+      link.calc();
     }
-  },
-  
-  calc : function(pre, post, link){
-    var fn = {x : Math.cos, y : Math.sin/*, z : Math.sin*/};
-    var point = {};
-    var angle = Utils.getAngle(post, pre);
-    var uf = link.unitForce ?  link.unitForce : 1;
-    var w = post.weight ?  post.weight : 1;
-    for (var key in fn){
-      var axisDis = parseInt(link.distance * fn[key].call(this, angle));
-      point[key] = parseInt(post[key] + (pre[key] - axisDis - post[key]) * uf/w);
-    }
-    return point;
   }
 };
-

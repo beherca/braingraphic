@@ -2,6 +2,10 @@ var isEmpty = function(obj) {
   return obj == null || typeof (obj) == "undefined";
 };
 
+var isFunction = function(obj){
+  return typeof(obj) == "function";
+}; 
+
 var round = function(value, accuracy){
   var e = Math.pow(10, accuracy);
   var v = (parseInt (value * e))/e;
