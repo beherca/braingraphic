@@ -16,6 +16,7 @@ World.World = function(config){
   this.links = {};
   this.points = {};
   this.objects = {};
+  this.resistance = 0.9; //resistant force
   this.iid = new Iid();
   Utils.apply(this, config);
 };
@@ -63,6 +64,7 @@ World.Point = function(config){
 
 World.Point.prototype = {
    move : function(){
+//     console.log('move to : x =' + this.x + '  y =' + this.y);
      this.x += this.vx;
      this.y += this.vy;
      this.z += this.vz;
@@ -117,10 +119,10 @@ World.Link = function(config){
   this.distance = 10;
   this.effDis = 200;
   this.iid = 0;
-  this.unitForce = 2;
+  this.unitForce = 20;
   this.isDual = true;
   this.world = null;
-  this.elasticity = 0.7;
+  this.elasticity = 0.9;
   this.type = 'softLink';
   Utils.apply(this, config);
 };
@@ -135,31 +137,28 @@ World.Link.prototype = {
     var post = this.post;
     var linkType = this.type;
     var linkImpl = isFunction(this[linkType]) ? this[linkType] : {};
-    var angle = Utils.getAngle(post, pre);
     if(Utils.getDisXY(pre, post) < this.effDis){
-      post = linkImpl.call(this, pre, post, angle);
-      if(this.isDual !=true){
-        pre = linkImpl.call(this, post, pre, angle);
+      post = linkImpl.call(this, pre, post);
+      if(this.isDual){
+        pre = linkImpl.call(this, post, pre);
       }
-//      post.move();
-//      pre.move();
     }
   },
   
-  softLink : function(pre, post, angle){
+  softLink : function(pre, post){
     var postv = {}; // velocity of post
     var uf = this.unitForce ?  this.unitForce : 1;
     var w = post.weight ?  post.weight : 1;
+    var angle = Utils.getAngle(post, pre);
     for (var key in this.fn){
       var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
-      postv['v' + key] = parseInt(post['v' + key] + (pre[key] - axisDis - post[key]) * uf/w);
+      postv['v' + key] = parseInt(post['v' + key] + (pre[key] - axisDis - post[key]) * uf/w * this.elasticity);
     }
     Utils.apply(post, postv); 
     post.move();
     for(var key in this.fn){
-      postv['v' + key] =  postv['v' + key] * this.elasticity; // apply plasity
+      post['v' + key] = parseInt(post['v' + key] * this.world.resistance); // apply plasity
     }
-    Utils.apply(post, postv);
     return post;
   },
   
