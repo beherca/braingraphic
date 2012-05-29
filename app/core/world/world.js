@@ -104,7 +104,7 @@ World.LinkEngine = {
       var post = link.post;
       if(Utils.getDisXY(pre, post) < link.effDis){
         var point = World.LinkEngine.calc(pre, post, link);
-        Utils.apply(post, point);
+        Utils.apply(post, point); 
         if(link.isDual){
           point = World.LinkEngine.calc(post, pre, link);
           Utils.apply(pre, point);
@@ -114,11 +114,14 @@ World.LinkEngine = {
   },
   
   calc : function(pre, post, link){
-    var point = {x : 0, y : 0, z : 0};
+    var fn = {x : Math.cos, y : Math.sin/*, z : Math.sin*/};
+    var point = {};
+    var angle = Utils.getAngle(post, pre);
     var uf = link.unitForce ?  link.unitForce : 1;
     var w = post.weight ?  post.weight : 1;
-    for (var key in point){
-      point[key] = post[key] - (post[key] - pre[key] + link.distance)/(uf * w);
+    for (var key in fn){
+      var axisDis = parseInt(link.distance * fn[key].call(this, angle));
+      point[key] = parseInt(post[key] + (pre[key] - axisDis - post[key]) * uf/w);
     }
     return point;
   }

@@ -26,25 +26,35 @@ Ext.define('AM.view.ground.Ground', {
     var me = this;
     me.callParent(arguments);
     var preNeuron = me.addNeuron(OP.add(100, 100), 40, 1);
-    var postNeuron = me.addNeuron(OP.add(400, 400), 40, 2);
+    var postNeuron = me.addNeuron(OP.add(400, 0), 40, 2);
+    preNeuron.on('neuronMoved', function(n){
+      pre.x = n.x;
+      pre.y = n.y;
+    });
+    postNeuron.on('neuronMoved', function(n){
+      post.x = n.x;
+      post.y = n.y;
+    });
     var world = World.create({x : 0, y : 0});
     //pre Point and post Point which will be attached to Neurons
     var pre = world.add({type: 'point', x : 100, y : 100});
-    var post = world.add({type: 'point', x : 400, y : 400});
-    var link = world.link({pre : pre, post : post, unitForce : 20, distance : 1000, effDis : 2000, isDual: true});
+    var post = world.add({type: 'point', x : 400, y : 0});
+    var link = world.link({pre : pre, post : post, unitForce : 0.1, distance : 100, effDis : 2000, isDual: true});
+    
     var task = Ext.TaskManager.start({
     interval : 100,
     run: function(){
       world.tick();
-      console.log(pre.x);
-      me.setXy(preNeuron, OP.add(pre.x, pre.y),  preNeuron.draw);
-      me.setXy(postNeuron, OP.add(post.x, post.y),  postNeuron.draw);
+      console.log('world ticked');
+      me.setXy(preNeuron, pre,  preNeuron.draw);
+      me.setXy(postNeuron, post,  postNeuron.draw);
     }, 
-    repeat : 50
+    repeat : 1000
     });
   },
   
-  setXy : function(n, xy, callback){
+  setXy : function(n, p, callback){
+    var xy = OP.add(p.x, p.y);
     Utils.apply(n, xy);
     callback.call(n);
   },

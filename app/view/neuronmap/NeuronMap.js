@@ -135,7 +135,7 @@ Ext.define('Brain.Neuron', {
     this.groupedPreNeurons = new Ext.util.HashMap();
     this.axons = new Ext.util.HashMap();
     this.dendrites = new Ext.util.HashMap();
-    this.addEvents('stateChanged');
+    this.addEvents(['stateChanged', 'neuronMoved']);
     this.callParent(config);
     this.on('stateChanged', me.updateState);
     this.draw();
@@ -178,6 +178,7 @@ Ext.define('Brain.Neuron', {
     me.s.dd.afterInvalidDrop = function(target, e, id) {
       // console.log('after drag over');
       me.updateXY();
+      me.fireEvent('neuronMoved', me);
     };
     me.s.on('mouseover', function(sprite) {
       // console.log('mouseover');
@@ -275,8 +276,15 @@ Ext.define('Brain.Neuron', {
    */
   updateXY : function() {
     // console.log('update xy');
-    this.x = this.s.x + this.s.attr.translation.x;
-    this.y = this.s.y + this.s.attr.translation.y;
+    this.s.x += this.s.attr.translation.x;
+    this.s.y += this.s.attr.translation.y;
+    this.s.setAttributes({
+      x : this.s.x,
+      y : this.s.y,
+      translation : {x : 0, y : 0}
+    });
+    this.x = this.s.x;
+    this.y = this.s.y;
     this.appendText();
     this.updateSynapse();
   },

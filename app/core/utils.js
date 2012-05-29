@@ -89,7 +89,7 @@ Utils = {
      */
     getCurvePath : function(startP, endP, curveHeight, curveWidth) {
       var me = this;
-      var angle = me.getAngle(startP, endP, Math.PI);
+      var angle = - me.getAngle(startP, endP);
       var disXY = me.getDisXY(startP, endP);
       var midPoint = {
         x : disXY / 2,
@@ -141,7 +141,7 @@ Utils = {
       var disX = this.getDisX(startP, endP);
       var disY = this.getDisY(startP, endP);
       var angle = 0;
-      angle = Math.atan2(disY, -disX) + (offset > 0 ? offset : 0);
+      angle = Math.atan2(disY, disX) + (isEmpty(offset) ? 0 : offset);
       // console.log(angle*180/3.14);
       return angle;
     },
@@ -173,7 +173,7 @@ Utils = {
     getTriPath : function(startP, endP, sideLength) {
       var me = this;
       var pi = Math.PI;
-      var angle = this.getAngle(startP, endP, pi * 0.5);// anti-clockwise 90
+      var angle = -this.getAngle(startP, endP, pi * 0.5);// anti-clockwise 90
       // degree as offset;
       // triangle has 3 points, 1 is p0 which is origin point, p1, p2 is the rest
       var cosLengh = Math.cos(pi / 6);
