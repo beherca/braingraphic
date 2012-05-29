@@ -53,7 +53,7 @@ World.Point = function(config){
   this.vx = 0;
   this.vy = 0;
   this.vz = 0;
-  this.world;
+  this.world = null;
   this.weight = 1;
   this.crashable = true;
   this.neighbours = {};
@@ -120,6 +120,7 @@ World.Link = function(config){
   this.unitForce = 2;
   this.isDual = true;
   this.world = null;
+  this.elasticity = 0.7;
   this.type = 'softLink';
   Utils.apply(this, config);
 };
@@ -136,10 +137,12 @@ World.Link.prototype = {
     var linkImpl = isFunction(this[linkType]) ? this[linkType] : {};
     var angle = Utils.getAngle(post, pre);
     if(Utils.getDisXY(pre, post) < this.effDis){
-      linkImpl.call(this, pre, post, angle);
-      if(this.isDual){
-        prev = linkImpl.call(this, post, pre, angle);
+      post = linkImpl.call(this, pre, post, angle);
+      if(this.isDual !=true){
+        pre = linkImpl.call(this, post, pre, angle);
       }
+//      post.move();
+//      pre.move();
     }
   },
   
@@ -149,10 +152,15 @@ World.Link.prototype = {
     var w = post.weight ?  post.weight : 1;
     for (var key in this.fn){
       var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
-      postv['v' + key] = parseInt((pre[key] - axisDis - post[key]) * uf/w);
+      postv['v' + key] = parseInt(post['v' + key] + (pre[key] - axisDis - post[key]) * uf/w);
     }
     Utils.apply(post, postv); 
     post.move();
+    for(var key in this.fn){
+      postv['v' + key] =  postv['v' + key] * this.elasticity; // apply plasity
+    }
+    Utils.apply(post, postv);
+    return post;
   },
   
   destroy : function(){
