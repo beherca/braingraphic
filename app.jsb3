@@ -17,14 +17,6 @@
                 },
                 {
                     "path": "app/view/ground/",
-                    "name": "Ground.js"
-                },
-                {
-                    "path": "app/view/ground/",
-                    "name": "GroundTest.js"
-                },
-                {
-                    "path": "app/view/ground/",
                     "name": "GroundMultPointsTest.js"
                 },
                 {
@@ -64,6 +56,14 @@
                     "name": "NeuronMapList.js"
                 },
                 {
+                    "path": "app/view/ground/",
+                    "name": "Ground.js"
+                },
+                {
+                    "path": "app/view/ground/",
+                    "name": "GroundTest.js"
+                },
+                {
                     "path": "app/controller/",
                     "name": "NeuronMap.js"
                 },
@@ -86,10 +86,6 @@
                 {
                     "path": "app/core/world/",
                     "name": "world.js"
-                },
-                {
-                    "path": "app/view/ground/",
-                    "name": "Ground.js"
                 },
                 {
                     "path": "app/core/brain/",
@@ -126,6 +122,10 @@
                 {
                     "path": "app/view/neuronmap/",
                     "name": "NeuronMapList.js"
+                },
+                {
+                    "path": "app/view/ground/",
+                    "name": "Ground.js"
                 },
                 {
                     "path": "app/controller/",
@@ -153,10 +153,6 @@
                     "name": "world.js"
                 },
                 {
-                    "path": "app/view/ground/",
-                    "name": "Ground.js"
-                },
-                {
                     "path": "app/core/brain/",
                     "name": "engine.js"
                 },
@@ -191,6 +187,10 @@
                 {
                     "path": "app/view/neuronmap/",
                     "name": "NeuronMapList.js"
+                },
+                {
+                    "path": "app/view/ground/",
+                    "name": "Ground.js"
                 },
                 {
                     "path": "app/controller/",

@@ -20,7 +20,7 @@ MODE = {
   OUTPUT : 'output'
 };
 
-Ext.define('Brain.Object', {
+Ext.define('AM.view.neuronmap.Brain.Object', {
   mixins : {
     observable : 'Ext.util.Observable'
   },
@@ -117,8 +117,8 @@ Ext.define('Brain.Object', {
   }
 });
 
-Ext.define('Brain.Neuron', {
-  extend : 'Brain.Object',
+Ext.define('AM.view.neuronmap.Brain.Neuron', {
+  extend : 'AM.view.neuronmap.Brain.Object',
 
   radius : 10,
 
@@ -230,7 +230,7 @@ Ext.define('Brain.Neuron', {
    */
   addAxonSynapse : function(postNeuron, mode, iid) {
     var me = this;
-    var syn = Ext.create('Brain.Synapse', {
+    var syn = Ext.create('AM.view.neuronmap.Brain.Synapse', {
       drawComp : me.drawComp,
       preNeuron : this,
       postNeuron : postNeuron,
@@ -334,8 +334,8 @@ Ext.define('Brain.Neuron', {
   }
 });
 
-Ext.define('Brain.Synapse', {
-  extend : 'Brain.Object',
+Ext.define('AM.view.neuronmap.Brain.Synapse', {
+  extend : 'AM.view.neuronmap.Brain.Object',
   arrow : null,
   arrowSideLength : 10,
 
@@ -459,7 +459,7 @@ Ext.define('Brain.Synapse', {
 });
 
 Ext.define('Brain.Input', {
-  extend : 'Brain.Neuron',
+  extend : 'AM.view.neuronmap.Brain.Neuron',
   
   draw : function() {
     var me = this;
@@ -511,7 +511,7 @@ Ext.define('Brain.Input', {
 });
 
 Ext.define('Brain.Output', {
-  extend : 'Brain.Neuron',
+  extend : 'AM.view.neuronmap.Brain.Neuron',
 
   draw : function() {
     var me = this;
@@ -878,7 +878,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
 
   addNeuron : function(xy, offset, iid) {
     var me = this, drawComp = me.down('draw');
-    var bno = Ext.create('Brain.Neuron', {
+    var bno = Ext.create('AM.view.neuronmap.Brain.Neuron', {
       drawComp : drawComp,
       x : xy.x,
       y : xy.y + (offset ? offset: 0),
