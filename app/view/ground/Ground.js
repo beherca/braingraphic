@@ -20,7 +20,7 @@ Ext.define('AM.view.ground.Ground', {
   
   initComponent : function() {
     var me = this;
-    me.world = World.create({x : 0, y : 0});;
+    me.world = World.create({x : 0, y : 0});
     me.items = [{
       xtype : 'draw',
       itemId : 'drawpanel',

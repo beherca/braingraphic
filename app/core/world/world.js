@@ -186,6 +186,8 @@ World.Link = function(config){
   //smaller harder
   this.elasticity = 0.9;
   this.type = World.LinkType.S;
+  this.repeat = 0;
+  this.repeatedCount = 0;
   Utils.apply(this, config);
 };
 
@@ -193,6 +195,7 @@ World.Link.prototype = {
   fn : {x : Math.cos, y : Math.sin/*, z : Math.sin*/},
   
   calc : function() {
+    console.log('calc');
     var pre = this.pre;
     var post = this.post;
     var linkType = this.type;
@@ -217,6 +220,12 @@ World.Link.prototype = {
       }
     }else{
       this.destroy();
+    }
+    if(this.repeat > 0 ){
+      this.repeatedCount++;
+      if(this.repeatedCount >= this.repeat){
+        this.destroy();
+      }
     }
   },
   

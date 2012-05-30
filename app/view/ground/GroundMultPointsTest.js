@@ -33,12 +33,12 @@ Ext.define('AM.view.ground.GroundMultPointsTest', {
 
     var world = World.create({x : 0, y : 0, resistance : 0.2});
     var pre = null;
-    for(var i = 0; i < 10 ; i++){
+    for(var i = 0; i < 2 ; i++){
       var p = this.addPoint(world);
       if(pre)
 //      for(var k in this.points){
 //        var cp = this.points[k];
-        var link = world.link({pre : pre.point, post : p.point, elasticity : 0.9, unitForce : 0.9, distance : 50, effDis : 2000, isDual: true});
+        var link = world.link({pre : pre.point, post : p.point, elasticity : 0.9, unitForce : 0.9, distance : 50, effDis : 2000, isDual: true, repeat : 12});
 //      }
       this.points.push(p);
       pre = p;
