@@ -60,7 +60,7 @@ Ext.define('AM.view.ground.GroundMultPointsTest', {
     var me = this, drawComp = me.down('draw');
     
     var p = world.add({type: 'point', x : 800 * Math.random(), y : 600 * Math.random(), crashable : false});
-    var bno = Ext.create('AM.view.gournd.Point', {
+    var bno = Ext.create('AM.view.ground.Point', {
       drawComp : drawComp,
       x : p.x,
       y : p.y,
@@ -72,23 +72,6 @@ Ext.define('AM.view.ground.GroundMultPointsTest', {
       n.point.y = n.y;
     });
     return bno;
-  },
-  
-  setXy : function(n, p, callback){
-    var xy = OP.add(p.x, p.y);
-    Utils.apply(n, xy);
-    callback.call(n);
-  },
-  
-  addNeuron : function(xy, offset, iid) {
-    var me = this, drawComp = me.down('draw');
-    var bno = Ext.create('Brain.Neuron', {
-      drawComp : drawComp,
-      x : xy.x,
-      y : xy.y + (offset ? offset: 0),
-      iid : iid
-    });
-    return bno;
-  },
+  }
 
 });
