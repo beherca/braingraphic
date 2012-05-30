@@ -17,7 +17,8 @@ World.World = function(config){
   this.links = {};
   this.points = {};
   this.objects = {};
-  this.resistance = 0.9; //resistant force
+  // smaller, swamper
+  this.resistance = 0.1; //resistant force
   //below is for the crash detector
   this.subW = {}; 
   this.minSu;bWSize = 20;
@@ -109,7 +110,7 @@ World.Point.prototype = {
 //       point.y += -parseInt(point.vy);
 //       point.move();
        var vx = Math.abs(this.vx + point.vx);
-       console.log('crashed ' +vx);
+//       console.log('crashed ' +vx);
        var vy = Math.abs(this.vy + point.vy);
        this.vx = parseInt(this.vx > 0 ? -vx : vx);
        this.vy = parseInt(this.vy > 0 ? -vy : vy);
@@ -197,9 +198,22 @@ World.Link.prototype = {
     var linkType = this.type;
     var linkImpl = isFunction(this[linkType]) ? this[linkType] : {};
     if(Utils.getDisXY(pre, post) < this.effDis){
-      post = linkImpl.call(this, pre, post);
+      var postv = linkImpl.call(this, pre, post);
+      var prev = null;
       if(this.isDual){
-        pre = linkImpl.call(this, post, pre);
+        prev = linkImpl.call(this, post, pre);
+      }
+      Utils.apply(post, postv); 
+      post.move();
+      for(var key in this.fn){
+        post['v' + key] = parseInt(post['v' + key] * this.world.resistance); 
+      }
+      if(this.isDual){
+        Utils.apply(pre, prev); 
+        pre.move();
+        for(var key in this.fn){
+          pre['v' + key] = parseInt(pre['v' + key] * this.world.resistance); 
+        }
       }
     }else{
       this.destroy();
@@ -215,13 +229,8 @@ World.Link.prototype = {
       var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
       postv['v' + key] = parseInt(post['v' + key] + (pre[key] - axisDis - post[key]) * uf/w * this.elasticity);
     }
-    Utils.apply(post, postv); 
-    post.move();
-    for(var key in this.fn){
-      post['v' + key] = parseInt(post['v' + key] * this.world.resistance); 
-    }
 //    console.log('softLink work done');
-    return post;
+    return postv;
   },
   
   bounceLink : function(pre, post){
