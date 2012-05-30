@@ -57,9 +57,16 @@ World.World.prototype = {
   },
   
   add : function(config){
-    var p = new World.Point(Utils.apply({world : this, iid : this.iidor.get()}, config));
-    this.points[p.iid] = p;
-    return p;
+    if(config.type == 'point'){
+      var p = new World.Point(Utils.apply({world : this, iid : this.iidor.get()}, config));
+      this.points[p.iid] = p;
+      return p;
+    }
+    else if(config.type == 'ant'){
+      var ant = new Creature.Ant(Utils.apply({world : this, iid : this.iidor.get()}, config));
+      this.objects[ant.iid] = ant;
+      return ant;
+    }
   },
   
   tick : function(){
@@ -89,7 +96,10 @@ World.Point = function(config){
    */
   this.crashRadius = 30;
   this.crashing = false;
-  this.neighbours = {};
+  /*
+   * Callback function when crashed 
+   */
+  this.onCrash = null;
   this.iid = 0;
   /*
    * link will destroy this point if set true
@@ -103,24 +113,16 @@ World.Point.prototype = {
    crash : function(point){
      if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
 //       console.log('crashed');
-       //if crash, reset the position of points
-//       console.log(this.vx);
-//       this.x += -parseInt(this.vx);
-//       this.y += -parseInt(this.vy);
-//       console.log(this.vx);
-//       this.move();
-//       //if crash, reset the position of points
-//       point.x += -parseInt(point.vx);
-//       point.y += -parseInt(point.vy);
-//       point.move();
        var vx = Math.abs(this.vx + point.vx);
-//       console.log('crashed ' +vx);
        var vy = Math.abs(this.vy + point.vy);
        this.vx = parseInt(this.vx > 0 ? -vx : vx);
        this.vy = parseInt(this.vy > 0 ? -vy : vy);
        point.vx = parseInt(point.vx > 0 ? -vx : vx);
        point.vy = parseInt(point.vx > 0 ? -vx : vx);
        this.crashing = true;
+       if(!isEmpty(this.onCrash)){
+         this.onCrash(this);
+       }
      }else{
        this.crashing = false;
      }

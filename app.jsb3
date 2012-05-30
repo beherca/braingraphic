@@ -16,8 +16,8 @@
                     "name": "world.js"
                 },
                 {
-                    "path": "app/view/ground/",
-                    "name": "GroundMultPointsTest.js"
+                    "path": "app/core/creature/",
+                    "name": "ant.js"
                 },
                 {
                     "path": "app/core/brain/",
@@ -64,6 +64,10 @@
                     "name": "GroundTest.js"
                 },
                 {
+                    "path": "app/view/ground/",
+                    "name": "GroundMultPointsTest.js"
+                },
+                {
                     "path": "app/controller/",
                     "name": "NeuronMap.js"
                 },
@@ -86,6 +90,10 @@
                 {
                     "path": "app/core/world/",
                     "name": "world.js"
+                },
+                {
+                    "path": "app/core/creature/",
+                    "name": "ant.js"
                 },
                 {
                     "path": "app/core/brain/",
@@ -151,6 +159,10 @@
                 {
                     "path": "app/core/world/",
                     "name": "world.js"
+                },
+                {
+                    "path": "app/core/creature/",
+                    "name": "ant.js"
                 },
                 {
                     "path": "app/core/brain/",

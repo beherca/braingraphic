@@ -14,5 +14,6 @@ Harness.start(
     '010_brain.t.js',
     '011_cortex.t.js',
     '012_engine.t.js',
-    '013_world.t.js'
+    '013_world.t.js',
+    '014_ant.t.js'
 );
