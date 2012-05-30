@@ -20,6 +20,14 @@
                     "name": "Ground.js"
                 },
                 {
+                    "path": "app/view/ground/",
+                    "name": "GroundTest.js"
+                },
+                {
+                    "path": "app/view/ground/",
+                    "name": "GroundMultPointsTest.js"
+                },
+                {
                     "path": "app/core/brain/",
                     "name": "engine.js"
                 },
