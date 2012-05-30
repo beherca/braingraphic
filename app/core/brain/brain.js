@@ -422,6 +422,7 @@ BrainBuilder.prototype = {
     }
   },
 
+  //TODO this will be enhance for performance concern, use bi-search
   findNeuron : function(iid) {
     var i = 0;
     var neurons = this.cortex.neurons;
