@@ -20,7 +20,8 @@ Creatures.Ant = function(config){
 };
 
 Creatures.Ant.prototype = new World.Object();
-Creatures.Ant.prototype.constructor = World.Circle;
+Creatures.Ant.prototype.constructor = World.Ant;
+
 Creatures.Ant.prototype = {
   init : function(){
     this.createBody();
@@ -44,8 +45,6 @@ Creatures.Ant.prototype = {
       isDual: true
     });
   },
-  
-  
   
   set : function(inputs){
     this.brain.set(inputs);
