@@ -97,8 +97,8 @@ World.Point.prototype = {
     
    crash : function(point){
      if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
-       console.log('crashed');
-//       //if crash, reset the position of points
+//       console.log('crashed');
+       //if crash, reset the position of points
 //       console.log(this.vx);
 //       this.x += -parseInt(this.vx);
 //       this.y += -parseInt(this.vy);
@@ -108,13 +108,13 @@ World.Point.prototype = {
 //       point.x += -parseInt(point.vx);
 //       point.y += -parseInt(point.vy);
 //       point.move();
-//       var vx = Math.abs(this.vx + point.vx)/2;
-//       console.log('crashed ' +vx);
-//       var vy = Math.abs(this.vy + point.vy)/2;
-//       this.vx = parseInt(this.vx > 0 ? -vx : vx);
-//       this.vy = parseInt(this.vy > 0 ? -vy : vy);
-//       point.vx = parseInt(point.vx > 0 ? -vx : vx);
-//       point.vy = parseInt(point.vx > 0 ? -vx : vx);
+       var vx = Math.abs(this.vx + point.vx);
+       console.log('crashed ' +vx);
+       var vy = Math.abs(this.vy + point.vy);
+       this.vx = parseInt(this.vx > 0 ? -vx : vx);
+       this.vy = parseInt(this.vy > 0 ? -vy : vy);
+       point.vx = parseInt(point.vx > 0 ? -vx : vx);
+       point.vy = parseInt(point.vx > 0 ? -vx : vx);
        this.crashing = true;
      }else{
        this.crashing = false;
@@ -124,11 +124,9 @@ World.Point.prototype = {
    
    move : function(){
 //     console.log('move to : x =' + this.x + '  y =' + this.y);
-//     if(!this.crashing){
        this.x += this.vx;
        this.y += this.vy;
        this.z += this.vz;
-//     }
    },
    
    link2 : function(post, config){
@@ -222,7 +220,7 @@ World.Link.prototype = {
     for(var key in this.fn){
       post['v' + key] = parseInt(post['v' + key] * this.world.resistance); 
     }
-    console.log('softLink work done');
+//    console.log('softLink work done');
     return post;
   },
   
@@ -234,7 +232,7 @@ World.Link.prototype = {
     for (var key in this.fn){
       var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
       postv['v' + key] = parseInt(-post['v' + key] + (post['v' + key] > 0 ? 1 : -1) * (pre[key] - axisDis - post[key]) * uf/w);
-      console.log('v' + key + postv['v' + key]);
+//      console.log('v' + key + postv['v' + key]);
     }
     Utils.apply(post, postv); 
     post.move();
@@ -245,7 +243,7 @@ World.Link.prototype = {
   },
   
   destroy : function(){
-    console.log('destroy ' + this.type + this.iid);
+//    console.log('destroy ' + this.type + this.iid);
     delete this.world.links[this.iid];
   }
 };
