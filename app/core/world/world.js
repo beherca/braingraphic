@@ -91,6 +91,10 @@ World.Point = function(config){
   this.crashing = false;
   this.neighbours = {};
   this.iid = 0;
+  /*
+   * link will destroy this point if set true
+   */
+  this.goneWithLink = false;
   Utils.apply(this, config);
 };
 
@@ -198,6 +202,10 @@ World.Link.prototype = {
     console.log('calc');
     var pre = this.pre;
     var post = this.post;
+    if(isEmpty(pre) || isEmpty(post)){
+      this.destroy();
+      return;
+    }
     var linkType = this.type;
     var linkImpl = isFunction(this[linkType]) ? this[linkType] : {};
     if(Utils.getDisXY(pre, post) < this.effDis){
@@ -262,6 +270,12 @@ World.Link.prototype = {
   
   destroy : function(){
 //    console.log('destroy ' + this.type + this.iid);
+    if(this.pre.goneWithLink){
+      this.pre.destroy();
+    }
+    if(this.post.goneWithLink){
+      this.post.destroy();
+    }
     delete this.world.links[this.iid];
   }
 };
