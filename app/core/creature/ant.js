@@ -57,12 +57,12 @@ Creature.Ant.prototype = {
   createBody : function(){
     var me = this;
     //right antenna
-    this.ra = this.world.add({type: 'point', x : this.x, y : this.y - 10, 
+    this.ra = this.world.add({type: 'point', x : this.x, y : this.y + 10, 
       crashable : true, onCrash : function(){me.actRa.call(me);},
       crashRadius : 1
       });
     //left antenna
-    this.la = this.world.add({type: 'point', x : this.x, y : this.y + 10, 
+    this.la = this.world.add({type: 'point', x : this.x, y : this.y - 10, 
       crashable : true, onCrash : function(){me.actLa.call(me);},
       crashRadius : 1
       });
@@ -144,7 +144,7 @@ Creature.Ant.prototype = {
    * Action : left foot Forwad
    */
   lff : function(){
-    var crawlP = this.getCrawlPoint(-Math.PI/2); //left forward point
+    var crawlP = this.getCrawlPoint(this.la, Math.PI/2); //left forward point
     this.crawl(crawlP, this.la);
   },
   
@@ -152,7 +152,7 @@ Creature.Ant.prototype = {
    * Action : left foot backward
    */
   lfb : function(){
-    var crawlP = this.getCrawlPoint(this.la, Math.PI/2); //left forward point
+    var crawlP = this.getCrawlPoint(this.la, -Math.PI/2); //left forward point
     this.crawl(crawlP, this.la);
   },
   
@@ -160,7 +160,7 @@ Creature.Ant.prototype = {
    * Action : right foot Forwad
    */
   rff : function(){
-    var crawlP = this.getCrawlPoint(this.ra, -Math.PI/2); //left forward point
+    var crawlP = this.getCrawlPoint(this.ra, Math.PI/2); //left forward point
     this.crawl(crawlP, this.ra);
   },
   
@@ -168,7 +168,7 @@ Creature.Ant.prototype = {
    * Action : right foot backward
    */
   rfb : function(){
-    var crawlP = this.getCrawlPoint(this.ra, Math.PI/2); //left forward point
+    var crawlP = this.getCrawlPoint(this.ra, -Math.PI/2); //left forward point
     this.crawl(crawlP, this.ra);
   },
   
@@ -176,7 +176,8 @@ Creature.Ant.prototype = {
     var angle =  Utils.getAngle(this.ra, this.la, offset);
     var px = startP.x + this.strength * Math.cos(angle);
     var py = startP.y + this.strength * Math.sin(angle);
-    var point = world.add({type: 'point', x : px.x, y : py.y, crashable : false, goneWithLink : true});
+    var point = this.world.add({type: 'point', x : px, y : py, 
+      crashable : false, goneWithLink : true});
     return point;
   },
   
@@ -192,7 +193,8 @@ Creature.Ant.prototype = {
       unitForce : 0.9, 
       distance : 0, 
       effDis : 2000, 
-      isDual: false 
+      isDual: false,
+      repeat : 1
     });
   },
   

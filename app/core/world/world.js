@@ -100,6 +100,10 @@ World.Point = function(config){
    * Callback function when crashed 
    */
   this.onCrash = null;
+  /*
+   * Callback function when point moved 
+   */
+  this.onMoved = null;
   this.iid = 0;
   /*
    * link will destroy this point if set true
@@ -134,6 +138,9 @@ World.Point.prototype = {
        this.x += this.vx;
        this.y += this.vy;
        this.z += this.vz;
+       if(!isEmpty(this.onMoved)){
+         this.onMoved(this);
+       }
    },
    
    link2 : function(post, config){
@@ -202,6 +209,12 @@ World.Link.prototype = {
   
   calc : function() {
     console.log('calc');
+    if(this.pre.goneWithLink){
+      console.log(this.pre);
+    }
+    if(this.post.goneWithLink){
+      console.log(this.post);
+    }
     var pre = this.pre;
     var post = this.post;
     if(isEmpty(pre) || isEmpty(post)){

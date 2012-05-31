@@ -13,21 +13,69 @@ Ext.define('AM.view.ground.Point', {
 Ext.define('AM.view.ground.Ground', {
   extend : 'Ext.panel.Panel',
   alias : 'widget.ground',
-  title : 'Playground',
+// title : 'Playground',
 
-  layout : 'fit',
+  layout : {
+    type : 'border',
+    border : 2
+  },
   
   world : null,
   
+  ant : null,
+  
+  iidor : null,
+  
   initComponent : function() {
     var me = this;
+    me.iidor = new Iid();
     me.world = World.create({x : 0, y : 0});
+    me.ant = me.world.add({
+      type: 'ant', 
+      x : 300, y : 300,
+      gene : JSON.stringify(gene),
+      sex : Creature.SEX.M
+    });
     me.items = [{
+      xtype : 'toolbar',
+      title : 'bar',
+      region : 'north',
+      items : [ {
+        text : 'Left F',
+        listeners : {
+          click : function() {
+            me.ant.lff();
+          }
+        }
+      }, '|', {
+        text : 'Right F',
+        listeners : {
+          click : function() {
+            me.ant.rff();
+          }
+        }
+      },
+      {
+        text : 'Left B',
+        listeners : {
+          click : function() {
+            me.ant.lfb();
+          }
+        }
+      }, '|', {
+        text : 'Right B',
+        listeners : {
+          click : function() {
+            me.ant.rfb();
+          }
+        }
+      }
+      ]}, {
       xtype : 'draw',
+      region : 'center',
       itemId : 'drawpanel',
       orderSpritesByZIndex : true,
       viewBox : false,
-      flex : 1,
       neuronmapview : me,
       listeners : {
         click : function(e, t, opts) {
@@ -40,53 +88,46 @@ Ext.define('AM.view.ground.Ground', {
   afterRender : function(){
     var me = this;
     me.callParent(arguments);
-    var p = me.addPoint(OP.add(100, 500), 40, 1);
-/*    var preNeuron = me.addNeuron(OP.add(100, 100), 40, 1);
-    var postNeuron = me.addNeuron(OP.add(400, 0), 40, 2);
-    preNeuron.on('neuronMoved', function(n){
-      pre.x = n.x;
-      pre.y = n.y;
-    });
-    postNeuron.on('neuronMoved', function(n){
-      post.x = n.x;
-      post.y = n.y;
-    });
-    
-    //pre Point and post Point which will be attached to Neurons
-    var pre = world.add({type: 'point', x : 100, y : 100});
-    var post = world.add({type: 'point', x : 400, y : 0});
-    var link = world.link({pre : pre, post : post, unitForce : 0.1, distance : 100, effDis : 2000, isDual: true});
-    
+    for(var i in me.world.points){
+      var p = me.world.points[i];
+      me.addViewPoint(p, 40);
+    }
+
     var task = Ext.TaskManager.start({
-    interval : 100,
-    run: function(){
-      world.tick();
-      console.log('world ticked');
-      me.setXy(preNeuron, pre,  preNeuron.draw);
-      me.setXy(postNeuron, post,  postNeuron.draw);
-    }, 
-    repeat : 1000
-    });*/
+      interval : 200,
+      run: function(){
+        me.world.tick();
+      }
+    });
+    var antTask = Ext.TaskManager.start({
+      interval : 500,
+      run: function(){
+        me.ant.tick();
+      }
+    });
   },
   
-  addPoint : function(xy, point) {
+  addViewPoint : function(point, offset) {
     var me = this, drawComp = me.down('draw');
+//    var point = me.world.add({type: 'point', x : xy.x, y : xy.y + offset});
     var bno = Ext.create('AM.view.ground.Point', {
       drawComp : drawComp,
-      x : xy.x,
-      point : Ext.isEmpty(point) ? me.world.add({type: 'point', x : xy.x, y : xy.y}) : point
+      x : point.x,
+      y : point.y, 
+      radius : 5,
+      iid : point.iid,
+      point : point
     });
-    bno.on('neuronMoved', function(point){
+    me.iidor.set(point.iid);
+    point.onMoved = function(p){
+      bno.syncPos();
+    },
+    bno.on('neuronMoved', function(n){
       point.x = n.x;
       point.y = n.y;
     });
     return bno;
-  },
-  
-  setXy : function(n, p, callback){
-    var xy = OP.add(p.x, p.y);
-    Utils.apply(n, xy);
-    callback.call(n);
   }
-
 });
+
+var gene = {"inputs":[{"iid":8,"x":385,"y":117,"z":0,"axons":["{\"iid\":16,\"x\":385,\"y\":117,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":0}}","{\"iid\":33,\"x\":385,\"y\":117,\"z\":0,\"isInhibit\":true,\"postNeuron\":{\"iid\":2}}"],"state":"normal"},{"iid":9,"x":467,"y":119,"z":0,"axons":["{\"iid\":18,\"x\":467,\"y\":119,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":2}}","{\"iid\":32,\"x\":467,\"y\":119,\"z\":0,\"isInhibit\":true,\"postNeuron\":{\"iid\":0}}"],"state":"normal"},{"iid":10,"x":611,"y":114,"z":0,"axons":["{\"iid\":20,\"x\":611,\"y\":114,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":4}}","{\"iid\":36,\"x\":611,\"y\":114,\"z\":0,\"isInhibit\":true,\"postNeuron\":{\"iid\":6}}"],"state":"normal"},{"iid":11,"x":704,"y":114,"z":0,"axons":["{\"iid\":22,\"x\":704,\"y\":114,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":6}}","{\"iid\":38,\"x\":704,\"y\":114,\"z\":0,\"isInhibit\":true,\"postNeuron\":{\"iid\":4}}"],"state":"normal"}],"outputs":[{"iid":12,"x":502,"y":341,"z":0,"axons":[],"state":"normal"},{"iid":13,"x":500,"y":419,"z":0,"axons":[],"state":"normal"},{"iid":14,"x":597,"y":332,"z":0,"axons":[],"state":"normal"},{"iid":15,"x":597,"y":419,"z":0,"axons":[],"state":"normal"}],"neurons":[{"iid":0,"x":386,"y":188,"z":0,"axons":["{\"iid\":17,\"x\":386,\"y\":188,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":1}}","{\"iid\":24,\"x\":386,\"y\":188,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":14}}","{\"iid\":35,\"x\":386,\"y\":188,\"z\":0,\"isInhibit\":true,\"postNeuron\":{\"iid\":3}}"],"state":"normal"},{"iid":1,"x":378,"y":289,"z":0,"axons":["{\"iid\":25,\"x\":378,\"y\":289,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":14}}"],"state":"activated"},{"iid":2,"x":464,"y":192,"z":0,"axons":["{\"iid\":19,\"x\":464,\"y\":192,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":3}}","{\"iid\":26,\"x\":464,\"y\":192,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":12}}","{\"iid\":34,\"x\":464,\"y\":192,\"z\":0,\"isInhibit\":true,\"postNeuron\":{\"iid\":1}}"],"state":"normal"},{"iid":3,"x":469,"y":290,"z":0,"axons":["{\"iid\":27,\"x\":469,\"y\":290,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":12}}"],"state":"normal"},{"iid":4,"x":617,"y":198,"z":0,"axons":["{\"iid\":21,\"x\":617,\"y\":198,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":5}}","{\"iid\":28,\"x\":617,\"y\":198,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":13}}","{\"iid\":39,\"x\":617,\"y\":198,\"z\":0,\"isInhibit\":true,\"postNeuron\":{\"iid\":7}}"],"state":"normal"},{"iid":5,"x":620,"y":267,"z":0,"axons":["{\"iid\":29,\"x\":620,\"y\":267,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":13}}"],"state":"normal"},{"iid":6,"x":711,"y":192,"z":0,"axons":["{\"iid\":23,\"x\":711,\"y\":192,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":7}}","{\"iid\":30,\"x\":711,\"y\":192,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":15}}","{\"iid\":37,\"x\":711,\"y\":192,\"z\":0,\"isInhibit\":true,\"postNeuron\":{\"iid\":5}}"],"state":"normal"},{"iid":7,"x":720,"y":270,"z":0,"axons":["{\"iid\":31,\"x\":720,\"y\":270,\"z\":0,\"isInhibit\":false,\"postNeuron\":{\"iid\":15}}"],"state":"normal"}]};

@@ -370,6 +370,7 @@ BrainBuilder.prototype = {
     this.cortex = new Cortex();
     ParseEngine(this.mapsdata, this.engAddN, this.engAddI, this.engAddO,
         this.engConnHandler, this.engFinish, this);
+    return this.cortex;
   },
 
   engAddN : function(neuron) {
