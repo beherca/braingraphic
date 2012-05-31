@@ -26,6 +26,10 @@ Ext.define('AM.view.ground.Ground', {
   
   iidor : null,
   
+  worldTick : null,
+  
+  antTick : null,
+  
   initComponent : function() {
     var me = this;
     me.iidor = new Iid();
@@ -69,6 +73,20 @@ Ext.define('AM.view.ground.Ground', {
             me.ant.rfb();
           }
         }
+      },'|', {
+        text : 'Start',
+        listeners : {
+          click : function() {
+            me.start();
+          }
+        }
+      }, {
+        text : 'Stop',
+        listeners : {
+          click : function() {
+            me.stop();
+          }
+        }
       }
       ]}, {
       xtype : 'draw',
@@ -93,18 +111,43 @@ Ext.define('AM.view.ground.Ground', {
       me.addViewPoint(p, 40);
     }
 
-    var task = Ext.TaskManager.start({
-      interval : 200,
-      run: function(){
-        me.world.tick();
-      }
-    });
-    var antTask = Ext.TaskManager.start({
-      interval : 500,
-      run: function(){
-        me.ant.tick();
-      }
-    });
+    me.start();
+  },
+  
+  start : function(){
+    console.log('start');
+    var me = this;
+    if(isEmpty(this.worldTick)){
+      this.worldTick = Ext.TaskManager.start({
+        interval : 200,
+        run: function(){
+          me.world.tick();
+        }
+      });
+    }else{
+      Ext.TaskManager.start(this.worldTick);
+    }
+    
+    if(isEmpty(this.antTick)){
+      this.antTick = Ext.TaskManager.start({
+        interval : 500,
+        run: function(){
+          me.ant.tick();
+        }
+      });
+    }else{
+      Ext.TaskManager.start(this.antTick);
+    }
+  },
+  
+  stop : function(){
+    console.log('stop');
+    if(this.worldTick){
+      Ext.TaskManager.stop(this.worldTick);
+    }
+    if(this.antTick){
+      Ext.TaskManager.stop(this.antTick);
+    }
   },
   
   addViewPoint : function(point, offset) {

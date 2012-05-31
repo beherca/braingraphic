@@ -208,13 +208,7 @@ World.Link.prototype = {
   fn : {x : Math.cos, y : Math.sin/*, z : Math.sin*/},
   
   calc : function() {
-    console.log('calc');
-    if(this.pre.goneWithLink){
-      console.log(this.pre);
-    }
-    if(this.post.goneWithLink){
-      console.log(this.post);
-    }
+//    console.log('calc');
     var pre = this.pre;
     var post = this.post;
     if(isEmpty(pre) || isEmpty(post)){
