@@ -10,6 +10,14 @@ Ext.define('AM.view.ground.Point', {
   }
 });
 
+Ext.define('AM.view.ground.Food', {
+  extend : 'AM.view.ground.Point',
+  
+  destroy : function(){
+    
+  }
+});
+
 Ext.define('AM.view.ground.Ground', {
   extend : 'Ext.panel.Panel',
   alias : 'widget.ground',
@@ -32,6 +40,7 @@ Ext.define('AM.view.ground.Ground', {
   
   initComponent : function() {
     var me = this;
+    this.addEvents('modeChanged');
     me.iidor = new Iid();
     me.world = World.create({x : 0, y : 0});
     me.ant = me.world.add({
@@ -87,6 +96,18 @@ Ext.define('AM.view.ground.Ground', {
             me.stop();
           }
         }
+      }, '->',  {
+        text : 'Feed',
+        toggleGroup : 'feedbuttons',
+        listeners : {
+          toggle : function(btn, pressed) {
+            if (pressed) {
+              me.mode = MODE.NEURON;
+            }else{
+              me.mode = MODE.NORMAL;
+            } 
+          }
+        }
       }
       ]}, {
       xtype : 'draw',
@@ -97,6 +118,14 @@ Ext.define('AM.view.ground.Ground', {
       neuronmapview : me,
       listeners : {
         click : function(e, t, opts) {
+          // console.log('draw panel click');
+          // only happen when user click on the neruon object
+          if (e.target instanceof SVGRectElement) {
+            me.offset = me.offset ? me.offset : me.down('draw').getBox().y;
+            if (me.mode == MODE.NEURON) {
+              me.addFood(OP.add(e.getXY()[0], e.getXY()[1]), -me.offset);
+            }
+          }
         }
       }
     } ];
@@ -150,9 +179,22 @@ Ext.define('AM.view.ground.Ground', {
     }
   },
   
+  addFood : function(xy, offset) {
+    var me = this, drawComp = me.down('draw');
+    var point = me.world.add({type: 'point', x : xy.x, y : xy.y + offset});
+    var bno = Ext.create('AM.view.ground.Point', {
+      drawComp : drawComp,
+      x : point.x,
+      y : point.y, 
+      radius : 5,
+      iid : point.iid,
+      point : point
+    });
+    return bno;
+  },
+  
   addViewPoint : function(point, offset) {
     var me = this, drawComp = me.down('draw');
-//    var point = me.world.add({type: 'point', x : xy.x, y : xy.y + offset});
     var bno = Ext.create('AM.view.ground.Point', {
       drawComp : drawComp,
       x : point.x,

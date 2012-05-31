@@ -61,11 +61,14 @@ World.World.prototype = {
       var p = new World.Point(Utils.apply({world : this, iid : this.iidor.get()}, config));
       this.points[p.iid] = p;
       return p;
-    }
-    else if(config.type == 'ant'){
+    }else if(config.type == 'ant'){
       var ant = new Creature.Ant(Utils.apply({world : this, iid : this.iidor.get()}, config));
       this.objects[ant.iid] = ant;
       return ant;
+    }else if(config.type == 'life'){
+      var life = new Creature.Food(Utils.apply({world : this, iid : this.iidor.get()}, config));
+      this.objects[life.iid] = life;
+      return life;
     }
   },
   

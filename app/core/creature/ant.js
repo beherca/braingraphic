@@ -9,6 +9,14 @@ var Creature = {
       F : 'female'
     }
 };
+Creature.Life = function(config){
+  this.energyCapacity = 10000;
+  this.energy = this.energyCapacity;
+  this.age = 0;
+  Utils.apply(this, config);
+};
+Creature.Life.prototype = new World.Object();
+Creature.Life.prototype.constructor = World.Life;
 
 Creature.Ant = function(config){
   this.iid = 0;
@@ -17,6 +25,7 @@ Creature.Ant = function(config){
   this.body = [];
   this.ra = null;//right antenna
   this.la = null;
+  this.mouth = null;
   this.world = null;
   /**
    * the force that pull the feet
@@ -32,16 +41,13 @@ Creature.Ant = function(config){
    * regiester all output handlers
    */
   this.actions = [];
-  this.age = 0;
-  this.energyCapacity = 10000;
-  this.energy = this.energyCapacity;
   this.sex = Creature.SEX.M;
   Utils.apply(this, config);
   this.init();
 };
 
-Creature.Ant.prototype = new World.Object();
-Creature.Ant.prototype.constructor = World.Ant;
+Creature.Ant.prototype = new Creature.Life;
+Creature.Ant.prototype.constructor = Creature.Ant;
 
 Creature.Ant.prototype = {
   init : function(){
@@ -57,13 +63,17 @@ Creature.Ant.prototype = {
   createBody : function(){
     var me = this;
     //right antenna
-    this.ra = this.world.add({type: 'point', x : this.x, y : this.y + 10, 
+    this.ra = this.world.add({type: 'point', x : this.x, y : this.y + 15, 
       crashable : true, onCrash : function(){me.actRa.call(me);},
       crashRadius : 1
       });
     //left antenna
-    this.la = this.world.add({type: 'point', x : this.x, y : this.y - 10, 
+    this.la = this.world.add({type: 'point', x : this.x, y : this.y - 15, 
       crashable : true, onCrash : function(){me.actLa.call(me);},
+      crashRadius : 1
+      });
+    this.mouth = this.world.add({type: 'point', x : this.x -10, y : this.y, 
+      crashable : true, onCrash : function(){me.eat.call(me);},
       crashRadius : 1
       });
     this.world.link({
@@ -74,6 +84,24 @@ Creature.Ant.prototype = {
       distance : 20, 
       effDis : 2000, 
       isDual: true
+    });
+    this.world.link({
+      pre : this.ra, 
+      post : this.mouth, 
+      elasticity : 0.9, 
+      unitForce : 0.9, 
+      distance : 20, 
+      effDis : 2000, 
+      isDual: false
+    });
+    this.world.link({
+      pre : this.la, 
+      post : this.mouth, 
+      elasticity : 0.9, 
+      unitForce : 0.9, 
+      distance : 20, 
+      effDis : 2000, 
+      isDual: false
     });
   },
   
@@ -104,6 +132,7 @@ Creature.Ant.prototype = {
   },
   
   tick : function(){
+    this.huger();
     this.think();
     this.act();
     if(this.energy < 0){
@@ -131,8 +160,13 @@ Creature.Ant.prototype = {
     this.set([0, 0, 0, 2]);
   },
   
-  hurger : function(inputs){
-    
+  hurger : function(){
+    for(var key in this.world.objects){
+      var o = this.world.objects[key];
+      if(o instanceof Creature.Life){
+        this.smell(o);
+      }
+    }
   },
   
   fear : function(){
@@ -140,6 +174,19 @@ Creature.Ant.prototype = {
   },
   
   /*-------------------Actions below-------------------------- */
+  smell : function(life){
+    var rDis = Utils.getDisXY(this.ra, OP.add(life.x, life.y));
+    var lDis = Utils.getDisXY(this.ra, OP.add(life.x, life.y));
+    if(rDis > lDis){
+      this.actROlf();
+    }else{
+      this.actLOlf();
+    }
+  },
+  
+  eat : function(){
+    
+  },
   /**
    * Action : left foot Forwad
    */
@@ -201,5 +248,4 @@ Creature.Ant.prototype = {
   die : function(){
     delete this.world.objects[this.iid];
   }
-  
 };
