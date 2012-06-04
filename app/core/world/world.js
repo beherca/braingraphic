@@ -278,10 +278,10 @@ World.Link.prototype = {
   
   destroy : function(){
 //    console.log('destroy ' + this.type + this.iid);
-    if(this.pre.goneWithLink){
+    if(this.pre && this.pre.goneWithLink){
       this.pre.destroy();
     }
-    if(this.post.goneWithLink){
+    if(this.post && this.post.goneWithLink){
       this.post.destroy();
     }
     delete this.world.links[this.iid];

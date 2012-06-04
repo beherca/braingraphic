@@ -56,6 +56,7 @@ Creature.Ant = Creature.Life.extend({
         this.sensers = [this.actLa, this.actRa, this.actLOlf, this.actROlf];
         this.actions = [this.lff, this.lfb, this.rff, this.rfb];
       }
+//      this._super(config);
     },
     
     createBody : function(){
@@ -79,7 +80,7 @@ Creature.Ant = Creature.Life.extend({
         post : this.la, 
         elasticity : 0.9, 
         unitForce : 0.9, 
-        distance : 30, 
+        distance : 20, 
         effDis : 2000, 
         isDual: true
       });
@@ -101,15 +102,15 @@ Creature.Ant = Creature.Life.extend({
         effDis : 2000, 
         isDual: false
       });
-      this.world.link({
-        pre : this.mouth, 
-        post : this.body, 
-        elasticity : 0.9, 
-        unitForce : 0.9, 
-        distance : 10, 
-        effDis : 2000, 
-        isDual: false
-      });
+//      this.world.link({
+//        pre : this.mouth, 
+//        post : this.body, 
+//        elasticity : 0.9, 
+//        unitForce : 0.9, 
+//        distance : 10, 
+//        effDis : 2000, 
+//        isDual: false
+//      });
     },
     
     /**

@@ -181,8 +181,9 @@ Ext.define('AM.view.ground.Ground', {
   },
   
   addFood : function(xy, offset) {
-    var me = this, drawComp = me.down('draw');
+    var me = this;
     var life = me.world.add({type: 'life', x : xy.x, y : xy.y + offset});
+    me.addViewPoint(life);
     return life;
   },
   
