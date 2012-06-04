@@ -21,7 +21,8 @@ World.World = function(config){
   this.resistance = 0.1; //resistant force
   //below is for the crash detector
   this.subW = {}; 
-  this.minSu;bWSize = 20;
+  this.minSu;
+  this.bWSize = 20;
   this.worldCapacity = 4;
   Utils.apply(this, config);
 };
@@ -159,35 +160,24 @@ World.Point.prototype = {
 /**
  * Actually is a set of points
  */
-World.Object = function(config){
-  this.x = 0;
-  this.y = 0;
-  this.z = 0;
-  this.iid = 0;
-  Utils.apply(this, config);
-};
+World.Object = Class.extend({
+  x: 0,
+  y: 0,
+  z: 0,
+  iid: 0,
+  init : function(config){
+    Utils.apply(this, config);
+  }
+});
 
-World.Object.prototype = {
-    test : function(){
-      
-    }
-};
-
-World.Circle = function(config){
-  this.radius = 10;
-  this.edgePoints = 6;
-//  World.Circle.prototype.constructor.call(World.Circle.prototype, config);
-  Utils.apply(this, config);
-  this.init();
-};
-
-World.Circle.prototype = new World.Object();
-World.Circle.prototype.constructor = World.Circle;
-World.Circle.prototype = {
-  init : function(){
+World.Circle = World.Object.extend({
+  radius : 10,
+  edgePoints : 6,
+  //  World.Circle.prototype.constructor.call(World.Circle.prototype, config);
+  init : function(config){
     
   }
-};
+});
 
 World.LinkType = {S : 'softLink', H : 'hardLink', B : 'bounceLink'};
 /**

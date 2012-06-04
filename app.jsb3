@@ -9,6 +9,9 @@
             },
             "files": [{
                     "path": "app/core/",
+                    "name": "class.js"
+                },{
+                    "path": "app/core/",
                     "name": "utils.js"
                 },
                 {
@@ -85,6 +88,9 @@
             },
             "files": [{
                     "path": "app/core/",
+                    "name": "class.js"
+                },{
+                    "path": "app/core/",
                     "name": "utils.js"
                 },
                 {
@@ -153,6 +159,9 @@
                 "debug": true
             },
             "files": [{
+                    "path": "app/core/",
+                    "name": "class.js"
+                },{
                     "path": "app/core/",
                     "name": "utils.js"
                 },
