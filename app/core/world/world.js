@@ -40,12 +40,14 @@ World.World.prototype = {
       var pk = pi + 1;
       var key = keys[pi];
       var currentP = this.points[key];
-      for(; pk < len; pk++){
-        var testKey = keys[pk];
-        var testP = this.points[testKey];
-        if(!isEmpty(testP) && currentP.crashable && testP.crashable){
-          if(currentP.crash(testP)){
-            this.link({pre : currentP, post : testP, unitForce : 0.1, elasticity : 0.5, distance : currentP.crashRadius + testP.crashRadius, effDis : currentP.crashRadius + testP.crashRadius + 20, isDual: true});
+      if(!isEmpty(currentP)){
+        for(; pk < len; pk++){
+          var testKey = keys[pk];
+          var testP = this.points[testKey];
+          if(!isEmpty(testP) && currentP.crashable && testP.crashable){
+            if(currentP.crash(testP)){
+              this.link({pre : currentP, post : testP, unitForce : 0.1, elasticity : 0.5, distance : currentP.crashRadius + testP.crashRadius, effDis : currentP.crashRadius + testP.crashRadius + 20, isDual: true});
+            }
           }
         }
       }
@@ -85,77 +87,92 @@ World.World.prototype = {
   }
 };
 
-World.Point = function(config){
-  this.x = 0;
-  this.y = 0;
-  this.z = 0;
-  this.vx = 0;
-  this.vy = 0;
-  this.vz = 0;
-  this.world = null;
-  this.weight = 1;
-  this.crashable = true;
+World.Point = Class.extend({
+  x : 0,
+  y : 0,
+  z : 0,
+  vx : 0,
+  vy : 0,
+  vz : 0,
+  world : null,
+  /**
+   * which group is this point belongs to, 
+   * usually the object
+   */
+  group : null,
+  
+  weight : 1,
+  crashable : true,
   /**
    * Define the circle crash-detect area with radius
    */
-  this.crashRadius = 30;
-  this.crashing = false;
+  crashRadius : 30,
+  crashing : false,
   /**
    * Callback function when crashed, return crashed point ant itself
    */
-  this.onCrash = null;
+  onCrash : null,
   /**
    * Callback function when point moved 
    */
-  this.onMoved = null;
-  this.onDestroyed = null;
-  this.iid = 0;
+  onMoved : null,
+  onDestroyed : null,
+  
+  /**
+   * mark this point as destroyed and don't calculate in the link
+   */
+  destroyed : false,
+  iid : 0,
   /**
    * link will destroy this point if set true
    */
-  this.goneWithLink = false;
-  Utils.apply(this, config);
-};
-
-World.Point.prototype = {
-    
-   crash : function(point){
-     if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
-       console.log('crashed');
-       var vx = Math.abs(this.vx + point.vx);
-       var vy = Math.abs(this.vy + point.vy);
-       this.vx = parseInt(this.vx > 0 ? -vx : vx);
-       this.vy = parseInt(this.vy > 0 ? -vy : vy);
-       point.vx = parseInt(point.vx > 0 ? -vx : vx);
-       point.vy = parseInt(point.vx > 0 ? -vx : vx);
-       this.crashing = true;
-       if(!isEmpty(this.onCrash)){
-         this.onCrash(point, this);
-       }
-     }else{
-       this.crashing = false;
-     }
-     return this.crashing;
-   },
-   
-   move : function(){
-//     console.log('move to : x =' + this.x + '  y =' + this.y);
-       this.x += this.vx;
-       this.y += this.vy;
-       this.z += this.vz;
-       if(!isEmpty(this.onMoved)){
-         this.onMoved(this);
-       }
-   },
-   
-   link2 : function(post, config){
-     return this.world.link(Utils.apply({pre : this, post : post}, config));
-   },
-   
-   destroy : function(){
-     delete this.world.points[this.iid];
-   }
-};
+  goneWithLink : false,
+  
+  init : function(config){
+    Utils.apply(this, config);
+  },
+  
+  crash : function(point){
+    if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
+      console.log('crashed');
+      var vx = Math.abs(this.vx + point.vx);
+      var vy = Math.abs(this.vy + point.vy);
+      this.vx = parseInt(this.vx > 0 ? -vx : vx);
+      this.vy = parseInt(this.vy > 0 ? -vy : vy);
+      point.vx = parseInt(point.vx > 0 ? -vx : vx);
+      point.vy = parseInt(point.vx > 0 ? -vx : vx);
+      this.crashing = true;
+      if(!isEmpty(this.onCrash)){
+        this.onCrash(point, this);
+      }
+    }else{
+      this.crashing = false;
+    }
+    return this.crashing;
+  },
+  
+  move : function(){
+//    console.log('move to : x =' + this.x + '  y =' + this.y);
+      this.x += this.vx;
+      this.y += this.vy;
+      this.z += this.vz;
+      if(!isEmpty(this.onMoved)){
+        this.onMoved(this);
+      }
+  },
+  
+  link2 : function(post, config){
+    return this.world.link(Utils.apply({pre : this, post : post}, config));
+  },
+  
+  destroy : function(){
+    if(this.onDestroyed){
+      this.onDestroyed.call(this);
+    }
+    delete this.world.points[this.iid];
+    this.destroyed = true;
+  }
+});
 
 /**
  * Actually is a set of points
@@ -210,7 +227,7 @@ World.Link.prototype = {
 //    console.log('calc');
     var pre = this.pre;
     var post = this.post;
-    if(isEmpty(pre) || isEmpty(post)){
+    if(isEmpty(pre) || isEmpty(post) || pre.destroyed || post.destroyed){
       this.destroy();
       return;
     }

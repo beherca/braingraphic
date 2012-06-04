@@ -16,13 +16,18 @@ Creature.Life = World.Object.extend({
   body : null,
   brain : null,
   energyCapacity : 10000,
-  energy : this.energyCapacity,
+  energy : 10000,
   age : 0,
   init :function(config){
     Utils.apply(this, config);
     this.body = this.world.add({type: 'point', x : this.x, y : this.y, 
-      crashable : true, crashRadius : 1
+      crashable : true, crashRadius : 20, group : this
     });
+  },
+  
+  destroy : function(){
+    delete this.world.objects[this.iid];
+    this.body.destroy();
   }
 });
 
@@ -64,16 +69,16 @@ Creature.Ant = Creature.Life.extend({
       //right antenna
       this.ra = this.world.add({type: 'point', x : this.x + 20, y : this.y + 15, 
         crashable : true, onCrash : function(){me.actRa.call(me);},
-        crashRadius : 1
+        crashRadius : 1, group : this
         });
       //left antenna
       this.la = this.world.add({type: 'point', x : this.x + 20, y : this.y - 15, 
         crashable : true, onCrash : function(){me.actLa.call(me);},
-        crashRadius : 1
+        crashRadius : 1, group : this
         });
       this.mouth = this.world.add({type: 'point', x : this.x +10, y : this.y, 
         crashable : true, onCrash : function(other, self){me.eat.call(me, other);},
-        crashRadius : 1
+        crashRadius : 1, group : this
         });
       this.world.link({
         pre : this.ra, 
@@ -118,7 +123,7 @@ Creature.Ant = Creature.Life.extend({
      * @param inputs 0 left antenna, 1 right antenna, 2-3 olfaction
      */
     set : function(inputs){
-      console.log('set :' + inputs);
+//      console.log('set :' + inputs);
       this.brain.set.call(this.brain, inputs);
     },
     
@@ -129,7 +134,7 @@ Creature.Ant = Creature.Life.extend({
     
     act : function(){
       var outputs = this.brain.get();
-      console.log('act : ' + outputs);
+//      console.log('act : ' + outputs);
       for(var i in outputs){
         var o = outputs[i];//return 0 or 1
         if(!!o){//1
@@ -178,7 +183,7 @@ Creature.Ant = Creature.Life.extend({
       var target = null;
       for(var key in this.world.objects){
         var o = this.world.objects[key];
-        if(o instanceof Creature.Life){
+        if(o instanceof Creature.Life && o != this){
           var ndis = Utils.getDisXY(this.ra, OP.add(o.x, o.y));
           if(dis < 0 || ndis < dis){
             dis = ndis;
@@ -211,9 +216,11 @@ Creature.Ant = Creature.Life.extend({
     },
     
     eat : function(other){
-      if(!isEmpty(other) && other instanceof Creature.Life){
-        this.energy += other.energy;
-        other.destroy();
+      if(!isEmpty(other) && !isEmpty(other.group)
+          && other.group != this
+          && other.group instanceof Creature.Life){
+        this.energy += other.group.energy / 1000;
+        other.group.destroy();
       }
     },
     /**

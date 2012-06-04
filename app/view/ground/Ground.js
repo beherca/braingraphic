@@ -12,10 +12,7 @@ Ext.define('AM.view.ground.Point', {
 
 Ext.define('AM.view.ground.Food', {
   extend : 'AM.view.ground.Point',
-  
-  destroy : function(){
-    
-  }
+
 });
 
 Ext.define('AM.view.ground.Ground', {
@@ -149,25 +146,26 @@ Ext.define('AM.view.ground.Ground', {
     var me = this;
     if(isEmpty(this.worldTick)){
       this.worldTick = Ext.TaskManager.start({
-        interval : 200,
+        interval : 100,
         run: function(){
           me.world.tick();
+          me.ant.tick();
         }
       });
     }else{
       Ext.TaskManager.start(this.worldTick);
     }
     
-    if(isEmpty(this.antTick)){
-      this.antTick = Ext.TaskManager.start({
-        interval : 500,
-        run: function(){
-          me.ant.tick();
-        }
-      });
-    }else{
-      Ext.TaskManager.start(this.antTick);
-    }
+//    if(isEmpty(this.antTick)){
+//      this.antTick = Ext.TaskManager.start({
+//        interval : 100,
+//        run: function(){
+//          me.ant.tick();
+//        }
+//      });
+//    }else{
+//      Ext.TaskManager.start(this.antTick);
+//    }
   },
   
   stop : function(){
@@ -183,7 +181,7 @@ Ext.define('AM.view.ground.Ground', {
   addFood : function(xy, offset) {
     var me = this;
     var life = me.world.add({type: 'life', x : xy.x, y : xy.y + offset});
-    me.addViewPoint(life);
+    me.addViewPoint(life.body);
     return life;
   },
   
@@ -203,6 +201,7 @@ Ext.define('AM.view.ground.Ground', {
     },
     point.onDestroyed = function(p){
       bno.destroy();
+      bno = null;
     };
     bno.on('neuronMoved', function(n){
       point.x = n.x;
