@@ -68,6 +68,36 @@ OP = {
 };
 
 Utils = {
+//    create : function(){
+//      
+//    },
+//    
+//    define : function(config){
+//      var fn = function(config){};
+//      if(config.extend){
+//        var parent = config.extend;
+//        delete config.extend;
+//        fn = Utils.extend(parent, fn, config);
+//      }else {
+//        fn = Utils.applyFnProps(fn, config);
+//      }
+//      return fn;
+//    },
+//    
+//    extend : function(parent, child, config){
+//      var pi = new parent(config);//parenet instance
+//      Utils.applyFnProps(child, pi);
+//      Utils.apply(child, {parent : pi});
+//      return child;
+//    },
+//    
+//    applyFnProps : function(target, from){
+//      for(var key in from){
+//        target.prototype[key] = from[key];
+//      }
+//      return target;
+//    },
+
     apply : function(target, from){
       for(var key in from){
         target[key] = from[key];

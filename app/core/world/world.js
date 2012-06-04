@@ -66,7 +66,7 @@ World.World.prototype = {
       this.objects[ant.iid] = ant;
       return ant;
     }else if(config.type == 'life'){
-      var life = new Creature.Food(Utils.apply({world : this, iid : this.iidor.get()}, config));
+      var life = new Creature.Life(Utils.apply({world : this, iid : this.iidor.get()}, config));
       this.objects[life.iid] = life;
       return life;
     }
@@ -94,21 +94,22 @@ World.Point = function(config){
   this.world = null;
   this.weight = 1;
   this.crashable = true;
-  /*
+  /**
    * Define the circle crash-detect area with radius
    */
   this.crashRadius = 30;
   this.crashing = false;
-  /*
-   * Callback function when crashed 
+  /**
+   * Callback function when crashed, return crashed point ant itself
    */
   this.onCrash = null;
-  /*
+  /**
    * Callback function when point moved 
    */
   this.onMoved = null;
+  this.onDestroyed = null;
   this.iid = 0;
-  /*
+  /**
    * link will destroy this point if set true
    */
   this.goneWithLink = false;
@@ -119,7 +120,7 @@ World.Point.prototype = {
     
    crash : function(point){
      if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
-//       console.log('crashed');
+       console.log('crashed');
        var vx = Math.abs(this.vx + point.vx);
        var vy = Math.abs(this.vy + point.vy);
        this.vx = parseInt(this.vx > 0 ? -vx : vx);
@@ -128,7 +129,7 @@ World.Point.prototype = {
        point.vy = parseInt(point.vx > 0 ? -vx : vx);
        this.crashing = true;
        if(!isEmpty(this.onCrash)){
-         this.onCrash(this);
+         this.onCrash(point, this);
        }
      }else{
        this.crashing = false;
@@ -166,6 +167,11 @@ World.Object = function(config){
   Utils.apply(this, config);
 };
 
+World.Object.prototype = {
+    test : function(){
+      
+    }
+};
 
 World.Circle = function(config){
   this.radius = 10;
@@ -289,6 +295,9 @@ World.Link.prototype = {
       this.post.destroy();
     }
     delete this.world.links[this.iid];
+    if(this.onDestroyed){
+      this.onDestroyed.call(this);
+    }
   }
 };
 

@@ -49,6 +49,7 @@ Ext.define('AM.view.ground.Ground', {
       gene : JSON.stringify(gene),
       sex : Creature.SEX.M
     });
+
     me.items = [{
       xtype : 'toolbar',
       title : 'bar',
@@ -181,16 +182,8 @@ Ext.define('AM.view.ground.Ground', {
   
   addFood : function(xy, offset) {
     var me = this, drawComp = me.down('draw');
-    var point = me.world.add({type: 'point', x : xy.x, y : xy.y + offset});
-    var bno = Ext.create('AM.view.ground.Point', {
-      drawComp : drawComp,
-      x : point.x,
-      y : point.y, 
-      radius : 5,
-      iid : point.iid,
-      point : point
-    });
-    return bno;
+    var life = me.world.add({type: 'life', x : xy.x, y : xy.y + offset});
+    return life;
   },
   
   addViewPoint : function(point, offset) {
@@ -207,6 +200,9 @@ Ext.define('AM.view.ground.Ground', {
     point.onMoved = function(p){
       bno.syncPos();
     },
+    point.onDestroyed = function(p){
+      bno.destroy();
+    };
     bno.on('neuronMoved', function(n){
       point.x = n.x;
       point.y = n.y;
