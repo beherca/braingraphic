@@ -50,7 +50,7 @@ Ext.define('AM.view.ground.Ground', {
     var me = this;
     this.addEvents('modeChanged');
     me.iidor = new Iid();
-    me.world = World.create({x : 0, y : 0});
+    me.world = World.create({x : 0, y : 0, resistance : 0.09});
     me.ant = me.world.add({
       type: 'ant', 
       x : 300, y : 300,
@@ -197,7 +197,7 @@ Ext.define('AM.view.ground.Ground', {
     return life;
   },
   
-  addViewPoint : function(point, offset) {
+  addViewPoint : function(point) {
     var me = this, drawComp = me.down('draw');
     var bno = Ext.create('AM.view.ground.Point', {
       drawComp : drawComp,
@@ -217,8 +217,8 @@ Ext.define('AM.view.ground.Ground', {
       bno = null;
     };
     bno.on('neuronMoved', function(n){
-      point.x = n.x;
-      point.y = n.y;
+      point.x = n.x + me.offset.x;
+      point.y = n.y + me.offset.y;
     });
     return bno;
   },

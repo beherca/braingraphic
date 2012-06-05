@@ -21,7 +21,7 @@ Creature.Life = World.Object.extend({
   init :function(config){
     Utils.apply(this, config);
     this.body = this.world.add({type: 'point', x : this.x, y : this.y, 
-      crashable : true, crashRadius : 20, group : this
+      crashable : true, crashRadius : 10, group : this
     });
   },
   
@@ -69,23 +69,23 @@ Creature.Ant = Creature.Life.extend({
       //left antenna
       this.la = this.world.add({type: 'point', x : this.x + 20, y : this.y - 15, 
         crashable : true, onCrash : function(){me.actLa.call(me);},
-        crashRadius : 1, group : this, text:'left antenna'
+        crashRadius : 1, group : this, text:'left-a'
         });
       //right antenna
       this.ra = this.world.add({type: 'point', x : this.x + 20, y : this.y + 15, 
         crashable : true, onCrash : function(){me.actRa.call(me);},
-        crashRadius : 1, group : this, text:'right antenna'
+        crashRadius : 1, group : this, text:'right-a'
         });
       this.mouth = this.world.add({type: 'point', x : this.x +10, y : this.y, 
         crashable : true, onCrash : function(other, self){me.eat.call(me, other);},
-        crashRadius : 1, group : this
+        crashRadius : 1, group : this, text : 'mouth'
         });
       this.world.link({
         pre : this.ra, 
         post : this.la, 
         elasticity : 0.9, 
         unitForce : 0.9, 
-        distance : 20, 
+        distance : 50, 
         effDis : 2000, 
         isDual: true
       });
@@ -93,19 +93,19 @@ Creature.Ant = Creature.Life.extend({
         pre : this.ra, 
         post : this.mouth, 
         elasticity : 0.9, 
-        unitForce : 0.9, 
-        distance : 20, 
+        unitForce : 0.5, 
+        distance : 30, 
         effDis : 2000, 
-        isDual: false
+        isDual: true
       });
       this.world.link({
         pre : this.la, 
         post : this.mouth, 
         elasticity : 0.9, 
-        unitForce : 0.9, 
-        distance : 20, 
+        unitForce : 0.5, 
+        distance : 30, 
         effDis : 2000, 
-        isDual: false
+        isDual: true
       });
 //      this.world.link({
 //        pre : this.mouth, 
@@ -210,9 +210,13 @@ Creature.Ant = Creature.Life.extend({
       var rDis = Utils.getDisXY(this.ra, OP.add(life.x, life.y));
       var lDis = Utils.getDisXY(this.la, OP.add(life.x, life.y));
       if(rDis > lDis){
-        this.actROlf();
-      }else{
+        /*
+         * Follow the rule of the nature, the closer to the target, 
+         * the easier to get fired.
+         */
         this.actLOlf();
+      }else{
+        this.actROlf();
       }
     },
     
@@ -228,6 +232,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : left foot Forwad
      */
     lff : function(){
+      console.log('lff');
       var crawlP = this.getCrawlPoint(this.la, Math.PI/2); //left forward point
       this.crawl(crawlP, this.la);
     },
@@ -236,6 +241,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : left foot backward
      */
     lfb : function(){
+      console.log('lfb');
       var crawlP = this.getCrawlPoint(this.la, -Math.PI/2); //left forward point
       this.crawl(crawlP, this.la);
     },
@@ -244,6 +250,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : right foot Forwad
      */
     rff : function(){
+      console.log('rff');
       var crawlP = this.getCrawlPoint(this.ra, Math.PI/2); //left forward point
       this.crawl(crawlP, this.ra);
     },
@@ -252,6 +259,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : right foot backward
      */
     rfb : function(){
+      console.log('rfb');
       var crawlP = this.getCrawlPoint(this.ra, -Math.PI/2); //left forward point
       this.crawl(crawlP, this.ra);
     },
