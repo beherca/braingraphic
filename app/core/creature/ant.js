@@ -78,7 +78,7 @@ Creature.Ant = Creature.Life.extend({
         });
       this.mouth = this.world.add({type: 'point', x : this.x +10, y : this.y, 
         crashable : true, onCrash : function(other, self){me.eat.call(me, other);},
-        crashRadius : 1, group : this, text : 'mouth'
+        crashRadius : 10, group : this, text : 'mouth'
         });
       this.world.link({
         pre : this.ra, 

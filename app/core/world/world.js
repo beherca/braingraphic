@@ -46,7 +46,11 @@ World.World.prototype = {
           var testP = this.points[testKey];
           if(!isEmpty(testP) && currentP.crashable && testP.crashable){
             if(currentP.crash(testP)){
-              this.link({pre : currentP, post : testP, unitForce : 0.1, elasticity : 0.5, distance : currentP.crashRadius + testP.crashRadius, effDis : currentP.crashRadius + testP.crashRadius + 20, isDual: true});
+              this.link({pre : currentP, post : testP, 
+                unitForce : 0.1, elasticity : 0.5, 
+                distance : currentP.crashRadius + testP.crashRadius, 
+                effDis : currentP.crashRadius + testP.crashRadius + 20, 
+                isDual: true});
             }
           }
         }
@@ -164,6 +168,7 @@ World.Point = Class.extend(Observable.apply({
       this.z += this.vz;
       if(!isEmpty(this.onMoved)){
         this.onMoved(this);
+        this.fireEvent('onMoved', this);
       }
   },
   
