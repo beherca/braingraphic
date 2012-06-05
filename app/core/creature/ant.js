@@ -59,7 +59,8 @@ Creature.Ant = Creature.Life.extend({
         this.brain = bb.build();// build cortex
         this.createBody();
         this.sensers = [this.actLOlf, this.actROlf, this.actLa, this.actRa];
-        this.actions = [this.lff, this.lfb, this.rff, this.rfb];
+        this.actions = [this.lff, this.lfb, this.rff, this.rfb/*, 
+                        this.lbff, this.rbff*/];
       }
 //      this._super(config);
     },
@@ -69,17 +70,27 @@ Creature.Ant = Creature.Life.extend({
       //left antenna
       this.la = this.world.add({type: 'point', x : this.x + 20, y : this.y - 15, 
         crashable : true, onCrash : function(){me.actLa.call(me);},
-        crashRadius : 1, group : this, text:'left-a'
+        crashRadius : 5, group : this, text:'left-a'
         });
       //right antenna
       this.ra = this.world.add({type: 'point', x : this.x + 20, y : this.y + 15, 
         crashable : true, onCrash : function(){me.actRa.call(me);},
-        crashRadius : 1, group : this, text:'right-a'
+        crashRadius : 5, group : this, text:'right-a'
         });
       this.mouth = this.world.add({type: 'point', x : this.x +10, y : this.y, 
         crashable : true, onCrash : function(other, self){me.eat.call(me, other);},
         crashRadius : 10, group : this, text : 'mouth'
         });
+//      this.body = this.world.add({type: 'point', x : this.x - 20, y : this.y, 
+//        crashable : true, crashRadius : 30, group : this, text : 'body'
+//        });
+//      this.lf = this.world.add({type: 'point', x : this.x - 40, y : this.y - 10, 
+//        crashable : true, crashRadius : 20, group : this, text : 'lf'
+//      });
+//      this.rf = this.world.add({type: 'point', x : this.x - 40, y : this.y + 10, 
+//        crashable : true, crashRadius : 20, group : this, text : 'rf'
+//      });
+//        
       this.world.link({
         pre : this.ra, 
         post : this.la, 
@@ -93,28 +104,55 @@ Creature.Ant = Creature.Life.extend({
         pre : this.ra, 
         post : this.mouth, 
         elasticity : 0.9, 
-        unitForce : 0.9, 
+        unitForce : 0.5, 
         distance : 30, 
         effDis : 2000, 
-        isDual: false
+        isDual: true
       });
       this.world.link({
         pre : this.la, 
         post : this.mouth, 
         elasticity : 0.9, 
-        unitForce : 0.9, 
+        unitForce : 0.5, 
         distance : 30, 
         effDis : 2000, 
-        isDual: false
+        isDual: true
       });
 //      this.world.link({
 //        pre : this.mouth, 
 //        post : this.body, 
 //        elasticity : 0.9, 
-//        unitForce : 0.9, 
-//        distance : 10, 
+//        unitForce : 0.5, 
+//        distance : 50, 
 //        effDis : 2000, 
-//        isDual: false
+//        isDual: true
+//      });
+//      this.world.link({
+//        pre : this.body, 
+//        post : this.lf, 
+//        elasticity : 0.9, 
+//        unitForce : 0.5, 
+//        distance : 30, 
+//        effDis : 2000, 
+//        isDual: true
+//      });
+//      this.world.link({
+//        pre : this.body, 
+//        post : this.rf, 
+//        elasticity : 0.9, 
+//        unitForce : 0.5, 
+//        distance : 30, 
+//        effDis : 2000, 
+//        isDual: true
+//      });
+//      this.world.link({
+//        pre : this.rf, 
+//        post : this.lf, 
+//        elasticity : 0.8, 
+//        unitForce : 0.3, 
+//        distance : 50, 
+//        effDis : 2000, 
+//        isDual: true
 //      });
     },
     
@@ -233,7 +271,7 @@ Creature.Ant = Creature.Life.extend({
      */
     lff : function(){
       console.log('lff');
-      var crawlP = this.getCrawlPoint(this.la, Math.PI/2); //left forward point
+      var crawlP = this.getCrawlPoint(this.la, this.ra, -Math.PI/2); //left forward point
       this.crawl(crawlP, this.la);
     },
     
@@ -242,8 +280,26 @@ Creature.Ant = Creature.Life.extend({
      */
     lfb : function(){
       console.log('lfb');
-      var crawlP = this.getCrawlPoint(this.la, -Math.PI/2); //left forward point
+      var crawlP = this.getCrawlPoint(this.la, this.ra, Math.PI/2); //left forward point
       this.crawl(crawlP, this.la);
+    },
+    
+    /**
+     * Action : left foot Forwad
+     */
+    lbff : function(){
+      console.log('lbff');
+      var crawlP = this.getCrawlPoint(this.lf, this.rf, -Math.PI/2); //left forward point
+      this.crawl(crawlP, this.lf);
+    },
+    
+    /**
+     * Action : left foot backward
+     */
+    rbff : function(){
+      console.log('rbff');
+      var crawlP = this.getCrawlPoint(this.rf, this.lf, Math.PI/2); //left forward point
+      this.crawl(crawlP, this.rf);
     },
     
     /**
@@ -251,7 +307,7 @@ Creature.Ant = Creature.Life.extend({
      */
     rff : function(){
       console.log('rff');
-      var crawlP = this.getCrawlPoint(this.ra, Math.PI/2); //left forward point
+      var crawlP = this.getCrawlPoint(this.ra, this.la, Math.PI/2); //left forward point
       this.crawl(crawlP, this.ra);
     },
     
@@ -260,12 +316,12 @@ Creature.Ant = Creature.Life.extend({
      */
     rfb : function(){
       console.log('rfb');
-      var crawlP = this.getCrawlPoint(this.ra, -Math.PI/2); //left forward point
+      var crawlP = this.getCrawlPoint(this.ra, this.la, -Math.PI/2); //left forward point
       this.crawl(crawlP, this.ra);
     },
     
-    getCrawlPoint : function(startP, offset){
-      var angle =  Utils.getAngle(this.ra, this.la, offset);
+    getCrawlPoint : function(startP, endP, offset){
+      var angle =  Utils.getAngle(startP, endP, offset);
       var px = startP.x + this.strength * Math.cos(angle);
       var py = startP.y + this.strength * Math.sin(angle);
       var point = this.world.add({type: 'point', x : px, y : py, 
