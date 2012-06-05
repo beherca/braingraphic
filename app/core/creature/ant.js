@@ -66,15 +66,15 @@ Creature.Ant = Creature.Life.extend({
     
     createBody : function(){
       var me = this;
-      //right antenna
-      this.ra = this.world.add({type: 'point', x : this.x + 20, y : this.y + 15, 
-        crashable : true, onCrash : function(){me.actRa.call(me);},
-        crashRadius : 1, group : this
-        });
       //left antenna
       this.la = this.world.add({type: 'point', x : this.x + 20, y : this.y - 15, 
         crashable : true, onCrash : function(){me.actLa.call(me);},
-        crashRadius : 1, group : this
+        crashRadius : 1, group : this, text:'left antenna'
+        });
+      //right antenna
+      this.ra = this.world.add({type: 'point', x : this.x + 20, y : this.y + 15, 
+        crashable : true, onCrash : function(){me.actRa.call(me);},
+        crashRadius : 1, group : this, text:'right antenna'
         });
       this.mouth = this.world.add({type: 'point', x : this.x +10, y : this.y, 
         crashable : true, onCrash : function(other, self){me.eat.call(me, other);},

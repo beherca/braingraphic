@@ -122,7 +122,13 @@ World.Point = Class.extend({
    * mark this point as destroyed and don't calculate in the link
    */
   destroyed : false,
+  
   iid : 0,
+  
+  /**
+   * description of this point
+   */
+  text : '',
   /**
    * link will destroy this point if set true
    */

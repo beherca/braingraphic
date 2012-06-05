@@ -193,7 +193,8 @@ Ext.define('AM.view.ground.Ground', {
       y : point.y, 
       radius : 5,
       iid : point.iid,
-      point : point
+      point : point,
+      text : point.text
     });
     me.iidor.set(point.iid);
     point.onMoved = function(p){

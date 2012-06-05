@@ -34,6 +34,11 @@ Ext.define('AM.view.neuronmap.Brain.Object', {
   //text on object
   t : null, 
   state : STATE.N,
+  
+  /**
+   * description of this object, will show at side of neuron
+   */
+  text : '',
 
   // svg surface component
   drawComp : null,
@@ -50,11 +55,12 @@ Ext.define('AM.view.neuronmap.Brain.Object', {
     var me = this;
     x = (Ext.isEmpty(x) ? (me.x) : x) + 10;
     y =  Ext.isEmpty(y) ? me.y : y;
+    var txt = !Ext.isEmpty(me.text) ? me.iid + "-" + me.text : me.iid;
     if (!Ext.isEmpty(me.drawComp)) {
       if (Ext.isEmpty(me.t)) {
         me.t = me.drawComp.surface.add({
           type : 'text',
-          text : me.iid,
+          text : txt,
           fill : 'black',
           font : '14px "Lucida Grande", Helvetica, Arial, sans-serif;',
           x : x,
@@ -63,7 +69,7 @@ Ext.define('AM.view.neuronmap.Brain.Object', {
         });
       }else {
         me.t.setAttributes({
-          text : me.iid,
+          text : txt,
           x : x,
           y : y
         });
