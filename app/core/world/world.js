@@ -87,7 +87,7 @@ World.World.prototype = {
   }
 };
 
-World.Point = Class.extend({
+World.Point = Class.extend(Observable.apply({
   x : 0,
   y : 0,
   z : 0,
@@ -178,7 +178,7 @@ World.Point = Class.extend({
     delete this.world.points[this.iid];
     this.destroyed = true;
   }
-});
+}));
 
 /**
  * Actually is a set of points

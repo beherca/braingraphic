@@ -83,8 +83,8 @@ Creature.Ant = Creature.Life.extend({
       this.world.link({
         pre : this.ra, 
         post : this.la, 
-        elasticity : 0.9, 
-        unitForce : 0.9, 
+        elasticity : 0.8, 
+        unitForce : 0.3, 
         distance : 50, 
         effDis : 2000, 
         isDual: true
@@ -93,19 +93,19 @@ Creature.Ant = Creature.Life.extend({
         pre : this.ra, 
         post : this.mouth, 
         elasticity : 0.9, 
-        unitForce : 0.5, 
+        unitForce : 0.9, 
         distance : 30, 
         effDis : 2000, 
-        isDual: true
+        isDual: false
       });
       this.world.link({
         pre : this.la, 
         post : this.mouth, 
         elasticity : 0.9, 
-        unitForce : 0.5, 
+        unitForce : 0.9, 
         distance : 30, 
         effDis : 2000, 
-        isDual: true
+        isDual: false
       });
 //      this.world.link({
 //        pre : this.mouth, 

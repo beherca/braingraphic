@@ -67,6 +67,41 @@ OP = {
   }
 };
 
+var Observable = function(){
+  this.listeners = {};
+  this.on = function(listeners){
+    for(var name in listeners){
+      var listener = listeners[name];
+      if(this.listeners && this.listeners[name]){
+        this.listeners[name].push(listener);
+      }else if(this.listeners && !this.listeners[name]){
+        this.listeners[name] = [listener];
+      }
+    }
+  };
+  this.fireEvent = function(name, obj){
+    var reglists = this.listeners[name];
+    if(!isEmpty(reglists) && Array.isArray(reglists) && reglists.length > 0){
+      for(var i in reglists){
+        var listener = reglists[i];
+        if(typeof(listener) == 'object'){
+          listener.fn.call(listener.scope, obj);
+        }else if(typeof(listener) == 'function'){
+          listener.call(this, obj);
+        }
+      }
+    }else if(!isEmpty(reglists) && !Array.isArray(reglists)){
+      var listener = reglists;
+      if(typeof(listener) == 'object'){
+        listener.fn.call(listener.scope, obj);
+      }else if(typeof(listener) == 'function'){
+        listener.call(listener.scope, obj);
+      }
+    }
+  };
+  return this;
+};
+
 Utils = {
 //    create : function(){
 //      
