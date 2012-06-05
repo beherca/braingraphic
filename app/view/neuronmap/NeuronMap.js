@@ -98,6 +98,7 @@ Ext.define('AM.view.neuronmap.Brain.Object', {
         });
       }
       me.s.redraw();
+      me.appendText();
     }
   },
 

@@ -68,6 +68,10 @@
                 },
                 {
                     "path": "app/view/ground/",
+                    "name": "ShapeTest.js"
+                },
+                {
+                    "path": "app/view/ground/",
                     "name": "GroundMultPointsTest.js"
                 },
                 {

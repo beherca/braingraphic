@@ -50,7 +50,7 @@ World.World.prototype = {
                 unitForce : 0.1, elasticity : 0.5, 
                 distance : currentP.crashRadius + testP.crashRadius, 
                 effDis : currentP.crashRadius + testP.crashRadius + 20, 
-                isDual: true});
+                isDual: true, repeat : 1});
             }
           }
         }
@@ -198,9 +198,27 @@ World.Object = Class.extend({
   }
 });
 
+World.Triangle = World.Object.extend({
+  /**
+   * Top point
+   */
+  top : null,
+  /**
+   * left point
+   */
+  left : null,
+  /**
+   * right point
+   */
+  right : null
+});
+
 World.Circle = World.Object.extend({
   radius : 10,
-  edgePoints : 6,
+  /**
+   * multiple of 3
+   */
+  edge : 1,
   //  World.Circle.prototype.constructor.call(World.Circle.prototype, config);
   init : function(config){
     
