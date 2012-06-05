@@ -58,7 +58,7 @@ Creature.Ant = Creature.Life.extend({
         var bb = new BrainBuilder(this.gene);
         this.brain = bb.build();// build cortex
         this.createBody();
-        this.sensers = [this.actLa, this.actRa, this.actLOlf, this.actROlf];
+        this.sensers = [this.actLOlf, this.actROlf, this.actLa, this.actRa];
         this.actions = [this.lff, this.lfb, this.rff, this.rfb];
       }
 //      this._super(config);
@@ -123,7 +123,7 @@ Creature.Ant = Creature.Life.extend({
      * @param inputs 0 left antenna, 1 right antenna, 2-3 olfaction
      */
     set : function(inputs){
-//      console.log('set :' + inputs);
+      console.log('set :' + inputs);
       this.brain.set.call(this.brain, inputs);
     },
     
@@ -134,7 +134,7 @@ Creature.Ant = Creature.Life.extend({
     
     act : function(){
       var outputs = this.brain.get();
-//      console.log('act : ' + outputs);
+      console.log('act : ' + outputs);
       for(var i in outputs){
         var o = outputs[i];//return 0 or 1
         if(!!o){//1
@@ -160,19 +160,20 @@ Creature.Ant = Creature.Life.extend({
      * Activate left Antenna
      */
     actLa : function(){
-      this.set([2, 0, 0, 0]);
-    },
-    
-    actRa : function(){
-      this.set([0, 2, 0, 0]);
-    },
-    
-    actLOlf : function(inputs){
       this.set([0, 0, 2, 0]);
     },
     
-    actROlf : function(inputs){
+    actRa : function(){
       this.set([0, 0, 0, 2]);
+    },
+    
+    actLOlf : function(inputs){
+      this.set([2, 0, 0, 0]);
+      
+    },
+    
+    actROlf : function(inputs){
+      this.set([0, 2, 0, 0]);
     },
     
     /**

@@ -16,14 +16,21 @@ Ext.define('AM.view.ground.Food', {
 });
 
 Ext.define('AM.view.ground.Ground', {
-  extend : 'Ext.panel.Panel',
+  extend : 'Ext.window.Window',
   alias : 'widget.ground',
-// title : 'Playground',
+  title : 'Playground',
 
   layout : {
     type : 'border',
     border : 2
   },
+  
+  modal : true,
+  autoShow : true,
+  closeAction : 'destroy',
+  
+  height : 600,
+  width : 1000,
   
   world : null,
   
@@ -35,6 +42,10 @@ Ext.define('AM.view.ground.Ground', {
   
   antTick : null,
   
+  gene : null,
+  
+  offset : OP.add(0, 0),
+  
   initComponent : function() {
     var me = this;
     this.addEvents('modeChanged');
@@ -43,7 +54,7 @@ Ext.define('AM.view.ground.Ground', {
     me.ant = me.world.add({
       type: 'ant', 
       x : 300, y : 300,
-      gene : JSON.stringify(gene),
+      gene : Ext.isEmpty(this.gene) ? JSON.stringify(gene) : this.gene,
       sex : Creature.SEX.M
     });
 
@@ -119,9 +130,10 @@ Ext.define('AM.view.ground.Ground', {
           // console.log('draw panel click');
           // only happen when user click on the neruon object
           if (e.target instanceof SVGRectElement) {
-            me.offset = me.offset ? me.offset : me.down('draw').getBox().y;
+            var box = me.down('draw').getBox();
+            me.offset = OP.add(-box.x, -box.y);
             if (me.mode == MODE.NEURON) {
-              me.addFood(OP.add(e.getXY()[0], e.getXY()[1]), -me.offset);
+              me.addFood(OP.add(e.getXY()[0], e.getXY()[1]), me.offset);
             }
           }
         }
@@ -180,7 +192,7 @@ Ext.define('AM.view.ground.Ground', {
   
   addFood : function(xy, offset) {
     var me = this;
-    var life = me.world.add({type: 'life', x : xy.x, y : xy.y + offset});
+    var life = me.world.add({type: 'life', x : xy.x + offset.x, y : xy.y + offset.y});
     me.addViewPoint(life.body);
     return life;
   },
@@ -209,6 +221,11 @@ Ext.define('AM.view.ground.Ground', {
       point.y = n.y;
     });
     return bno;
+  },
+  
+  destroy : function(){
+    this.stop();
+    this.callParent(arguments);
   }
 });
 

@@ -605,6 +605,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   
   settingWindow : null,
   
+  groundWindow : null,
+  
   synapseCache : [],
   
   brainTick : null,
@@ -734,9 +736,28 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
         toggleGroup : 'runbrainbtn',
         listeners : {
           toggle : function(btn, pressed, opts) {
-//          console.log('save');
+//          console.log('save'); AM.view.ground.Ground
             if (pressed) {
+              btn.setText('Hide Ground');
+              btn.setTooltip('Hide Ground');
+              if (!me.groundWindow) {
+                me.groundWindow = Ext.widget('ground', {
+                  gene : me.toJson(),
+                  width : 1000,
+                  height : 600,
+                  listeners : {
+                    beforeclose : function(){
+                      btn.toggle(false);
+                      me.groundWindow = null;
+                    }
+                  }
+                });
+                me.add(me.groundWindow);
+              }
+              me.groundWindow.show();
             }else{
+              btn.setText('Run');
+              btn.setTooltip('Run Brain\'s Ground');
             }
           }
         }
