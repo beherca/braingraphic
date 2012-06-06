@@ -47,8 +47,10 @@ Ext.define('AM.view.neuronmap.Brain.Object', {
     this.iid = Ext.isEmpty(this.iid) ? IID.get() : this.iid;
     Ext.apply(this, config);
     this.mixins.observable.constructor.call(this, config);
+    this.addEvents(['onStateChange', 'onMove']);
+    this.on('onStateChange', this.updateState);
     this.callParent(config);
-    // this.draw();
+    this.draw();
   },
   
   appendText : function(x, y){
@@ -86,9 +88,13 @@ Ext.define('AM.view.neuronmap.Brain.Object', {
           draggable : true,
           type : 'circle',
           fill : '#ff0000',
-          radius : 10,
+          // path : [ 'M', me.x - this.width/2, me.y - this.height - 10, 'l',
+          // this.width, '0 l', -this.width/2, this.height * 0.7, 'z'].join('
+          // '),
+          radius : this.radius,
           x : me.x,
-          y : me.y
+          y : me.y,
+          zIndex : 100
         });
         me.registerListeners();
       } else {
@@ -100,6 +106,75 @@ Ext.define('AM.view.neuronmap.Brain.Object', {
       me.s.redraw();
       me.appendText();
     }
+  },
+
+  registerListeners : function() {
+    var me = this;
+    if (Ext.isEmpty(me.s))
+      return;
+    // add custom method to Ext.draw.SpriteDD, after drop (actually an invalid
+    // drop because there is no drop zone)
+    me.s.dd.afterInvalidDrop = function(target, e, id) {
+      // console.log('after drag over');
+      me.updateXY();
+      me.fireEvent('onMove', me);
+    };
+    me.s.on('mouseover', function(sprite) {
+      // console.log('mouseover');
+      if (me.state == STATE.N) {
+        me.fireEvent('onStateChange', STATE.R, me);
+      }
+    });
+    me.s.on('mouseout', function(sprite) {
+      // console.log('mouseout');
+      if (me.state == STATE.R) {
+        me.fireEvent('onStateChange', STATE.N, me);
+      }
+    });
+    me.s.on('click', function(sprite) {
+      // console.log('click');
+      me.fireEvent('onStateChange', STATE.A, me);
+    });
+  },
+
+  updateState : function(state) {
+    var me = this;
+    me.state = state;
+    if (state == STATE.N) {
+      if (state == STATE.N) {
+        me.s.setAttributes({
+          fill : '#ff0000',
+          stroke : 'none'
+        }, true);
+        me.s.redraw();
+      }
+    } else if (state == STATE.A || state == STATE.R) {
+      me.s.setAttributes({
+        fill : '#ffff00',
+        stroke : '#00ff00',
+        style : {
+          strokeWidth : 1
+        }
+      }, true);
+      me.s.redraw();
+    }
+  },
+  
+  /**
+   * This is called after dragging to update x y and redraw synapse
+   */
+  updateXY : function() {
+    // console.log('update xy');
+    this.s.x += this.s.attr.translation.x;
+    this.s.y += this.s.attr.translation.y;
+    this.s.setAttributes({
+      x : this.s.x,
+      y : this.s.y,
+      translation : {x : 0, y : 0}
+    });
+    this.x = this.s.x;
+    this.y = this.s.y;
+    this.appendText();
   },
 
   destroy : function(){
@@ -137,95 +212,16 @@ Ext.define('AM.view.neuronmap.Brain.Neuron', {
   groupedPreNeurons : null,
 
   constructor : function(config) {
-    var me = this;
     Ext.apply(this, config);
     this.groupedPreNeurons = new Ext.util.HashMap();
     this.axons = new Ext.util.HashMap();
     this.dendrites = new Ext.util.HashMap();
-    this.addEvents(['stateChanged', 'neuronMoved']);
     this.callParent(config);
-    this.on('stateChanged', me.updateState);
-    this.draw();
   },
-
-  draw : function() {
-    var me = this;
-    if (!Ext.isEmpty(me.drawComp)) {
-      if (Ext.isEmpty(me.s)) {
-        me.s = me.drawComp.surface.add({
-          draggable : true,
-          type : 'circle',
-          fill : '#ff0000',
-          // path : [ 'M', me.x - this.width/2, me.y - this.height - 10, 'l',
-          // this.width, '0 l', -this.width/2, this.height * 0.7, 'z'].join('
-          // '),
-          radius : this.radius,
-          x : me.x,
-          y : me.y,
-          zIndex : 100
-        });
-        me.registerListeners();
-      } else {
-        me.s.setAttributes({
-          x : me.x,
-          y : me.y
-        });
-      }
-      me.s.redraw();
-      me.appendText();
-    }
-  },
-
-  registerListeners : function() {
-    var me = this;
-    if (Ext.isEmpty(me.s))
-      return;
-    // add custom method to Ext.draw.SpriteDD, after drop (actually an invalid
-    // drop because there is no drop zone)
-    me.s.dd.afterInvalidDrop = function(target, e, id) {
-      // console.log('after drag over');
-      me.updateXY();
-      me.fireEvent('neuronMoved', me);
-    };
-    me.s.on('mouseover', function(sprite) {
-      // console.log('mouseover');
-      if (me.state == STATE.N) {
-        me.fireEvent('stateChanged', STATE.R, me);
-      }
-    });
-    me.s.on('mouseout', function(sprite) {
-      // console.log('mouseout');
-      if (me.state == STATE.R) {
-        me.fireEvent('stateChanged', STATE.N, me);
-      }
-    });
-    me.s.on('click', function(sprite) {
-      // console.log('click');
-      me.fireEvent('stateChanged', STATE.A, me);
-    });
-  },
-
-  updateState : function(state) {
-    var me = this;
-    me.state = state;
-    if (state == STATE.N) {
-      if (state == STATE.N) {
-        me.s.setAttributes({
-          fill : '#ff0000',
-          stroke : 'none'
-        }, true);
-        me.s.redraw();
-      }
-    } else if (state == STATE.A || state == STATE.R) {
-      me.s.setAttributes({
-        fill : '#ffff00',
-        stroke : '#00ff00',
-        style : {
-          strokeWidth : 1
-        }
-      }, true);
-      me.s.redraw();
-    }
+  
+  updateXY : function(){
+    this.callParent(arguments);
+    this.updateSynapse();
   },
 
   /**
@@ -276,24 +272,6 @@ Ext.define('AM.view.neuronmap.Brain.Neuron', {
     var synapses = this.groupedPreNeurons.get(synapse.preNeuron.iid);
     synapses = Ext.Array.remove(synapses, synapse);
     this.groupedPreNeurons.replace(synapse.preNeuron.iid, synapses);
-  },
-
-  /**
-   * This is called after dragging to update x y and redraw synapse
-   */
-  updateXY : function() {
-    // console.log('update xy');
-    this.s.x += this.s.attr.translation.x;
-    this.s.y += this.s.attr.translation.y;
-    this.s.setAttributes({
-      x : this.s.x,
-      y : this.s.y,
-      translation : {x : 0, y : 0}
-    });
-    this.x = this.s.x;
-    this.y = this.s.y;
-    this.appendText();
-    this.updateSynapse();
   },
 
   updateSynapse : function() {
@@ -912,7 +890,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       y : xy.y + (offset ? offset: 0),
       iid : iid
     });
-    bno.on('stateChanged' , me.neuronScHandler, this);
+    bno.on('onStateChange' , me.neuronScHandler, this);
     this.neurons.push(bno);
     return bno;
   },
@@ -999,7 +977,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       y : xy.y + (offset ? offset: 0),
       iid : iid
     });
-    input.on('stateChanged' , me.neuronScHandler, this);
+    input.on('onStateChange' , me.neuronScHandler, this);
     this.inputs.push(input);
     return input;
   },
@@ -1012,7 +990,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       y : xy.y + (offset ? offset: 0),
       iid : iid
     });
-    output.on('stateChanged' , me.neuronScHandler, this);
+    output.on('onStateChange' , me.neuronScHandler, this);
     this.outputs.push(output);
     return output;
   },

@@ -213,7 +213,7 @@ Ext.define('AM.view.ground.ShapeTest', {
       bno.destroy();
       bno = null;
     };
-    bno.on('neuronMoved', function(n){
+    bno.on('onMove', function(n){
       point.x = n.x + me.offset.x;
       point.y = n.y + me.offset.y;
     });

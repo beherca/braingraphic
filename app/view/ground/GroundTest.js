@@ -27,11 +27,11 @@ Ext.define('AM.view.ground.GroundTest', {
     me.callParent(arguments);
     var preNeuron = me.addNeuron(OP.add(500, 200), 40, 1);
     var postNeuron = me.addNeuron(OP.add(600, 200), 40, 2);
-    preNeuron.on('neuronMoved', function(n){
+    preNeuron.on('onMove', function(n){
       pre.x = n.x;
       pre.y = n.y;
     });
-    postNeuron.on('neuronMoved', function(n){
+    postNeuron.on('onMove', function(n){
       post.x = n.x;
       post.y = n.y;
     });

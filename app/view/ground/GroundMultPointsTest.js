@@ -67,7 +67,7 @@ Ext.define('AM.view.ground.GroundMultPointsTest', {
       point : p,
       iid : me.iidor.get()
     });
-    bno.on('neuronMoved', function(n){
+    bno.on('onMove', function(n){
       n.point.x = n.x;
       n.point.y = n.y;
     });

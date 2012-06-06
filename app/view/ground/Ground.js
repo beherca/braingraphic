@@ -1,5 +1,5 @@
 Ext.define('AM.view.ground.Point', {
-  extend : 'AM.view.neuronmap.Brain.Neuron',
+  extend : 'AM.view.neuronmap.Brain.Object',
   
   point : null,
   
@@ -216,7 +216,7 @@ Ext.define('AM.view.ground.Ground', {
       bno.destroy();
       bno = null;
     };
-    bno.on('neuronMoved', function(n){
+    bno.on('onMove', function(n){
       point.x = n.x + me.offset.x;
       point.y = n.y + me.offset.y;
     });
