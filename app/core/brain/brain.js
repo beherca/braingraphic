@@ -82,6 +82,11 @@ var Cortex = function() {
    */
   this.neurons = [];
   /**
+   * it contains neurons in entorhinal cortex, which is a interface between 
+   * neocotex and hippocampus
+   */
+  this.ec = [];
+  /**
    * this is watched neurons, watched neurons refers to the neuron that with
    * compute() once called we will loop through this array to update the decay
    * output, update interval would be 1/30 s(TBD) the neuron which has output as
