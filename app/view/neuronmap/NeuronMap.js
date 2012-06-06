@@ -114,11 +114,13 @@ Ext.define('AM.view.neuronmap.Brain.Object', {
       return;
     // add custom method to Ext.draw.SpriteDD, after drop (actually an invalid
     // drop because there is no drop zone)
-    me.s.dd.afterInvalidDrop = function(target, e, id) {
-      // console.log('after drag over');
-      me.updateXY();
-      me.fireEvent('onMove', me);
-    };
+    if(me.s.dd){
+      me.s.dd.afterInvalidDrop = function(target, e, id) {
+        // console.log('after drag over');
+        me.updateXY();
+        me.fireEvent('onMove', me);
+      };
+    }
     me.s.on('mouseover', function(sprite) {
       // console.log('mouseover');
       if (me.state == STATE.N) {
@@ -379,6 +381,7 @@ Ext.define('AM.view.neuronmap.Brain.Synapse', {
           x : (me.x + me.endX) / 2,
           y : (me.y + me.endY) / 2
         });
+        me.registerListeners();
       } else {
         me.s.setAttributes({
           path : sPath,
@@ -393,6 +396,85 @@ Ext.define('AM.view.neuronmap.Brain.Synapse', {
       }
       me.appendText(arrawStartP.x, arrawStartP.y);
       me.s.redraw();
+      me.arrow.redraw();
+    }
+  },
+  
+  registerListeners : function() {
+    var me = this;
+    if (!Ext.isEmpty(me.s)){
+      me.s.on('mouseover', function(sprite) {
+        // console.log('mouseover');
+        if (me.state == STATE.N) {
+          me.fireEvent('onStateChange', STATE.R, me);
+        }
+      });
+      me.s.on('mouseout', function(sprite) {
+        // console.log('mouseout');
+        if (me.state == STATE.R) {
+          me.fireEvent('onStateChange', STATE.N, me);
+        }
+      });
+      me.s.on('click', function(sprite) {
+        // console.log('click');
+        me.fireEvent('onStateChange', STATE.A, me);
+      });
+    }
+    if(!Ext.isEmpty(me.arrow)){
+      me.arrow.on('mouseover', function(sprite) {
+        // console.log('mouseover');
+        if (me.state == STATE.N) {
+          me.fireEvent('onStateChange', STATE.R, me);
+        }
+      });
+      me.arrow.on('mouseout', function(sprite) {
+        // console.log('mouseout');
+        if (me.state == STATE.R) {
+          me.fireEvent('onStateChange', STATE.N, me);
+        }
+      });
+      me.arrow.on('click', function(sprite) {
+        // console.log('click');
+        me.fireEvent('onStateChange', STATE.A, me);
+      });
+    }
+    
+  },
+
+  updateState : function(state) {
+    var me = this;
+    me.state = state;
+    if (state == STATE.N) {
+      if (state == STATE.N) {
+        me.s.setAttributes({
+          stroke : 'blue',
+          style : {
+            strokeWidth : 1
+          }
+        }, true);
+        me.s.redraw();
+        me.arrow.setAttributes({
+          stroke : 'blue',
+          style : {
+            strokeWidth : 1
+          }
+        }, true);
+        me.arrow.redraw();
+      }
+    } else if (state == STATE.A || state == STATE.R) {
+      me.s.setAttributes({
+        stroke : 'red',
+        style : {
+          strokeWidth : 3
+        }
+      }, true);
+      me.s.redraw();
+      me.arrow.setAttributes({
+        stroke : 'red',
+        style : {
+          strokeWidth : 3
+        }
+      }, true);
       me.arrow.redraw();
     }
   },
