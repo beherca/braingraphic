@@ -25,6 +25,7 @@ This file may be used under the terms of the GNU General Public License version 
  * @returns
  */
 var Neuron = function(iid, decayRate) {
+  Observable.apply(this);
   /* default id as null, DO NOT CHANGE THIS */
   this.iid = isEmpty(iid)? 0 : iid;
   this.output = 0;
@@ -52,6 +53,7 @@ var Neuron = function(iid, decayRate) {
  * @returns
  */
 var Synapse = function(soma, postSynapse, isInhibit, strength) {
+  Observable.apply(this);
   this.iid = 0;
   this.soma = soma;
   this.postSynapse = postSynapse;
@@ -74,6 +76,7 @@ var Synapse = function(soma, postSynapse, isInhibit, strength) {
  * @returns
  */
 var Cortex = function() {
+  Observable.apply(this);
   /**
    * all neurons
    */

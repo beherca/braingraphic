@@ -270,7 +270,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : left foot Forwad
      */
     lff : function(){
-      console.log('lff');
+//      console.log('lff');
       var crawlP = this.getCrawlPoint(this.la, this.ra, -Math.PI/2); //left forward point
       this.crawl(crawlP, this.la);
     },
@@ -279,7 +279,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : left foot backward
      */
     lfb : function(){
-      console.log('lfb');
+//      console.log('lfb');
       var crawlP = this.getCrawlPoint(this.la, this.ra, Math.PI/2); //left forward point
       this.crawl(crawlP, this.la);
     },
@@ -288,7 +288,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : left foot Forwad
      */
     lbff : function(){
-      console.log('lbff');
+//      console.log('lbff');
       var crawlP = this.getCrawlPoint(this.lf, this.rf, -Math.PI/2); //left forward point
       this.crawl(crawlP, this.lf);
     },
@@ -297,7 +297,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : left foot backward
      */
     rbff : function(){
-      console.log('rbff');
+//      console.log('rbff');
       var crawlP = this.getCrawlPoint(this.rf, this.lf, Math.PI/2); //left forward point
       this.crawl(crawlP, this.rf);
     },
@@ -306,7 +306,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : right foot Forwad
      */
     rff : function(){
-      console.log('rff');
+//      console.log('rff');
       var crawlP = this.getCrawlPoint(this.ra, this.la, Math.PI/2); //left forward point
       this.crawl(crawlP, this.ra);
     },
@@ -315,7 +315,7 @@ Creature.Ant = Creature.Life.extend({
      * Action : right foot backward
      */
     rfb : function(){
-      console.log('rfb');
+//      console.log('rfb');
       var crawlP = this.getCrawlPoint(this.ra, this.la, -Math.PI/2); //left forward point
       this.crawl(crawlP, this.ra);
     },
