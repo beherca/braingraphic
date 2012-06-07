@@ -295,12 +295,12 @@ Ext.define('AM.view.neuronmap.Brain.Neuron', {
   },
 
   destroy : function() {
-    this.dendrites.each(function(key, value) {
-      value.destroy();
+    this.dendrites.each(function(key, syn) {
+      syn.destroy();
     });
     this.dendrites = null;
-    this.axons.each(function(key, value) {
-      value.destroy();
+    this.axons.each(function(key, syn) {
+      syn.destroy();
     });
     this.axons = null;
     this.groupedPreNeurons = null;
@@ -631,6 +631,9 @@ Ext.define('Brain.Output', {
 
 Ext.define('AM.view.neuronmap.NeuronMap', {
 //  requires : [ 'Ext.data.UuidGenerator' ],
+  mixins : {
+    fm : 'AM.view.neuronmap.FocusManager'
+  },
   // DOM id
   id : 'neuron-map',
   itemId : 'neuronMap',
@@ -679,6 +682,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   // store: 'Users'
   initComponent : function() {
     var me = this;
+    this.mixins.fm.constructor.call(this);
     this.addEvents([ 'mapSave', 'mapListShow', 'modeChanged' ]);
     this.items = [ {
       xtype : 'toolbar',
@@ -946,7 +950,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
                 me.cancelConnect();
               }
               if(me.activatedNeuron){
-                me.removeFocus();
+//                me.removeFocus();
+                me.unfocus();
               }
             }else if(me.mode == MODE.INPUT){
               me.addInput(OP.add(e.getXY()[0], e.getXY()[1]), -me.offset);
@@ -958,7 +963,8 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       }
     } ];
     this.on('modeChanged', function(){
-      me.removeFocus();
+//      me.removeFocus();
+      me.unfocus();
       me.cancelConnect();
     });
     this.callParent(arguments);
@@ -972,24 +978,57 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       y : xy.y + (offset ? offset: 0),
       iid : iid
     });
+    me.addFocusable(bno);
     bno.on('onStateChange' , me.neuronScHandler, this);
     this.neurons.push(bno);
     return bno;
   },
   
+  /**
+   * Neuron on State Change Handler
+   * @param state
+   * @param neuron
+   */
   neuronScHandler : function(state, neuron){
     if(state == STATE.A){//one neuron is activated
-      this.updateFocus(state, neuron);
-      this.manageConnect(state, neuron);
-      this.removeClick(state, neuron);
+      this.manageConnect(neuron);
+      this.rmNeuronClick(neuron);
     }
   },
   
-  removeClick : function(state, neuron){
+  addSynapse : function(preN, postN, mode, iid){
+    var me = this;
+    var syn = preN.addAxonSynapse(postN, mode, iid);
+    me.addFocusable(syn);
+    syn.on('onStateChange', me.synScHandler, me);
+  },
+  
+  /**
+   * Synapse on State Change Handler
+   * @param state
+   * @param syn
+   */
+  synScHandler : function(state, syn){
+    if(this.mode ==MODE.DELETE && state == STATE.A){//one neuron is activated
+      this.rmSynClick(syn);
+    }
+  },
+  
+  rmSynClick : function(syn){
+    var me = this;
+    if(me.mode ==MODE.DELETE){//one synapse is activated
+      if(me.activated == syn){
+        me.activated = null;
+      }
+      syn.destroy();
+    }
+  },
+  
+  rmNeuronClick : function(neuron){
     var me = this;
     if(me.mode ==MODE.DELETE){//one neuron is activated
-      if(me.activatedNeuron == neuron){
-        me.activatedNeuron = null;
+      if(me.activated == neuron){
+        me.activated = null;
       }
       if(me.candidateNeuron == neuron){
         me.candidateNeuron = null;
@@ -1004,28 +1043,10 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       neuron.destroy();
     }
   },
-  
-  updateFocus : function(state, neuron){
-    var me = this;
-    if(!Ext.isEmpty(me.activatedNeuron) && me.activatedNeuron != neuron){
-      //change last neuron back to Normal
-      me.activatedNeuron.updateState(STATE.N);
-    }
-    //neuron already state == Activated
-    me.activatedNeuron = neuron;
-  },
-  
-  removeFocus : function(){
-    var me = this;
-    if(me.activatedNeuron){
-      me.activatedNeuron.updateState(STATE.N);
-      me.activatedNeuron = null;
-    }
-  },
-  
+
   //TODO I hate this implementation, will seperate the logic for input and output,
   // keep it simple and clean
-  manageConnect : function(state, neuron){
+  manageConnect : function(neuron){
     var me = this;
     if(me && (me.mode == MODE.SYNAPSE || me.mode == MODE.SYNAPSE_R)){
       if(!Ext.isEmpty(me.candidateNeuron) && me.candidateNeuron != neuron){
@@ -1035,7 +1056,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
             Ext.Msg.alert('Message', 'You can not connect input to output directly');
           }else{
             // going to connect both
-            me.candidateNeuron.addAxonSynapse(neuron, me.mode);
+            me.addSynapse(me.candidateNeuron, neuron, me.mode);
           }
         }else{
           Ext.Msg.alert('Message', 'You can not connect neuron to Input');
@@ -1114,9 +1135,10 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     Ext.each(me.synapseCache, function(sc){
       var results = me.findNeuron(sc.synapse.postNeuron);
       if (results && results.length > 0){
-        var pn = results[0];
+        var postN = results[0];
         IID.set(sc.synapse.iid);
-        sc.neuron.addAxonSynapse(pn, sc.synapse.isInhibit ? MODE.SYNAPSE_R : MODE.SYNAPSE, sc.synapse.iid);
+        var mode = sc.synapse.isInhibit ? MODE.SYNAPSE_R : MODE.SYNAPSE;
+        me.addSynapse(sc.neuron, postN, mode, sc.synapse.iid);
         //let IID has the correct offset
       }
     });

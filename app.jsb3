@@ -44,6 +44,10 @@
                 },
                 {
                     "path": "app/view/neuronmap/",
+                    "name": "Utils.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
                     "name": "BrainCharts.js"
                 },
                 {
@@ -127,6 +131,10 @@
                 },
                 {
                     "path": "app/view/neuronmap/",
+                    "name": "Utils.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
                     "name": "BrainCharts.js"
                 },
                 {
@@ -196,6 +204,10 @@
                 {
                     "path": "app/store/",
                     "name": "NeuronMaps.js"
+                },
+                {
+                    "path": "app/view/neuronmap/",
+                    "name": "Utils.js"
                 },
                 {
                     "path": "app/view/neuronmap/",
