@@ -209,16 +209,20 @@ Ext.define('AM.view.ground.Ground', {
       text : point.text
     });
     me.iidor.set(point.iid);
-    point.onMoved = function(p){
-      bno.syncPos();
-    },
-    point.onDestroyed = function(p){
-      bno.destroy();
-      bno = null;
-    };
-    bno.on('onMove', function(n){
-      point.x = n.x + me.offset.x;
-      point.y = n.y + me.offset.y;
+    point.on({
+      onMove : function(p){
+        bno.syncPos();
+      },
+      onDestroy : function(p){
+        bno.destroy();
+        bno = null;
+      }
+    });
+    bno.on({
+      'onMove': function(n){
+        point.x = n.x + me.offset.x;
+        point.y = n.y + me.offset.y;
+      }
     });
     return bno;
   },

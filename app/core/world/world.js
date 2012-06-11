@@ -5,29 +5,29 @@
  */
 var World = {
   create : function(config){
-    return new World.World(Utils.apply({world:this}, config));
+    return Utils.cls.create(World.World, config);
   }
 };
 
-World.World = function(config){
-  this.iidor = new Iid();
-  this.x = 0;
-  this.y = 0;
-  this.z = 0;
-  this.links = {};
-  this.points = {};
-  this.objects = {};
-  // smaller, swamper
-  this.resistance = 0.1; //resistant force
+World.World = Utils.cls.extend(Observable, {
+  iidor : new Iid(),
+  x : 0,
+  y : 0,
+  z : 0,
+  links : {},
+  points : {},
+  objects : {},
+  //resistant force, the smaller, swamper 
+  resistance : 0.1, 
   //below is for the crash detector
-  this.subW = {}; 
-  this.minSu;
-  this.bWSize = 20;
-  this.worldCapacity = 4;
-  Utils.apply(this, config);
-};
-
-World.World.prototype = {
+  subW : {},
+  minSubW : 0,
+  bWSize : 20,
+  worldCapacity : 4,
+  
+  init : function(config){
+    Utils.apply(this, config);
+  },
   
   detectCrash : function(){
     var keys = Object.keys(this.points);
@@ -64,34 +64,66 @@ World.World.prototype = {
   },
   
   add : function(config){
+    this.bWSize++;
+    var me = this;
     if(config.type == 'point'){
-      var p = new World.Point(Utils.apply({world : this, iid : this.iidor.get()}, config));
+      var p = Utils.cls.create(World.Point, Utils.apply({world : this, iid : this.iidor.get()}, config));
+      p.on({'onDestroy' : me.remove});
       this.points[p.iid] = p;
+      this.fireEvent('onAdd', config.type, p);
       return p;
     }else if(config.type == 'ant'){
-      var ant = new Creature.Ant(Utils.apply({world : this, iid : this.iidor.get()}, config));
+      var ant = Utils.cls.create(Creature.Ant, Utils.apply({world : this, iid : this.iidor.get()}, config));
+      ant.on({'onDestroy' : me.remove});
       this.objects[ant.iid] = ant;
+      this.fireEvent('onAdd', config.type, ant);
       return ant;
     }else if(config.type == 'life'){
-      var life = new Creature.Life(Utils.apply({world : this, iid : this.iidor.get()}, config));
+      var life = Utils.cls.create(Creature.Life, Utils.apply({world : this, iid : this.iidor.get()}, config));
+      life.on({'onDestroy' : me.remove});
       this.objects[life.iid] = life;
+      this.fireEvent('onAdd', config.type, life);
       return life;
     }
   },
   
+  remove : function(obj){
+    if(isEmpty(obj))return;
+    obj.removeAllListeners();
+    if(obj instanceof World.Point){
+      delete this.world.points[obj.iid];
+      this.fireEvent('onRemove', 'point', obj.iid);
+    }else if(obj instanceof World.Object){
+      delete this.world.objects[obj.iid];
+      this.fireEvent('onRemove', 'object', obj.iid);
+    }else if(obj instanceof World.Link){
+      delete this.world.links[obj.iid];
+      this.fireEvent('onRemove', 'link', obj.iid);
+    }
+    obj = null;
+  },
+  
   tick : function(){
     this.detectCrash();
-    World.LinkEngine.run(this.links);
+    this.run(this.links);
+  },
+  
+  run : function(links){
+    for(var key in links){
+      var link = links[key];
+      link.calc();
+    }
   },
   
   link :  function(config){
-    var link = new World.Link(Utils.apply({world : this, iid : this.iidor.get()}, config));
+    var link = Utils.cls.create(World.Link, Utils.apply({world : this, iid : this.iidor.get()}, config));
+    link.on({'onDestroy' : this.remove});
     this.links[link.iid] = link;
     return link;
   }
-};
+});
 
-World.Point = Class.extend(Observable.apply({
+World.Point = Utils.cls.extend(Observable, {
   x : 0,
   y : 0,
   z : 0,
@@ -112,15 +144,6 @@ World.Point = Class.extend(Observable.apply({
    */
   crashRadius : 30,
   crashing : false,
-  /**
-   * Callback function when crashed, return crashed point ant itself
-   */
-  onCrash : null,
-  /**
-   * Callback function when point moved 
-   */
-  onMoved : null,
-  onDestroyed : null,
   
   /**
    * mark this point as destroyed and don't calculate in the link
@@ -152,9 +175,7 @@ World.Point = Class.extend(Observable.apply({
       point.vx = parseInt(point.vx > 0 ? -vx : vx);
       point.vy = parseInt(point.vx > 0 ? -vx : vx);
       this.crashing = true;
-      if(!isEmpty(this.onCrash)){
-        this.onCrash(point, this);
-      }
+      this.fireEvent('onCrash', point, this);
     }else{
       this.crashing = false;
     }
@@ -166,10 +187,7 @@ World.Point = Class.extend(Observable.apply({
       this.x += this.vx;
       this.y += this.vy;
       this.z += this.vz;
-      if(!isEmpty(this.onMoved)){
-        this.onMoved(this);
-        this.fireEvent('onMoved', this);
-      }
+      this.fireEvent('onMove', this);
   },
   
   link2 : function(post, config){
@@ -177,28 +195,34 @@ World.Point = Class.extend(Observable.apply({
   },
   
   destroy : function(){
-    if(this.onDestroyed){
-      this.onDestroyed.call(this);
-    }
-    delete this.world.points[this.iid];
+    //for link to use, usually, the link with current point will not be update immediately 
+    //after this point has been removed
     this.destroyed = true;
+    this.fireEvent('onDestroy', this);
   }
-}));
+});
 
 /**
  * Actually is a set of points
  */
-World.Object = Class.extend({
+World.Object = Utils.cls.extend(Observable, {
   x: 0,
   y: 0,
   z: 0,
   iid: 0,
   init : function(config){
     Utils.apply(this, config);
+  },
+  
+  destroy : function(){
+    //for link to use, usually, the link with current point will not be update immediately 
+    //after this point has been removed
+    this.destroyed = true;
+    this.fireEvent('onDestroy', this);
   }
 });
 
-World.Triangle = World.Object.extend({
+World.Triangle = Utils.cls.extend(World.Object, {
   /**
    * Top point
    */
@@ -213,7 +237,7 @@ World.Triangle = World.Object.extend({
   right : null
 });
 
-World.Circle = World.Object.extend({
+World.Circle = Utils.cls.extend(World.Object, {
   radius : 10,
   /**
    * multiple of 3
@@ -232,25 +256,26 @@ World.LinkType = {S : 'softLink', H : 'hardLink', B : 'bounceLink'};
  * @param post post point
  * @returns {World.Link}
  */
-World.Link = function(config){
-  this.pre = null;
-  this.post = null;
-  this.distance = 10;
-  this.effDis = 200;
-  this.iid = 0;
-  this.unitForce = 2;
-  this.isDual = true;
-  this.world = null;
+World.Link = Utils.cls.extend(Observable, {
+  pre : null,
+  post : null,
+  distance : 10,
+  effDis : 200,
+  iid : 0,
+  unitForce : 2,
+  isDual : true,
+  world : null,
   //smaller harder
-  this.elasticity = 0.9;
-  this.type = World.LinkType.S;
-  this.repeat = 0;
-  this.repeatedCount = 0;
-  Utils.apply(this, config);
-};
-
-World.Link.prototype = {
+  elasticity : 0.9,
+  type : World.LinkType.S,
+  repeat : 0,
+  repeatedCount : 0,
+  
   fn : {x : Math.cos, y : Math.sin/*, z : Math.sin*/},
+  
+  init : function(config){
+    Utils.apply(this, config);
+  },
   
   calc : function() {
 //    console.log('calc');
@@ -330,18 +355,6 @@ World.Link.prototype = {
     if(this.post && this.post.goneWithLink){
       this.post.destroy();
     }
-    delete this.world.links[this.iid];
-    if(this.onDestroyed){
-      this.onDestroyed.call(this);
-    }
+    this.fireEvent('onDestroy', this);
   }
-};
-
-World.LinkEngine = {
-  run : function(links){
-    for(var key in links){
-      var link = links[key];
-      link.calc();
-    }
-  }
-};
+});

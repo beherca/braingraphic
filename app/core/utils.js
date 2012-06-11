@@ -1,10 +1,17 @@
 var isEmpty = function(obj) {
-  return obj == null || typeof (obj) == "undefined";
+  return obj == null || typeof obj === "undefined";
+};
+var isObject = function(obj){
+  return typeof obj === "object";
 };
 
 var isFunction = function(obj){
-  return typeof(obj) == "function";
-}; 
+  return typeof obj === "function";
+};
+
+isArray = function(arr) {
+  return !isEmpty(arr) && arr.constructor == Array;
+};
 
 var round = function(value, accuracy){
   var e = Math.pow(10, accuracy);
@@ -85,187 +92,225 @@ var Observable = function(){
       for(var i in reglists){
         var listener = reglists[i];
         if(typeof(listener) == 'object'){
-          listener.fn.call(listener.scope, obj);
+          listener.fn.call(listener.scope, obj, name);
         }else if(typeof(listener) == 'function'){
-          listener.call(this, obj);
+          listener.call(this, obj, name);
         }
       }
     }else if(!isEmpty(reglists) && !Array.isArray(reglists)){
       var listener = reglists;
       if(typeof(listener) == 'object'){
-        listener.fn.call(listener.scope, obj);
+        listener.fn.call(listener.scope, obj, name);
       }else if(typeof(listener) == 'function'){
-        listener.call(listener.scope, obj);
+        listener.call(listener.scope, obj, name);
       }
     }
+  };
+  this.removeAllListeners = function(){
+    this.listeners = {};
   };
   return this;
 };
 
 Utils = {
-//    create : function(){
-//      
-//    },
-//    
-//    define : function(config){
-//      var fn = function(config){};
-//      if(config.extend){
-//        var parent = config.extend;
-//        delete config.extend;
-//        fn = Utils.extend(parent, fn, config);
-//      }else {
-//        fn = Utils.applyFnProps(fn, config);
-//      }
-//      return fn;
-//    },
-//    
-//    extend : function(parent, child, config){
-//      var pi = new parent(config);//parenet instance
-//      Utils.applyFnProps(child, pi);
-//      Utils.apply(child, {parent : pi});
-//      return child;
-//    },
-//    
-//    applyFnProps : function(target, from){
-//      for(var key in from){
-//        target.prototype[key] = from[key];
-//      }
-//      return target;
-//    },
-
-    apply : function(target, from){
-      for(var key in from){
-        target[key] = from[key];
-      }
-      return target;
-    },
-    /**
-     * To get the curve path
-     * 
-     * @test Utils.getCurvePath({x : 0, y :0}, {x : 100, y :0}, 20, 40) "M 0 0 C 0
-     *       20 30 20 50 20 S 100 20 100 0" Utils.getCurvePath({x : 0, y :0}, {x :
-     *       100, y :0}, 20, 50) "M 0 0 C 0 20 25 20 50 20 S 100 20 100 0"
-     *       Utils.getCurvePath({x : 0, y :0}, {x : 100, y :0}, 20, 60) "M 0 0 C 0
-     *       20 20 20 50 20 S 100 20 100 0" Utils.getCurvePath({x : 0, y :0}, {x :
-     *       100, y :0}, 20, 20) "M 0 0 C 0 20 40 20 50 20 S 100 20 100 0"
-     *       Utils.getCurvePath({x : 0, y :0}, {x : 100, y :100}, 20, 20) "M 0 0 C
-     *       0 20 40 70 50 70 S 100 70 100 100"
-     * @param startP
-     * @param endP
-     * @param curveHeight
-     * @param curveWidth
-     * @returns
-     */
-    getCurvePath : function(startP, endP, curveHeight, curveWidth) {
-      var me = this;
-      var angle = - me.getAngle(startP, endP);
-      var disXY = me.getDisXY(startP, endP);
-      var midPoint = {
-        x : disXY / 2,
-        y : curveHeight
-      };
-      var oringPoints = [/* P0 */OP, /* P1 */{
-        x : 0,
-        y : curveHeight
-      },
-      /* P2 */{
-        x : midPoint.x - curveWidth / 2,
-        y : midPoint.y
-      },
-      /* P3 */{
-        x : midPoint.x,
-        y : midPoint.y
-      },
-      /* P4 */{
-        x : disXY,
-        y : curveHeight
-      }, /* P5 */OP.add(disXY, 0) ];
-      var points = [];
-      Ext.each(oringPoints, function(point) {
-        points.push(me.rotate(point, angle, OP, startP));
-      });
-      var path = [ "M", points[0].x, points[0].y, "C", points[1].x, points[1].y,
-          points[2].x, points[2].y, points[3].x, points[3].y, "S", points[4].x,
-          points[4].y, points[5].x, points[5].y ].join(' ');
-      var pathObj = {
-        path : path,
-        points : points
-      };
-      // console.log('Synapse path:'+ path);
-      return pathObj;
-    },
-
-    rotate : function(point, angle, originPoint, offset) {
-      offset = offset ? offset : OP;
-      originPoint = originPoint ? originPoint : OP;
-      var relativeX = point.x - originPoint.x;
-      var relativeY = point.y - originPoint.y;
-      return {
-        x : relativeX * Math.cos(angle) + relativeY * Math.sin(angle) + offset.x,
-        y : relativeY * Math.cos(angle) - relativeX * Math.sin(angle) + offset.y
-      };
-    },
-
-    getAngle : function(startP, endP, offset) {
-      var disX = this.getDisX(startP, endP);
-      var disY = this.getDisY(startP, endP);
-      var angle = 0;
-      angle = Math.atan2(disY, disX) + (isEmpty(offset) ? 0 : offset);
-      // console.log(angle*180/3.14);
-      return angle;
-    },
-
-    getDisX : function(startP, endP) {
-      return endP.x - startP.x;
-    },
-
-    getDisY : function(startP, endP) {
-      return endP.y - startP.y;
-    },
-
-    getDisXY : function(startP, endP) {
-      var disX = this.getDisX(startP, endP);
-      var disY = this.getDisY(startP, endP);
-      return Math.sqrt(disX * disX + disY * disY);
-    },
-
-    /**
-     * Desc : this is the util to generate triagle path
-     * 
-     * @param startP
-     *          of angle
-     * @param endP
-     *          of angel
-     * @param sideLength
-     *          is the side length of triagle
-     */
-    getTriPath : function(startP, endP, sideLength) {
-      var me = this;
-      var pi = Math.PI;
-      var angle = -this.getAngle(startP, endP, pi * 0.5);// anti-clockwise 90
-      // degree as offset;
-      // triangle has 3 points, 1 is p0 which is origin point, p1, p2 is the rest
-      var cosLengh = Math.cos(pi / 6);
-      var p1 = {
-        x : sideLength * 0.5,
-        y : sideLength * cosLengh
-      };
-      var p2 = {
-        x : -sideLength * 0.5,
-        y : sideLength * cosLengh
-      };
-      var origPoints = [ OP, OP.add(p1.x, p1.y), OP.add(p2.x, p2.y) ];
-      var points = [];
-      Ext.each(origPoints, function(point) {
-        points.push(me.rotate(point, angle, OP, startP));
-      });
-      var path = [ 'M', points[0].x, points[0].y, 'L', points[1].x, points[1].y,
-          'L', points[2].x, points[2].y, 'z' ].join(' ');
-      var pathObj = {
-        path : path,
-        points : points
-      };
-      // console.log('tri path' + path);
-      return pathObj;
+  apply : function(target, from){
+    for(var key in from){
+      target[key] = from[key];
     }
-  };
+    return target;
+  },
+  /**
+   * To get the curve path
+   * 
+   * @test Utils.getCurvePath({x : 0, y :0}, {x : 100, y :0}, 20, 40) "M 0 0 C 0
+   *       20 30 20 50 20 S 100 20 100 0" Utils.getCurvePath({x : 0, y :0}, {x :
+   *       100, y :0}, 20, 50) "M 0 0 C 0 20 25 20 50 20 S 100 20 100 0"
+   *       Utils.getCurvePath({x : 0, y :0}, {x : 100, y :0}, 20, 60) "M 0 0 C 0
+   *       20 20 20 50 20 S 100 20 100 0" Utils.getCurvePath({x : 0, y :0}, {x :
+   *       100, y :0}, 20, 20) "M 0 0 C 0 20 40 20 50 20 S 100 20 100 0"
+   *       Utils.getCurvePath({x : 0, y :0}, {x : 100, y :100}, 20, 20) "M 0 0 C
+   *       0 20 40 70 50 70 S 100 70 100 100"
+   * @param startP
+   * @param endP
+   * @param curveHeight
+   * @param curveWidth
+   * @returns
+   */
+  getCurvePath : function(startP, endP, curveHeight, curveWidth) {
+    var me = this;
+    var angle = - me.getAngle(startP, endP);
+    var disXY = me.getDisXY(startP, endP);
+    var midPoint = {
+      x : disXY / 2,
+      y : curveHeight
+    };
+    var oringPoints = [/* P0 */OP, /* P1 */{
+      x : 0,
+      y : curveHeight
+    },
+    /* P2 */{
+      x : midPoint.x - curveWidth / 2,
+      y : midPoint.y
+    },
+    /* P3 */{
+      x : midPoint.x,
+      y : midPoint.y
+    },
+    /* P4 */{
+      x : disXY,
+      y : curveHeight
+    }, /* P5 */OP.add(disXY, 0) ];
+    var points = [];
+    Ext.each(oringPoints, function(point) {
+      points.push(me.rotate(point, angle, OP, startP));
+    });
+    var path = [ "M", points[0].x, points[0].y, "C", points[1].x, points[1].y,
+        points[2].x, points[2].y, points[3].x, points[3].y, "S", points[4].x,
+        points[4].y, points[5].x, points[5].y ].join(' ');
+    var pathObj = {
+      path : path,
+      points : points
+    };
+    // console.log('Synapse path:'+ path);
+    return pathObj;
+  },
+
+  rotate : function(point, angle, originPoint, offset) {
+    offset = offset ? offset : OP;
+    originPoint = originPoint ? originPoint : OP;
+    var relativeX = point.x - originPoint.x;
+    var relativeY = point.y - originPoint.y;
+    return {
+      x : relativeX * Math.cos(angle) + relativeY * Math.sin(angle) + offset.x,
+      y : relativeY * Math.cos(angle) - relativeX * Math.sin(angle) + offset.y
+    };
+  },
+
+  getAngle : function(startP, endP, offset) {
+    var disX = this.getDisX(startP, endP);
+    var disY = this.getDisY(startP, endP);
+    var angle = 0;
+    angle = Math.atan2(disY, disX) + (isEmpty(offset) ? 0 : offset);
+    // console.log(angle*180/3.14);
+    return angle;
+  },
+
+  getDisX : function(startP, endP) {
+    return endP.x - startP.x;
+  },
+
+  getDisY : function(startP, endP) {
+    return endP.y - startP.y;
+  },
+
+  getDisXY : function(startP, endP) {
+    var disX = this.getDisX(startP, endP);
+    var disY = this.getDisY(startP, endP);
+    return Math.sqrt(disX * disX + disY * disY);
+  },
+
+  /**
+   * Desc : this is the util to generate triagle path
+   * 
+   * @param startP
+   *          of angle
+   * @param endP
+   *          of angel
+   * @param sideLength
+   *          is the side length of triagle
+   */
+  getTriPath : function(startP, endP, sideLength) {
+    var me = this;
+    var pi = Math.PI;
+    var angle = -this.getAngle(startP, endP, pi * 0.5);// anti-clockwise 90
+    // degree as offset;
+    // triangle has 3 points, 1 is p0 which is origin point, p1, p2 is the rest
+    var cosLengh = Math.cos(pi / 6);
+    var p1 = {
+      x : sideLength * 0.5,
+      y : sideLength * cosLengh
+    };
+    var p2 = {
+      x : -sideLength * 0.5,
+      y : sideLength * cosLengh
+    };
+    var origPoints = [ OP, OP.add(p1.x, p1.y), OP.add(p2.x, p2.y) ];
+    var points = [];
+    Ext.each(origPoints, function(point) {
+      points.push(me.rotate(point, angle, OP, startP));
+    });
+    var path = [ 'M', points[0].x, points[0].y, 'L', points[1].x, points[1].y,
+        'L', points[2].x, points[2].y, 'z' ].join(' ');
+    var pathObj = {
+      path : path,
+      points : points
+    };
+    // console.log('tri path' + path);
+    return pathObj;
+  }
+};
+/**
+ * Inspired By John Resig
+ * Test Case
+  C = JSClass.extend(Observable, {c :3, cf: function(){return this.c}, init : function(){console.log('init C')}})
+  B = JSClass.extend(C, {a : 2, init : function(){console.log('init B'); this.callParent()}}) 
+  b = JSClass.create(B)
+ */
+Utils.cls = {
+  fnTest : /xyz/.test(function(){xyz;}) ? /\bcallParent\b/ : /.*/,
+  /**
+   * parent will be a instance of other class
+   */
+  extend : function(parentClass, propConfig){
+    var parentParent = parentClass.prototype;
+    var parentInst = new parentClass();
+    for (var name in propConfig) {
+      // Check if we're overwriting an existing function
+      parentInst[name] = isFunction(propConfig[name]) && 
+        isFunction(parentInst[name]) && 
+        //make sure that this function contains callParent
+        this.fnTest.test(propConfig[name]) ?
+        (function(name, fn){
+          return function() {
+            //replace the callParent method with correct parent method
+            this.callParent = parentParent[name];
+            var ret = fn.apply(this, arguments);
+            return ret;
+          };
+        })(name, propConfig[name]) :
+        propConfig[name];
+    }
+    var ChildClass = function(){};
+    ChildClass.prototype = parentInst;
+    ChildClass.prototype.constructor = ChildClass;
+    return ChildClass;//a function
+  },
+  
+  create : function(classDef, config){
+    var parentProto = classDef.prototype;
+    var properties = {};
+    for(var name in parentProto){
+      if(!isFunction(parentProto[name])){
+        properties[name] = this.deepCopy(parentProto[name]);
+      }
+    }
+    var instance = new classDef();
+    Utils.apply(instance, properties);
+    Utils.apply(instance, config);
+    instance.init(config);
+    return instance;// an object
+  },
+  
+  deepCopy : function(from, target){
+    var target = target || {};
+    for (var i in from){
+      if(isObject(from[i])){
+        target[i] = (isArray(from[i])) ? [] : {};
+        this.deepCopy(from[i], target[i]);
+      }else{
+        target[i] = from[i];
+      }
+    }
+    return target;
+  }
+};

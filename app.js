@@ -12,6 +12,7 @@
     autoCreateViewport: true,
 
     controllers: [
-        'NeuronMap'
+        'NeuronMap',
+        'World'
     ]
 });

@@ -10,7 +10,7 @@ var Creature = {
     }
 };
 
-Creature.Life = World.Object.extend({
+Creature.Life = Utils.cls.extend(World.Object, {
   world : null,
   //default center dot, represent body
   body : null,
@@ -31,7 +31,7 @@ Creature.Life = World.Object.extend({
   }
 });
 
-Creature.Ant = Creature.Life.extend({
+Creature.Ant = Utils.cls.extend(Creature.Life, {
     gene : '',
     ra : null,//right antenna
     la : null,
@@ -69,18 +69,21 @@ Creature.Ant = Creature.Life.extend({
       var me = this;
       //left antenna
       this.la = this.world.add({type: 'point', x : this.x + 20, y : this.y - 15, 
-        crashable : true, onCrash : function(){me.actLa.call(me);},
+        crashable : true,
         crashRadius : 5, group : this, text:'left-a'
         });
+      this.la.on({onCrash : function(){me.actLa.call(me);}});
       //right antenna
       this.ra = this.world.add({type: 'point', x : this.x + 20, y : this.y + 15, 
-        crashable : true, onCrash : function(){me.actRa.call(me);},
+        crashable : true, 
         crashRadius : 5, group : this, text:'right-a'
         });
+      this.ra.on({onCrash : function(){me.actRa.call(me);}});
       this.mouth = this.world.add({type: 'point', x : this.x +10, y : this.y, 
-        crashable : true, onCrash : function(other, self){me.eat.call(me, other);},
+        crashable : true,
         crashRadius : 10, group : this, text : 'mouth'
         });
+      this.mouth.on({onCrash : function(other, self){me.eat.call(me, other);}});
 //      this.body = this.world.add({type: 'point', x : this.x - 20, y : this.y, 
 //        crashable : true, crashRadius : 30, group : this, text : 'body'
 //        });
@@ -347,6 +350,6 @@ Creature.Ant = Creature.Life.extend({
     },
     
     die : function(){
-      delete this.world.objects[this.iid];
+      this.world.remove(this);
     }
 });

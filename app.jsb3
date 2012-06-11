@@ -9,9 +9,6 @@
             },
             "files": [{
                     "path": "app/core/",
-                    "name": "class.js"
-                },{
-                    "path": "app/core/",
                     "name": "utils.js"
                 },
                 {
@@ -41,6 +38,10 @@
                 {
                     "path": "app/store/",
                     "name": "NeuronMaps.js"
+                },
+                {
+                    "path": "app/view/world/",
+                    "name": "World.js"
                 },
                 {
                     "path": "app/view/neuronmap/",
@@ -79,6 +80,10 @@
                     "name": "GroundMultPointsTest.js"
                 },
                 {
+                    "path": "app/controller/world/",
+                    "name": "World.js"
+                },
+                {
                     "path": "app/controller/",
                     "name": "NeuronMap.js"
                 },
@@ -95,9 +100,6 @@
                 "debug": true
             },
             "files": [{
-                    "path": "app/core/",
-                    "name": "class.js"
-                },{
                     "path": "app/core/",
                     "name": "utils.js"
                 },
@@ -130,6 +132,10 @@
                     "name": "NeuronMaps.js"
                 },
                 {
+                    "path": "app/view/world/",
+                    "name": "World.js"
+                },
+                {
                     "path": "app/view/neuronmap/",
                     "name": "Utils.js"
                 },
@@ -152,6 +158,10 @@
                 {
                     "path": "app/view/ground/",
                     "name": "Ground.js"
+                },
+                {
+                    "path": "app/controller/world/",
+                    "name": "World.js"
                 },
                 {
                     "path": "app/controller/",
@@ -172,9 +182,6 @@
             },
             "files": [{
                     "path": "app/core/",
-                    "name": "class.js"
-                },{
-                    "path": "app/core/",
                     "name": "utils.js"
                 },
                 {
@@ -206,6 +213,10 @@
                     "name": "NeuronMaps.js"
                 },
                 {
+                    "path": "app/view/world/",
+                    "name": "World.js"
+                },
+                {
                     "path": "app/view/neuronmap/",
                     "name": "Utils.js"
                 },
@@ -232,6 +243,10 @@
                 {
                     "path": "app/controller/",
                     "name": "NeuronMap.js"
+                },
+                {
+                    "path": "app/controller/world/",
+                    "name": "World.js"
                 },
                 {
                     "path": "",
