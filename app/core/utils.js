@@ -251,66 +251,95 @@ Utils = {
 };
 /**
  * Inspired By John Resig
+ * 1 inheritable : the child can reuse method and properties without re-define them
+ * 2 isolate : each instance has their own copy of prototype properties, change of these properties will not impact prototype
+ * 3 call parent in the method body
+ * 4 you can pass the parameters to the parent if you like
  * Test Case
-  C = JSClass.extend(Observable, {c :3, cf: function(){return this.c}, init : function(){console.log('init C')}})
-  B = JSClass.extend(C, {a : 2, init : function(){console.log('init B'); this.callParent()}}) 
-  b = JSClass.create(B)
+  C = Utils.cls.extend(Observable, {c :3, cf: function(){return this.c}, init : function(){console.log('init C')}})
+  B = Utils.cls.extend(C, {a : 2, init : function(){console.log('init B'); this.callParent()}}) 
+  b = Utils.cls.create(B)
  */
 Utils.cls = {
   fnTest : /xyz/.test(function(){xyz;}) ? /\bcallParent\b/ : /.*/,
   /**
-   * parent will be a instance of other class
+   * @param parentClass 
+   * @param propConfig configures of child class
    */
   extend : function(parentClass, propConfig){
+    var me = this;
     var parentParent = parentClass.prototype;
     var parentInst = new parentClass();
+    var constructorProps = {};
     for (var name in propConfig) {
       // Check if we're overwriting an existing function
-      parentInst[name] = isFunction(propConfig[name]) && 
-        isFunction(parentInst[name]) && 
+      if(isFunction(propConfig[name])){
+        // all the functions will copy to current class's prototype
+        parentInst[name] = isFunction(parentInst[name]) && 
         //make sure that this function contains callParent
-        this.fnTest.test(propConfig[name]) ?
+        this.fnTest.test(propConfig[name]) ? 
         (function(name, fn){
           return function() {
             //replace the callParent method with correct parent method
             this.callParent = parentParent[name];
+            //call the function, and at the same time, callParent is called
             var ret = fn.apply(this, arguments);
             return ret;
           };
-        })(name, propConfig[name]) :
-        propConfig[name];
+        })(name, propConfig[name]) : 
+          propConfig[name];
+      }else{//make deepcopy , so we can isolate the properties from prototype
+        constructorProps[name] = me.deepCopy(propConfig[name]);
+      }
     }
-    var ChildClass = function(){};
+    
+    //copy properties from parent Classs instance, 
+    for(var name in parentInst){
+      var p = parentInst[name];
+      if(!isFunction(p)){
+        constructorProps[name] = me.deepCopy(p);
+      }
+    }
+    console.log(constructorProps);
+    // set the properties in the constructor, so the properties change will not affect prototype
+    var ChildClass = function(){
+      //must use deep copy to copy the props config, otherwise, the prop will be changed during runtime
+      Utils.apply(this, me.deepCopy(constructorProps));
+    };
     ChildClass.prototype = parentInst;
     ChildClass.prototype.constructor = ChildClass;
     return ChildClass;//a function
   },
   
-  create : function(classDef, config){
-    var parentProto = classDef.prototype;
-    var properties = {};
-    for(var name in parentProto){
-      if(!isFunction(parentProto[name])){
-        properties[name] = this.deepCopy(parentProto[name]);
-      }
-    }
+  /**
+   * equal to new then call init()
+   */
+  create : function(classDef, valConfig){
     var instance = new classDef();
-    Utils.apply(instance, properties);
-    Utils.apply(instance, config);
-    instance.init(config);
+    Utils.apply(instance, valConfig);
+    instance.init(valConfig);
     return instance;// an object
   },
   
+  /**
+   * Deep copy all properties, so there are no conflicts
+   */
   deepCopy : function(from, target){
-    var target = target || {};
-    for (var i in from){
-      if(isObject(from[i])){
-        target[i] = (isArray(from[i])) ? [] : {};
-        this.deepCopy(from[i], target[i]);
-      }else{
-        target[i] = from[i];
+    if(isObject(from)){
+      var target = target || {};
+      for (var i in from){
+        if(isObject(from[i])){
+          target[i] = (isArray(from[i])) ? [] : {};
+          this.deepCopy(from[i], target[i]);
+        }else{
+          target[i] = from[i];
+        }
       }
+      return target;
+    }else{//if from is not a object, return itself
+      return from;
     }
-    return target;
+    
+    
   }
 };

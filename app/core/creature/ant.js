@@ -164,7 +164,7 @@ Creature.Ant = Utils.cls.extend(Creature.Life, {
      * @param inputs 0 left antenna, 1 right antenna, 2-3 olfaction
      */
     set : function(inputs){
-      console.log('set :' + inputs);
+//      console.log('set :' + inputs);
       this.brain.set.call(this.brain, inputs);
     },
     
@@ -175,7 +175,7 @@ Creature.Ant = Utils.cls.extend(Creature.Life, {
     
     act : function(){
       var outputs = this.brain.get();
-      console.log('act : ' + outputs);
+//      console.log('act : ' + outputs);
       for(var i in outputs){
         var o = outputs[i];//return 0 or 1
         if(!!o){//1
