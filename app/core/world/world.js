@@ -64,25 +64,24 @@ World.World = Utils.cls.extend(Observable, {
   },
   
   add : function(config){
-    this.bWSize++;
     var me = this;
     if(config.type == 'point'){
       var p = Utils.cls.create(World.Point, Utils.apply({world : this, iid : this.iidor.get()}, config));
       p.on({'onDestroy' : {fn : me.remove, scope : me}});
       this.points[p.iid] = p;
-      this.fireEvent('onAdd', config.type, p);
+      this.fireEvent('onAdd', {type : config.type, obj :p});
       return p;
     }else if(config.type == 'ant'){
       var ant = Utils.cls.create(Creature.Ant, Utils.apply({world : this, iid : this.iidor.get()}, config));
       ant.on({'onDestroy' : {fn : me.remove, scope : me}});
       this.objects[ant.iid] = ant;
-      this.fireEvent('onAdd', config.type, ant);
+      this.fireEvent('onAdd', {type : config.type, obj :ant});
       return ant;
     }else if(config.type == 'life'){
       var life = Utils.cls.create(Creature.Life, Utils.apply({world : this, iid : this.iidor.get()}, config));
       life.on({'onDestroy' : {fn : me.remove, scope : me}});
       this.objects[life.iid] = life;
-      this.fireEvent('onAdd', config.type, life);
+      this.fireEvent('onAdd', {type : config.type, obj : life});
       return life;
     }
   },

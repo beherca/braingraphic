@@ -76,16 +76,41 @@ OP = {
 
 var Observable = function(){
   this.listeners = {};
-  this.on = function(listeners){
-    for(var name in listeners){
-      var listener = listeners[name];
-      if(this.listeners && this.listeners[name]){
-        this.listeners[name].push(listener);
-      }else if(this.listeners && !this.listeners[name]){
-        this.listeners[name] = [listener];
+  this.on = function(){
+    var listeners;
+    /*
+     * Usage 1
+     * this.on({
+     *   onClick : function(){},
+     *   onDestroy : function(){},
+     * })
+     */
+    if(!isEmpty(arguments) && arguments.length == 1){
+      listeners = arguments[0];
+      for(var evtName in listeners){
+        var eventHandler = listeners[evtName];
+        this.addListener(evtName, eventHandler);
       }
     }
+    /*
+     * Usage 2 
+     * this.obj.on('onClick', function(){}, scope[default obj])
+     */
+    else if(!isEmpty(arguments) && arguments.length > 2){
+      var evtName = arguments[0];
+      var eventHandler = isEmpty(arguments[2]) ? arguments[1] : {fn : arguments[1], scope : arguments[2]};
+      this.addListener(evtName, eventHandler);
+    }
   };
+  
+  this.addListener = function(evtName, eventHandler, scope){
+    if(this.listeners && this.listeners[evtName]){
+      this.listeners[evtName].push(eventHandler);
+    }else if(this.listeners && !this.listeners[evtName]){
+      this.listeners[evtName] = [eventHandler];
+    }
+  };
+  
   this.fireEvent = function(name, obj){
     var reglists = this.listeners[name];
     if(!isEmpty(reglists) && Array.isArray(reglists) && reglists.length > 0){

@@ -23,15 +23,8 @@ Ext.define('AM.view.world.World', {
     var me = this;
     this.addEvents('modeChanged', 'addClick');
     me.iidor = new Iid();
-    me.world.on('onAdd', me.addPoint);
-//    me.world = World.create({x : 0, y : 0, resistance : 0.09});
-//    me.ant = me.world.add({
-//      type: 'ant', 
-//      x : 300, y : 300,
-//      gene : Ext.isEmpty(this.gene) ? JSON.stringify(gene) : this.gene,
-//      sex : Creature.SEX.M
-//    });
-//
+    me.world = World.create({x : 0, y : 0, resistance : 0.09});
+    me.world.on('onAdd', me.addPoint, this);
     me.items = [{
         xtype : 'toolbar',
         title : 'bar',
@@ -66,7 +59,15 @@ Ext.define('AM.view.world.World', {
         }
     }];
     this.callParent(arguments);
+  },
+  
+  afterRender : function(){
+    this.callParent(arguments);
     this.start();
+    this.world.add({
+      type: 'point', 
+      x : 300, y : 300
+    });
   },
   
   start : function(){
@@ -91,8 +92,9 @@ Ext.define('AM.view.world.World', {
     }
   },
 
-  addPoint : function(type, point) {
-    if(type != 'point') return;
+  addPoint : function(obj, eventName) {
+    if(!obj && obj.type != 'point') return;
+    var point = obj.obj;
     var me = this, drawComp = me.down('draw');
     var bno = Ext.create('AM.view.ground.Point', {
       drawComp : drawComp,
