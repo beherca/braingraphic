@@ -9,7 +9,7 @@ var isFunction = function(obj){
   return typeof obj === "function";
 };
 
-isArray = function(arr) {
+var isArray = function(arr) {
   return !isEmpty(arr) && arr.constructor == Array;
 };
 
@@ -63,13 +63,15 @@ Iid.prototype = {
 /**
  * Origin Point
  */
-OP = {
+var OP = {
   x : 0,
   y : 0,
-  add : function(x, y) {
+  z : 0,
+  add : function(x, y, z) {
     return {
       x : x,
-      y : y
+      y : y,
+      z : isEmpty(z) ? 0 : z
     };
   }
 };

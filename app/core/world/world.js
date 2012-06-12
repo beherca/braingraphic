@@ -83,6 +83,12 @@ World.World = Utils.cls.extend(Observable, {
       this.objects[life.iid] = life;
       this.fireEvent('onAdd', {type : config.type, obj : life});
       return life;
+    }else if(config.type == 'triangle'){
+      var tri = Utils.cls.create(World.Triangle, Utils.apply({world : this, iid : this.iidor.get()}, config));
+      tri.on({'onDestroy' : {fn : me.remove, scope : me}});
+      this.objects[tri.iid] = tri;
+      this.fireEvent('onAdd', {type : config.type, obj : tri});
+      return tri;
     }
   },
   
@@ -118,6 +124,7 @@ World.World = Utils.cls.extend(Observable, {
     var link = Utils.cls.create(World.Link, Utils.apply({world : this, iid : this.iidor.get()}, config));
     link.on({'onDestroy' : {fn : this.remove, scope :this}});
     this.links[link.iid] = link;
+    this.fireEvent('onAdd', {type : 'link', obj : link});
     return link;
   }
 });
@@ -233,7 +240,58 @@ World.Triangle = Utils.cls.extend(World.Object, {
   /**
    * right point
    */
-  right : null
+  right : null,
+  
+  /**
+   * Side Top to right
+   */
+  sdTopRt : null,
+  
+  /**
+   * Side Top to right
+   */
+  sdRtLf : null,
+  
+  /**
+   * Side Top to right
+   */
+  sdLfTop : null,
+  
+  init : function(config){
+    this.top = this.createPoint(config.top, 'top');
+    this.left = this.createPoint(config.left, 'left');
+    this.right = this.createPoint(config.right, 'right');
+    this.genOnPoints(config);
+  },
+  
+  createPoint : function(point, name){
+    if(!(point instanceof World.Point)){
+      point = this.world.add({
+        type : 'point', 
+        text : name,
+        x : point.x, y : point.y, z : point.z,
+      });
+    }
+    return point;
+  },
+  
+  genOnPoints : function(config){
+    this.sdTopRt = this.world.link({pre : this.top, post : this.right, 
+      unitForce : config.unitForce, elasticity : config.elasticity, 
+      distance : Utils.getDisXY(this.top, this.right), 
+      effDis : config.effDis, 
+      isDual: true});
+    this.sdRtLf = this.world.link({pre : this.right, post : this.left, 
+      unitForce : config.unitForce, elasticity : config.elasticity, 
+      distance : Utils.getDisXY(this.right, this.left), 
+      effDis : config.effDis, 
+      isDual: true});
+    this.sdLfTop = this.world.link({pre : this.left, post : this.top, 
+      unitForce : config.unitForce, elasticity : config.elasticity, 
+      distance : Utils.getDisXY(this.left, this.top), 
+      effDis : config.effDis, 
+      isDual: true});
+  }
 });
 
 World.Circle = Utils.cls.extend(World.Object, {

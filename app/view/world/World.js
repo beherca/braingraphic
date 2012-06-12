@@ -278,6 +278,13 @@ Ext.define('AM.view.world.World', {
       type: 'point', 
       x : 300, y : 300
     });
+    this.world.add({
+      type : 'triangle',
+      top : OP.add(50, 60, 0),
+      right : OP.add(150, 60, 0),
+      left : OP.add(250, 160, 0),
+      unitForce : 0.5, elasticity : 0.5, effDis : 2000
+    });
   },
   
   start : function(){
@@ -303,7 +310,7 @@ Ext.define('AM.view.world.World', {
   },
 
   addPoint : function(obj, eventName) {
-    if(!obj && obj.type != 'point') return;
+    if(isEmpty(obj) || obj.type != 'point') return;
     var point = obj.obj;
     var me = this, drawComp = me.down('draw');
     var bno = Ext.create('AM.view.world.Point', {
