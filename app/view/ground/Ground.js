@@ -1,17 +1,5 @@
-Ext.define('AM.view.ground.Point', {
-  extend : 'AM.view.neuronmap.Brain.Object',
-  
-  point : null,
-  
-  syncPos : function(){
-    this.x = this.point.x;
-    this.y = this.point.y;
-    this.draw();
-  }
-});
-
 Ext.define('AM.view.ground.Food', {
-  extend : 'AM.view.ground.Point',
+  extend : 'AM.view.world.Point',
 
 });
 
@@ -199,7 +187,7 @@ Ext.define('AM.view.ground.Ground', {
   
   addViewPoint : function(point) {
     var me = this, drawComp = me.down('draw');
-    var bno = Ext.create('AM.view.ground.Point', {
+    var bno = Ext.create('AM.view.world.Point', {
       drawComp : drawComp,
       x : point.x,
       y : point.y, 

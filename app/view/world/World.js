@@ -1,3 +1,213 @@
+STATE = {
+  N : 'normal',
+  /* Rollover and click */
+  A : 'activated',
+  /* Rollover without click */
+  R : 'rollover',
+  /*
+   * During Dragging
+   */
+  D : 'drag'
+};
+
+Ext.define('AM.view.world.Object', {
+  mixins : {
+    observable : 'Ext.util.Observable'
+  },
+
+  iid : 0,
+  x : 0,
+  y : 0,
+  z : 0,
+  // sprite than under managing
+  s : null,
+  //text on object
+  t : null, 
+  state : STATE.N,
+  
+  /**
+   * description of this object, will show at side of neuron
+   */
+  text : '',
+
+  // svg surface component
+  drawComp : null,
+
+  constructor : function(config) {
+    this.iid = Ext.isEmpty(this.iid) ? IID.get() : this.iid;
+    Ext.apply(this, config);
+    this.mixins.observable.constructor.call(this, config);
+    this.addEvents(['onStateChange', 'onMove']);
+    this.on('onStateChange', this.updateState);
+    this.callParent(config);
+    this.draw();
+  },
+  
+  appendText : function(x, y){
+    var me = this;
+    x = (Ext.isEmpty(x) ? (me.x) : x) + 10;
+    y =  Ext.isEmpty(y) ? me.y : y;
+    var txt = !Ext.isEmpty(me.text) ? me.iid + "-" + me.text : me.iid;
+    if (!Ext.isEmpty(me.drawComp)) {
+      if (Ext.isEmpty(me.t)) {
+        me.t = me.drawComp.surface.add({
+          type : 'text',
+          text : txt,
+          fill : 'black',
+          font : '14px "Lucida Grande", Helvetica, Arial, sans-serif;',
+          x : x,
+          y : y,
+          zIndex : 201 //one level up 
+        });
+      }else {
+        me.t.setAttributes({
+          text : txt,
+          x : x,
+          y : y
+        });
+      }
+      me.t.redraw();
+    }
+  },
+  
+  draw : function() {
+    var me = this;
+    if (!Ext.isEmpty(me.drawComp)) {
+      if (Ext.isEmpty(me.s)) {
+        me.s = me.drawComp.surface.add({
+          draggable : true,
+          type : 'circle',
+          fill : '#ff0000',
+          // path : [ 'M', me.x - this.width/2, me.y - this.height - 10, 'l',
+          // this.width, '0 l', -this.width/2, this.height * 0.7, 'z'].join('
+          // '),
+          radius : this.radius,
+          x : me.x,
+          y : me.y,
+          zIndex : 100
+        });
+        me.registerListeners();
+      } else {
+        me.s.setAttributes({
+          x : me.x,
+          y : me.y
+        });
+      }
+      me.s.redraw();
+      me.appendText();
+    }
+  },
+
+  registerListeners : function() {
+    var me = this;
+    if (Ext.isEmpty(me.s))
+      return;
+    // add custom method to Ext.draw.SpriteDD, after drop (actually an invalid
+    // drop because there is no drop zone)
+    if(me.s.dd){
+      me.s.dd.afterInvalidDrop = function(target, e, id) {
+        // console.log('after drag over');
+        me.updateXY();
+        me.fireEvent('onMove', me);
+      };
+    }
+    me.s.on('mouseover', function(sprite) {
+      // console.log('mouseover');
+      if (me.state == STATE.N) {
+        me.fireEvent('onStateChange', STATE.R, me);
+      }
+    });
+    me.s.on('mouseout', function(sprite) {
+      // console.log('mouseout');
+      if (me.state == STATE.R) {
+        me.fireEvent('onStateChange', STATE.N, me);
+      }
+    });
+    me.s.on('click', function(sprite) {
+      // console.log('click');
+      me.fireEvent('onStateChange', STATE.A, me);
+    });
+  },
+
+  updateState : function(state) {
+    var me = this;
+    me.state = state;
+    if (state == STATE.N) {
+      if (state == STATE.N) {
+        me.s.setAttributes({
+          fill : '#ff0000',
+          stroke : 'none'
+        }, true);
+        me.s.redraw();
+      }
+    } else if (state == STATE.A || state == STATE.R) {
+      me.s.setAttributes({
+        fill : '#ffff00',
+        stroke : '#00ff00',
+        style : {
+          strokeWidth : 1
+        }
+      }, true);
+      me.s.redraw();
+    }
+  },
+  
+  /**
+   * This is called after dragging to update x y and redraw synapse
+   */
+  updateXY : function() {
+    // console.log('update xy');
+    this.s.x += this.s.attr.translation.x;
+    this.s.y += this.s.attr.translation.y;
+    this.s.setAttributes({
+      x : this.s.x,
+      y : this.s.y,
+      translation : {x : 0, y : 0}
+    });
+    this.x = this.s.x;
+    this.y = this.s.y;
+    this.appendText();
+  },
+
+  destroy : function(){
+    this.s.destroy();
+    this.s = null;
+    this.t.destroy();
+    this.t = null;
+    this.callParent(arguments);
+  },
+  
+  /**
+   * provide custom stringify
+   * 
+   * @returns
+   */
+  toJSON : function() {
+    return JSON.stringify({
+      iid : this.iid, 
+      x : this.x,
+      y : this.y,
+      z : this.z,
+      state : this.state
+    });
+  }
+});
+/**
+ * Binding data point and view point
+ */
+Ext.define('AM.view.world.Point', {
+  extend : 'AM.view.world.Object',
+  
+  point : null,
+  
+  syncPos : function(){
+    this.x = this.point.x;
+    this.y = this.point.y;
+    this.draw();
+  }
+});
+
+
 /**
  * World is used to display the object data
  */
@@ -96,7 +306,7 @@ Ext.define('AM.view.world.World', {
     if(!obj && obj.type != 'point') return;
     var point = obj.obj;
     var me = this, drawComp = me.down('draw');
-    var bno = Ext.create('AM.view.ground.Point', {
+    var bno = Ext.create('AM.view.world.Point', {
       drawComp : drawComp,
       x : point.x,
       y : point.y, 
