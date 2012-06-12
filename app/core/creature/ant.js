@@ -26,8 +26,9 @@ Creature.Life = Utils.cls.extend(World.Object, {
   },
   
   destroy : function(){
-    delete this.world.objects[this.iid];
+    this.world.remove(this);
     this.body.destroy();
+    this.callParent();
   }
 });
 

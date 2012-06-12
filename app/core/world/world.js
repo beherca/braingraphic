@@ -68,19 +68,19 @@ World.World = Utils.cls.extend(Observable, {
     var me = this;
     if(config.type == 'point'){
       var p = Utils.cls.create(World.Point, Utils.apply({world : this, iid : this.iidor.get()}, config));
-      p.on({'onDestroy' : me.remove});
+      p.on({'onDestroy' : {fn : me.remove, scope : me}});
       this.points[p.iid] = p;
       this.fireEvent('onAdd', config.type, p);
       return p;
     }else if(config.type == 'ant'){
       var ant = Utils.cls.create(Creature.Ant, Utils.apply({world : this, iid : this.iidor.get()}, config));
-      ant.on({'onDestroy' : me.remove});
+      ant.on({'onDestroy' : {fn : me.remove, scope : me}});
       this.objects[ant.iid] = ant;
       this.fireEvent('onAdd', config.type, ant);
       return ant;
     }else if(config.type == 'life'){
       var life = Utils.cls.create(Creature.Life, Utils.apply({world : this, iid : this.iidor.get()}, config));
-      life.on({'onDestroy' : me.remove});
+      life.on({'onDestroy' : {fn : me.remove, scope : me}});
       this.objects[life.iid] = life;
       this.fireEvent('onAdd', config.type, life);
       return life;
@@ -91,13 +91,13 @@ World.World = Utils.cls.extend(Observable, {
     if(isEmpty(obj))return;
     obj.removeAllListeners();
     if(obj instanceof World.Point){
-      delete this.world.points[obj.iid];
+      delete this.points[obj.iid];
       this.fireEvent('onRemove', 'point', obj.iid);
     }else if(obj instanceof World.Object){
-      delete this.world.objects[obj.iid];
+      delete this.objects[obj.iid];
       this.fireEvent('onRemove', 'object', obj.iid);
     }else if(obj instanceof World.Link){
-      delete this.world.links[obj.iid];
+      delete this.links[obj.iid];
       this.fireEvent('onRemove', 'link', obj.iid);
     }
     obj = null;
@@ -117,7 +117,7 @@ World.World = Utils.cls.extend(Observable, {
   
   link :  function(config){
     var link = Utils.cls.create(World.Link, Utils.apply({world : this, iid : this.iidor.get()}, config));
-    link.on({'onDestroy' : this.remove});
+    link.on({'onDestroy' : {fn : this.remove, scope :this}});
     this.links[link.iid] = link;
     return link;
   }

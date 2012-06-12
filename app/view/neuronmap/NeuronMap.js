@@ -180,6 +180,8 @@ Ext.define('AM.view.neuronmap.Brain.Object', {
   },
 
   destroy : function(){
+    this.s.destroy();
+    this.s = null;
     this.t.destroy();
     this.t = null;
     this.callParent(arguments);
@@ -304,8 +306,6 @@ Ext.define('AM.view.neuronmap.Brain.Neuron', {
     });
     this.axons = null;
     this.groupedPreNeurons = null;
-    this.s.destroy();
-    this.s = null;
     this.callParent(arguments);
   },
 
@@ -503,7 +503,6 @@ Ext.define('AM.view.neuronmap.Brain.Synapse', {
 
   destroy : function() {
     var me = this;
-    me.s.destroy();
     me.arrow.destroy();
     me.preNeuron.removeAxonSynapse(me);
     me.postNeuron.removeDendriteSynapse(me);

@@ -300,7 +300,6 @@ Utils.cls = {
         constructorProps[name] = me.deepCopy(p);
       }
     }
-    console.log(constructorProps);
     // set the properties in the constructor, so the properties change will not affect prototype
     var ChildClass = function(){
       //must use deep copy to copy the props config, otherwise, the prop will be changed during runtime
@@ -326,7 +325,7 @@ Utils.cls = {
    */
   deepCopy : function(from, target){
     if(isObject(from)){
-      var target = target || {};
+      target = target || {};
       for (var i in from){
         if(isObject(from[i])){
           target[i] = (isArray(from[i])) ? [] : {};
