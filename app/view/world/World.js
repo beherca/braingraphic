@@ -233,7 +233,9 @@ Ext.define('AM.view.world.World', {
     var me = this;
     this.addEvents('modeChanged', 'addClick');
     me.iidor = new Iid();
-    me.world = World.create({x : 0, y : 0, resistance : 0.09});
+    me.world = World.create({x : 0, y : 0, resistance : 0.09, 
+      gForce : Utils.cls.create(World.Force, {value : 2, direction : OP.add(0, 10)})
+      });
     me.world.on('onAdd', me.addPoint, this);
     me.items = [{
         xtype : 'toolbar',
@@ -290,7 +292,7 @@ Ext.define('AM.view.world.World', {
       x : 400, 
       y : 400,
       z : 0,
-      edges : 50,
+      edges : 4,
       radius : 100,
       unitForce : 1, elasticity : 0.8, effDis : 2000
     });
@@ -299,9 +301,9 @@ Ext.define('AM.view.world.World', {
       x : 800, 
       y : 400,
       z : 0,
-      edges : 5,
+      edges : 6,
       radius : 100,
-      unitForce : 1, elasticity : 0.89, effDis : 2000
+      unitForce : 1, elasticity : 0.6, effDis : 2000
     });
   },
   

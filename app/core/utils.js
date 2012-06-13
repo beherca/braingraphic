@@ -230,6 +230,13 @@ Utils = {
     };
   },
 
+  /**
+   * end Point to start
+   * @param startP
+   * @param endP
+   * @param offset
+   * @returns {Number}
+   */
   getAngle : function(startP, endP, offset) {
     var disX = this.getDisX(startP, endP);
     var disY = this.getDisY(startP, endP);

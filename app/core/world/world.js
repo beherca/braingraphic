@@ -17,6 +17,13 @@ World.World = Utils.cls.extend(Observable, {
   links : {},
   points : {},
   objects : {},
+  //TODO
+  boundary : null,
+  /**
+   * Global force apply to all
+   */
+  gForce : null,
+  
   //resistant force, the smaller, swamper 
   resistance : 0.1, 
   //below is for the crash detector
@@ -53,7 +60,6 @@ World.World = Utils.cls.extend(Observable, {
               }
             }
             if(currentP.crash(testP)){
-              
               this.link({pre : currentP, post : testP, 
                 unitForce : 0.9, elasticity : 0.8, 
                 //TODO don't know how far is good , 10?
@@ -80,6 +86,9 @@ World.World = Utils.cls.extend(Observable, {
       var p = Utils.cls.create(World.Point, Utils.apply({world : this, iid : this.iidor.get()}, config));
       p.on({'onDestroy' : {fn : me.remove, scope : me}});
       this.points[p.iid] = p;
+      if(!isEmpty(this.gForce)){
+        this.gLink(p);
+      }
       this.fireEvent('onAdd', {type : config.type, obj :p});
       return p;
     }else if(config.type == 'ant'){
@@ -139,6 +148,17 @@ World.World = Utils.cls.extend(Observable, {
   
   link :  function(config){
     var link = Utils.cls.create(World.Link, Utils.apply({world : this, iid : this.iidor.get()}, config));
+    link.on({'onDestroy' : {fn : this.remove, scope :this}});
+    this.links[link.iid] = link;
+    this.fireEvent('onAdd', {type : 'link', obj : link});
+    return link;
+  },
+  
+  gLink : function(point){
+    var config = {post : point,  unitForce : 1, elasticity : 0.8, effDis : 2000, distance : 0,
+        isDual: false};
+    var link = Utils.cls.create(World.ForceLink, 
+        Utils.apply({world : this, iid : this.iidor.get(), force : this.gForce}, config));
     link.on({'onDestroy' : {fn : this.remove, scope :this}});
     this.links[link.iid] = link;
     this.fireEvent('onAdd', {type : 'link', obj : link});
@@ -236,7 +256,7 @@ World.Point = Utils.cls.extend(Observable, {
 });
 
 /**
- * Actually is a set of points
+ * Actually is a set of points, or a group of points
  */
 World.Object = Utils.cls.extend(Observable, {
   x: 0,
@@ -377,7 +397,7 @@ World.Circle = Utils.cls.extend(World.Object, {
         unitForce : config.unitForce, elasticity : config.elasticity, 
         distance : radius, 
         effDis : config.effDis, 
-        isDual: false});
+        isDual: true});
       if(prePoint){
         dis2Pre = !isEmpty(dis2Pre) ? dis2Pre : Utils.getDisXY(prePoint, point);
         this.world.link({pre : prePoint, post : point, 
@@ -397,6 +417,41 @@ World.Circle = Utils.cls.extend(World.Object, {
 
 });
 
+World.Force = Utils.cls.extend(Observable, {
+  direction : null,
+  /**
+   * force value
+   */
+  value : 0,
+  angle : 0,
+
+  init : function(config){
+    Utils.apply(this, config);
+    this.calc();
+  },
+  
+  setValue : function(value){
+    this.value = value;
+    this.calc();
+    this.fireEvent('valueChange', value);
+  },
+  
+  setDir : function(value){
+    this.direction = value;
+    this.calc();
+    this.fireEvent('dirChange', value);
+  },
+  
+  calc : function(){
+    if(!isEmpty(this.value) && !isEmpty(this.direction)){
+      this.angle = Utils.getAngle(OP, this.direction);
+      this.fx = this.value * Math.cos(this.angle);
+      this.fy = this.value * Math.sin(this.angle);
+      this.fz = 0;
+    }
+  }
+});
+
 World.LinkType = {S : 'softLink', H : 'hardLink', B : 'bounceLink'};
 /**
  * 
@@ -405,7 +460,13 @@ World.LinkType = {S : 'softLink', H : 'hardLink', B : 'bounceLink'};
  * @returns {World.Link}
  */
 World.Link = Utils.cls.extend(Observable, {
+  /**
+   * The points to follow when isDual set to false
+   */
   pre : null,
+  /**
+   * Follower
+   */
   post : null,
   distance : 10,
   effDis : 200,
@@ -469,9 +530,14 @@ World.Link = Utils.cls.extend(Observable, {
     var uf = this.unitForce ?  this.unitForce : 1;
     var w = post.weight ?  post.weight : 1;
     var angle = Utils.getAngle(post, pre);
+
     for (var key in this.fn){
       var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
-      postv['v' + key] = parseInt(post['v' + key] + (pre[key] - axisDis - post[key]) * uf/w * this.elasticity);
+      
+      postv['v' + key] = parseInt(
+          post['v' + key] + 
+          (pre[key] - axisDis - post[key]) * uf/w * this.elasticity
+          );
     }
 //    console.log('softLink work done');
     return postv;
@@ -504,5 +570,17 @@ World.Link = Utils.cls.extend(Observable, {
       this.post.destroy();
     }
     this.fireEvent('onDestroy', this);
+  }
+});
+
+World.ForceLink = Utils.cls.extend(World.Link, {
+  force : null,
+  
+  calc : function(){
+    if(!isEmpty(this.force) && !isEmpty(this.post)){
+      this.force.calc();
+      this.pre = OP.add(this.post.x + this.force.fx, this.post.y + this.force.fy);
+      this.callParent();
+    }
   }
 });
