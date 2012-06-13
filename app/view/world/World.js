@@ -276,14 +276,32 @@ Ext.define('AM.view.world.World', {
     this.start();
     this.world.add({
       type: 'point', 
-      x : 300, y : 300
+      x : 200, y : 300
     });
     this.world.add({
       type : 'triangle',
       top : OP.add(50, 60, 0),
       right : OP.add(150, 60, 0),
       left : OP.add(250, 160, 0),
-      unitForce : 0.5, elasticity : 0.5, effDis : 2000
+      unitForce : 0.5, elasticity : 0.8, effDis : 2000
+    });
+    this.world.add({
+      type : 'circle',
+      x : 400, 
+      y : 400,
+      z : 0,
+      edges : 50,
+      radius : 100,
+      unitForce : 1, elasticity : 0.8, effDis : 2000
+    });
+    this.world.add({
+      type : 'circle',
+      x : 800, 
+      y : 400,
+      z : 0,
+      edges : 5,
+      radius : 100,
+      unitForce : 1, elasticity : 0.89, effDis : 2000
     });
   },
   
@@ -292,7 +310,7 @@ Ext.define('AM.view.world.World', {
     var me = this;
     if(isEmpty(this.worldTick)){
       this.worldTick = Ext.TaskManager.start({
-        interval : 100,
+        interval : 10,
         run: function(){
           me.world.tick();
         }

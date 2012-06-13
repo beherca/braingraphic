@@ -14,6 +14,7 @@ var isArray = function(arr) {
 };
 
 var round = function(value, accuracy){
+  accuracy = isEmpty(accuracy) ? 0 : accuracy;
   var e = Math.pow(10, accuracy);
   var v = (parseInt (value * e))/e;
   if((v > 0 && v < 1/e) || (v < 0 && v > -1/e)){

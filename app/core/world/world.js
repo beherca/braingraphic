@@ -45,12 +45,23 @@ World.World = Utils.cls.extend(Observable, {
           var testKey = keys[pk];
           var testP = this.points[testKey];
           if(!isEmpty(testP) && currentP.crashable && testP.crashable){
+            //cancel crash test if isGroupCrash is false
+            if(currentP.group && testP.group 
+                && (currentP.group == testP.group)){
+              if (!currentP.isGroupCrash || !testP.isGroupCrash){
+                continue;
+              }
+            }
             if(currentP.crash(testP)){
+              
               this.link({pre : currentP, post : testP, 
-                unitForce : 0.1, elasticity : 0.5, 
+                unitForce : 0.9, elasticity : 0.8, 
+                //TODO don't know how far is good , 10?
                 distance : currentP.crashRadius + testP.crashRadius, 
-                effDis : currentP.crashRadius + testP.crashRadius + 20, 
-                isDual: true, repeat : 1});
+                effDis : currentP.crashRadius + testP.crashRadius + 2/*see notes below*/, 
+                isDual: true, repeat : 10/*see notes below*/}); 
+                // NOTES :  about the number 2 and 10, they are experiment value, 
+                //which help to stablize the crash objects 
             }
           }
         }
@@ -89,6 +100,12 @@ World.World = Utils.cls.extend(Observable, {
       this.objects[tri.iid] = tri;
       this.fireEvent('onAdd', {type : config.type, obj : tri});
       return tri;
+    }else if(config.type == 'circle'){
+      var circle = Utils.cls.create(World.Circle, Utils.apply({world : this, iid : this.iidor.get()}, config));
+      circle.on({'onDestroy' : {fn : me.remove, scope : me}});
+      this.objects[circle.iid] = circle;
+      this.fireEvent('onAdd', {type : config.type, obj : circle});
+      return circle;
     }
   },
   
@@ -144,11 +161,21 @@ World.Point = Utils.cls.extend(Observable, {
   group : null,
   
   weight : 1,
+  
+  /**
+   * Whether crashable with other points in the same group
+   */
+  isGroupCrash : false,
+  
   crashable : true,
   /**
    * Define the circle crash-detect area with radius
    */
   crashRadius : 30,
+  
+  /**
+   * for internal use, to check whether is in crashing
+   */
   crashing : false,
   
   /**
@@ -190,10 +217,10 @@ World.Point = Utils.cls.extend(Observable, {
   
   move : function(){
 //    console.log('move to : x =' + this.x + '  y =' + this.y);
-      this.x += this.vx;
-      this.y += this.vy;
-      this.z += this.vz;
-      this.fireEvent('onMove', this);
+    this.x += this.vx;
+    this.y += this.vy;
+    this.z += this.vz;
+    this.fireEvent('onMove', this);
   },
   
   link2 : function(post, config){
@@ -215,6 +242,9 @@ World.Object = Utils.cls.extend(Observable, {
   x: 0,
   y: 0,
   z: 0,
+  vx : 0,
+  vy : 0,
+  vz : 0,
   iid: 0,
   init : function(config){
     Utils.apply(this, config);
@@ -258,6 +288,8 @@ World.Triangle = Utils.cls.extend(World.Object, {
   sdLfTop : null,
   
   init : function(config){
+    //make default value to config
+    Utils.apply(config, {unitForce : 0.5, elasticity : 0.5, effDis : 2000}, true);
     this.top = this.createPoint(config.top, 'top');
     this.left = this.createPoint(config.left, 'left');
     this.right = this.createPoint(config.right, 'right');
@@ -269,7 +301,9 @@ World.Triangle = Utils.cls.extend(World.Object, {
       point = this.world.add({
         type : 'point', 
         text : name,
-        x : point.x, y : point.y, z : point.z,
+        group : this,
+        isGroupCrash : false,
+        x : this.x + point.x, y : this.y + point.y, z : this.z + point.z,
       });
     }
     return point;
@@ -297,13 +331,70 @@ World.Triangle = Utils.cls.extend(World.Object, {
 World.Circle = Utils.cls.extend(World.Object, {
   radius : 10,
   /**
-   * multiple of 3
+   * minimum is 3
    */
-  edge : 1,
+  edges : 3,
+  
+  points : [],
+  
   //  World.Circle.prototype.constructor.call(World.Circle.prototype, config);
   init : function(config){
-    
+    //make default value to config
+    Utils.apply(config, {unitForce : 0.5, elasticity : 0.5, effDis : 2000}, true);
+    Utils.apply(this, config);
+    this.gen(config);
+  },
+  
+  gen : function(config){
+    var me = this;
+    var edges = (this.edges > 2 ) ? this.edges : 3;
+    var radiusStep = 2 * Math.PI / edges;
+    var center = this.world.add({
+      type : 'point', 
+      group : me,
+      name : 'center',
+      x : me.x, y : me.y, z : me.z,
+    });
+    this.points.push(center);
+    var prePoint = null;
+    //distance to pre point, which is the same
+    var dis2Pre = null;
+    var radius = this.radius;
+    for(var i = 0; i < edges ; i++){
+      var angle = radiusStep * i;
+      
+      var px = radius * Math.cos(angle);
+      var py = radius * Math.sin(angle);
+      var pz = 0;
+      var point = this.world.add({
+        type : 'point', 
+        group : me,
+        isGroupCrash : false,
+        x : me.x + px, y : me.y + py, z : me.z + pz,
+      });
+      this.points.push(point);
+      this.world.link({pre : center, post : point, 
+        unitForce : config.unitForce, elasticity : config.elasticity, 
+        distance : radius, 
+        effDis : config.effDis, 
+        isDual: false});
+      if(prePoint){
+        dis2Pre = !isEmpty(dis2Pre) ? dis2Pre : Utils.getDisXY(prePoint, point);
+        this.world.link({pre : prePoint, post : point, 
+          unitForce : config.unitForce, elasticity : config.elasticity, 
+          distance : dis2Pre, 
+          effDis : config.effDis, 
+          isDual: true});
+      }
+      prePoint = point;
+    }
+    this.world.link({pre : prePoint, post : this.points[1], 
+      unitForce : config.unitForce, elasticity : config.elasticity, 
+      distance : dis2Pre, 
+      effDis : config.effDis, 
+      isDual: true});
   }
+
 });
 
 World.LinkType = {S : 'softLink', H : 'hardLink', B : 'bounceLink'};
