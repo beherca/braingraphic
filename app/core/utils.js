@@ -140,12 +140,28 @@ var Observable = function(){
 };
 
 Utils = {
-  apply : function(target, from){
-    for(var key in from){
-      target[key] = from[key];
+  /**
+   * 
+   * @param target target to apply values
+   * @param from is where the values are from
+   * @param keepDup refer to whether to override the existed value in target
+   * @returns
+   */
+  apply : function(target, from, keepDup){
+    if(keepDup){
+      for(var key in from){
+        if(isEmpty(target[key])){
+          target[key] = from[key];
+        }
+      }
+    }else{
+      for(var key in from){
+        target[key] = from[key];
+      }
     }
     return target;
   },
+  
   /**
    * To get the curve path
    * 
@@ -352,7 +368,7 @@ Utils.cls = {
    */
   deepCopy : function(from, target){
     if(isObject(from)){
-      target = target || {};
+      target = target || ((isArray(from)) ? [] : {});
       for (var i in from){
         if(isObject(from[i])){
           target[i] = (isArray(from[i])) ? [] : {};
