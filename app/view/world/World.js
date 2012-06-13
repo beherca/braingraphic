@@ -29,6 +29,8 @@ Ext.define('AM.view.world.Object', {
    * description of this object, will show at side of neuron
    */
   text : '',
+  
+  showText : true,
 
   // svg surface component
   drawComp : null,
@@ -94,7 +96,9 @@ Ext.define('AM.view.world.Object', {
         });
       }
       me.s.redraw();
-      me.appendText();
+      if(me.showText){
+        me.appendText();
+      }
     }
   },
 
@@ -353,7 +357,8 @@ Ext.define('AM.view.world.World', {
       radius : 5,
       iid : point.iid,
       point : point,
-      text : point.text
+      text : point.text,
+      showText : false
     });
     me.iidor.set(point.iid);
     point.on({
