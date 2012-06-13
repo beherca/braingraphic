@@ -2,7 +2,7 @@ var isEmpty = function(obj) {
   return obj == null || typeof obj === "undefined";
 };
 var isObject = function(obj){
-  return typeof obj === "object";
+  return !isEmpty(obj) && typeof obj === "object";
 };
 
 var isFunction = function(obj){
@@ -151,13 +151,15 @@ Utils = {
   apply : function(target, from, keepDup){
     if(keepDup){
       for(var key in from){
-        if(isEmpty(target[key])){
+        if(isEmpty(target[key]) && !isEmpty(from[key])){
           target[key] = from[key];
         }
       }
     }else{
       for(var key in from){
-        target[key] = from[key];
+        if(!isEmpty(from[key])){
+          target[key] = from[key];
+        }
       }
     }
     return target;
@@ -389,7 +391,5 @@ Utils.cls = {
     }else{//if from is not a object, return itself
       return from;
     }
-    
-    
   }
 };

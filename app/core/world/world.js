@@ -86,7 +86,7 @@ World.World = Utils.cls.extend(Observable, {
       var p = Utils.cls.create(World.Point, Utils.apply({world : this, iid : this.iidor.get()}, config));
       p.on({'onDestroy' : {fn : me.remove, scope : me}});
       this.points[p.iid] = p;
-      if(!isEmpty(this.gForce)){
+      if(!isEmpty(this.gForce) && p.isApplyGForce){
         this.gLink(p);
       }
       this.fireEvent('onAdd', {type : config.type, obj :p});
@@ -173,6 +173,8 @@ World.Point = Utils.cls.extend(Observable, {
   vx : 0,
   vy : 0,
   vz : 0,
+  config : null,
+  
   world : null,
   /**
    * which group is this point belongs to, 
@@ -214,7 +216,13 @@ World.Point = Utils.cls.extend(Observable, {
    */
   goneWithLink : false,
   
+  /**
+   * whether to apply global force
+   */
+  isApplyGForce : true,
+  
   init : function(config){
+    this.config = config;
     Utils.apply(this, config);
   },
   
@@ -266,7 +274,10 @@ World.Object = Utils.cls.extend(Observable, {
   vy : 0,
   vz : 0,
   iid: 0,
+  config : {},
+  
   init : function(config){
+    this.config = config;
     Utils.apply(this, config);
   },
   
@@ -308,6 +319,7 @@ World.Triangle = Utils.cls.extend(World.Object, {
   sdLfTop : null,
   
   init : function(config){
+    this.callParent(config);
     //make default value to config
     Utils.apply(config, {unitForce : 0.5, elasticity : 0.5, effDis : 2000}, true);
     this.top = this.createPoint(config.top, 'top');
@@ -323,6 +335,7 @@ World.Triangle = Utils.cls.extend(World.Object, {
         text : name,
         group : this,
         isGroupCrash : false,
+        isApplyGForce : this.config.isApplyGForce,//oome in with config
         x : this.x + point.x, y : this.y + point.y, z : this.z + point.z,
       });
     }
@@ -359,6 +372,7 @@ World.Circle = Utils.cls.extend(World.Object, {
   
   //  World.Circle.prototype.constructor.call(World.Circle.prototype, config);
   init : function(config){
+    this.callParent(config);
     //make default value to config
     Utils.apply(config, {unitForce : 0.5, elasticity : 0.5, effDis : 2000}, true);
     Utils.apply(this, config);
@@ -373,6 +387,7 @@ World.Circle = Utils.cls.extend(World.Object, {
       type : 'point', 
       group : me,
       name : 'center',
+      isApplyGForce : this.config.isApplyGForce,//oome in with config
       x : me.x, y : me.y, z : me.z,
     });
     this.points.push(center);
@@ -390,6 +405,7 @@ World.Circle = Utils.cls.extend(World.Object, {
         type : 'point', 
         group : me,
         isGroupCrash : false,
+        isApplyGForce : this.config.isApplyGForce,//oome in with config
         x : me.x + px, y : me.y + py, z : me.z + pz,
       });
       this.points.push(point);

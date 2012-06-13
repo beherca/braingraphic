@@ -233,8 +233,8 @@ Ext.define('AM.view.world.World', {
     var me = this;
     this.addEvents('modeChanged', 'addClick');
     me.iidor = new Iid();
-    me.world = World.create({x : 0, y : 0, resistance : 0.09, 
-      gForce : Utils.cls.create(World.Force, {value : 2, direction : OP.add(0, 10)})
+    me.world = World.create({x : 0, y : 0, resistance : 0.3, 
+      gForce : Utils.cls.create(World.Force, {value : 20, direction : OP.add(10, 0)})
       });
     me.world.on('onAdd', me.addPoint, this);
     me.items = [{
@@ -278,6 +278,7 @@ Ext.define('AM.view.world.World', {
     this.start();
     this.world.add({
       type: 'point', 
+      isApplyGForce : false,
       x : 200, y : 300
     });
     this.world.add({
@@ -285,26 +286,38 @@ Ext.define('AM.view.world.World', {
       top : OP.add(50, 60, 0),
       right : OP.add(150, 60, 0),
       left : OP.add(250, 160, 0),
-      unitForce : 0.5, elasticity : 0.8, effDis : 2000
+      isApplyGForce : true,
+      unitForce : 1, elasticity : 0.8, effDis : 2000
     });
     this.world.add({
       type : 'circle',
       x : 400, 
-      y : 400,
+      y : 300,
       z : 0,
-      edges : 4,
+      edges : 8,
       radius : 100,
       unitForce : 1, elasticity : 0.8, effDis : 2000
     });
     this.world.add({
       type : 'circle',
       x : 800, 
-      y : 400,
+      y : 200,
       z : 0,
-      edges : 6,
+      edges : 8,
       radius : 100,
+      isApplyGForce : false,
       unitForce : 1, elasticity : 0.6, effDis : 2000
     });
+//    this.world.add({
+//      type : 'circle',
+//      x : 800, 
+//      y : 200,
+//      z : 0,
+//      edges : 10,
+//      radius : 100,
+//      isApplyGForce : false,
+//      unitForce : 1, elasticity : 0.6, effDis : 2000
+//    });
   },
   
   start : function(){
@@ -312,7 +325,7 @@ Ext.define('AM.view.world.World', {
     var me = this;
     if(isEmpty(this.worldTick)){
       this.worldTick = Ext.TaskManager.start({
-        interval : 10,
+        interval : 5,
         run: function(){
           me.world.tick();
         }
