@@ -36,22 +36,18 @@ World.World = Utils.cls.extend(Observable, {
     Utils.apply(this, config);
   },
   
-  detectCrash : function(){
+  detectCrash : function(currentP){
+    var me = this;
     var keys = Object.keys(this.points);
-    var pi = 0;//point index
     var len = keys.length;
-    for(; pi < len; pi++){
-      /*start point as pi, will not test the 
-       * object with id ahead of pi
-       */
-      var pk = pi + 1;
-      var key = keys[pi];
-      var currentP = this.points[key];
+    //private utils
+    var detectFn = function(currentP, start){
+      var pk = start;
       if(!isEmpty(currentP)){
         for(; pk < len; pk++){
           var testKey = keys[pk];
-          var testP = this.points[testKey];
-          if(!isEmpty(testP) && currentP.crashable && testP.crashable){
+          var testP = me.points[testKey];
+          if(!isEmpty(testP) && testP != currentP && currentP.crashable && testP.crashable){
             //cancel crash test if isGroupCrash is false
             if(currentP.group && testP.group 
                 && (currentP.group == testP.group)){
@@ -60,7 +56,7 @@ World.World = Utils.cls.extend(Observable, {
               }
             }
             if(currentP.crash(testP)){
-              this.link({pre : currentP, post : testP, 
+              me.link({pre : currentP, post : testP, 
                 unitForce : 0.9, elasticity : 0.8, 
                 //TODO don't know how far is good , 10?
                 distance : currentP.crashRadius + testP.crashRadius, 
@@ -71,6 +67,21 @@ World.World = Utils.cls.extend(Observable, {
             }
           }
         }
+      }
+    };
+    if(!isEmpty(currentP)){
+      //TODO lazy crash detect don't know why, this is just not working
+      detectFn(currentP, 0);
+    }else{
+      var pi = 0;//point index
+      for(; pi < len; pi++){
+        /*start point as pi, will not test the 
+         * object with id ahead of pi
+         */
+        var pk = pi + 1;
+        var key = keys[pi];
+        var currentP = this.points[key];
+        detectFn(currentP, pk);
       }
     }
   },
@@ -85,6 +96,8 @@ World.World = Utils.cls.extend(Observable, {
     if(config.type == 'point'){
       var p = Utils.cls.create(World.Point, Utils.apply({world : this, iid : this.iidor.get()}, config));
       p.on({'onDestroy' : {fn : me.remove, scope : me}});
+      //TODO lazy crash detect don't know why, this is just not working
+      //p.on({'onMove' : {fn : me.detectCrash, scope : me}});
       this.points[p.iid] = p;
       if(!isEmpty(this.gForce) && p.isApplyGForce){
         this.gLink(p);
@@ -198,7 +211,12 @@ World.Point = Utils.cls.extend(Observable, {
   /**
    * for internal use, to check whether is in crashing
    */
-  crashing : false,
+  isCrashing : false,
+  
+  /**
+   * for internal use, to check whether is in moving
+   */
+  isMoving : false,
   
   /**
    * mark this point as destroyed and don't calculate in the link
@@ -235,20 +253,26 @@ World.Point = Utils.cls.extend(Observable, {
       this.vy = parseInt(this.vy > 0 ? -vy : vy);
       point.vx = parseInt(point.vx > 0 ? -vx : vx);
       point.vy = parseInt(point.vx > 0 ? -vx : vx);
-      this.crashing = true;
+      this.isCrashing = true;
       this.fireEvent('onCrash', point, this);
     }else{
-      this.crashing = false;
+      this.isCrashing = false;
     }
-    return this.crashing;
+    return this.isCrashing;
   },
   
   move : function(){
 //    console.log('move to : x =' + this.x + '  y =' + this.y);
-    this.x += this.vx;
-    this.y += this.vy;
-    this.z += this.vz;
-    this.fireEvent('onMove', this);
+    if(this.vx != 0 || this.vy !=0 || this.vz !=0){
+      this.x += this.vx;
+      this.y += this.vy;
+      this.z += this.vz;
+      this.isMoving = true;
+      this.fireEvent('onMove', this);
+    }else{
+      this.isMoving = false;
+      this.fireEvent('onStop', this);
+    }
   },
   
   link2 : function(post, config){

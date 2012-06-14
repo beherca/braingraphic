@@ -315,16 +315,16 @@ Ext.define('AM.view.world.World', {
       isApplyGForce : false,
       unitForce : 1, elasticity : 0.6, maxEffDis : 2000
     });
-    this.world.add({
-      type : 'circle',
-      x : 800, 
-      y : 200,
-      z : 0,
-      edges : 10,
-      radius : 100,
-      isApplyGForce : false,
-      unitForce : 1, elasticity : 0.6, maxEffDis : 2000
-    });
+//    this.world.add({
+//      type : 'circle',
+//      x : 800, 
+//      y : 200,
+//      z : 0,
+//      edges : 10,
+//      radius : 100,
+//      isApplyGForce : false,
+//      unitForce : 1, elasticity : 0.6, maxEffDis : 2000
+//    });
   },
   
   start : function(){
