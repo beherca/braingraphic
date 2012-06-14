@@ -60,8 +60,8 @@ World.World = Utils.cls.extend(Observable, {
                 unitForce : 0.9, elasticity : 0.8, 
                 //TODO don't know how far is good , 10?
                 distance : currentP.crashRadius + testP.crashRadius, 
-                maxEffDis : 5/*see notes below*/, 
-                isDual: true, repeat : 2/*see notes below*/}); 
+                maxEffDis : 10/*see notes below*/, 
+                isDual: true, repeat : 10/*see notes below*/}); 
                 // NOTES :  about the number 2 and 10, they are experiment value, 
                 //which help to stablize the crash objects 
             }
@@ -272,6 +272,7 @@ World.Point = Utils.cls.extend(Observable, {
   
   move : function(){
 //    console.log('move to : x =' + this.x + '  y =' + this.y);
+    console.log('speed  : vx =' + this.vx + '  vy =' + this.vy);
     if(this.vx != 0 || this.vy !=0 || this.vz !=0){
       this.x += this.vx;
       this.y += this.vy;
@@ -584,39 +585,35 @@ World.Link = Utils.cls.extend(Observable, {
   },
   
   softLink : function(pre, post){
-    var postv = {}; // velocity of post
+    var postv = {vx : post.vx, vy : post.vy, vz : post.vz}; // velocity of post
     var uf = this.unitForce ?  this.unitForce : 1;
     var w = post.weight ?  post.weight : 1;
+    //TODO #3D# change required
     var angle = Utils.getAngle(post, pre);
-
     for (var key in this.fn){
       var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
-      
       postv['v' + key] = parseInt(
           post['v' + key] + 
           (pre[key] - axisDis - post[key]) * uf/w * this.elasticity
           );
     }
-//    console.log('softLink work done');
     return postv;
   },
   
   bounceLink : function(pre, post){
-    var postv = {}; // velocity of post
+    var postv = {vx : post.vx, vy : post.vy, vz : post.vz}; // velocity of post
     var uf = this.unitForce ?  this.unitForce : 1;
     var w = post.weight ?  post.weight : 1;
+    //TODO #3D# change required
     var angle = Utils.getAngle(post, pre);
     for (var key in this.fn){
       var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
-      postv['v' + key] = parseInt(-post['v' + key] + (post['v' + key] > 0 ? 1 : -1) * (pre[key] - axisDis - post[key]) * uf/w);
-//      console.log('v' + key + postv['v' + key]);
+      postv['v' + key] = parseInt(
+          post['v' + key]
+          + (pre[key] - axisDis - post[key]) * uf/w * this.elasticity
+          );
     }
-    Utils.apply(post, postv); 
-    post.move();
-    for(var key in this.fn){
-      post['v' + key] = parseInt(post['v' + key]* 0.0001); // apply plasity
-    }
-    return post;
+    return postv;
   },
   
   destroy : function(){

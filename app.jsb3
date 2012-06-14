@@ -88,6 +88,14 @@
                     "name": "NeuronMap.js"
                 },
                 {
+                    "path": "play/samples/",
+                    "name": "LinkTest.js" 
+                },
+                {
+                    "path": "play/samples/",
+                    "name": "CircleTest.js"
+                },
+                {
                     "path": "",
                     "name": "app.js"
                 }

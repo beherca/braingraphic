@@ -61,7 +61,7 @@ Ext.define('AM.view.ground.GroundTest', {
   
   addNeuron : function(xy, offset, iid) {
     var me = this, drawComp = me.down('draw');
-    var bno = Ext.create('Brain.Neuron', {
+    var bno = Ext.create('AM.view.world.Object', {
       drawComp : drawComp,
       x : xy.x,
       y : xy.y + (offset ? offset: 0),

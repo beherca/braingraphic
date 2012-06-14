@@ -235,14 +235,16 @@ Ext.define('AM.view.world.World', {
   
   worldTick : null,
   
+  interval : 100,
+  
   offset : OP.add(0, 0),
   
   initComponent : function() {
     var me = this;
     this.addEvents('modeChanged', 'addClick');
     me.iidor = new Iid();
-    me.world = World.create({x : 0, y : 0, resistance : 0.3, 
-      gForce : Utils.cls.create(World.Force, {value : 5, direction : OP.add(10, 0)})
+    me.world = World.create({x : 0, y : 0, resistance : 0.6, 
+      gForce : Utils.cls.create(World.Force, {value : 8, direction : OP.add(10, 0)})
       });
     me.world.on('onAdd', me.addPoint, this);
     me.items = [{
@@ -284,49 +286,6 @@ Ext.define('AM.view.world.World', {
   afterRender : function(){
     this.callParent(arguments);
     this.start();
-    this.world.add({
-      type: 'point', 
-      isApplyGForce : true,
-      x : 200, y : 150
-    });
-//    this.world.add({
-//      type : 'triangle',
-//      top : OP.add(50, 60, 0),
-//      right : OP.add(150, 60, 0),
-//      left : OP.add(250, 160, 0),
-//      isApplyGForce : true,
-//      unitForce : 1, elasticity : 0.8, maxEffDis : 2
-//    });
-//    this.world.add({
-//      type : 'circle',
-//      x : 400, 
-//      y : 300,
-//      z : 0,
-//      edges : 10,
-//      radius : 100,
-//      unitForce : 1, elasticity : 0.8, maxEffDis : 20
-//    });
-    this.world.add({
-      type : 'circle',
-      x : 500, 
-      y : 150,
-      z : 0,
-      edges : 100,
-      radius : 300,
-      isApplyGForce : false,
-      unitForce : 1, elasticity : 0.7, maxEffDis : 200,
-      isAnchor : true
-    });
-//    this.world.add({
-//      type : 'circle',
-//      x : 800, 
-//      y : 200,
-//      z : 0,
-//      edges : 10,
-//      radius : 100,
-//      isApplyGForce : false,
-//      unitForce : 1, elasticity : 0.6, maxEffDis : 2000
-//    });
   },
   
   start : function(){
@@ -334,7 +293,7 @@ Ext.define('AM.view.world.World', {
     var me = this;
     if(isEmpty(this.worldTick)){
       this.worldTick = Ext.TaskManager.start({
-        interval : 5,
+        interval : me.interval,
         run: function(){
           me.world.tick();
         }
