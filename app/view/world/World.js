@@ -241,7 +241,7 @@ Ext.define('AM.view.world.World', {
     this.addEvents('modeChanged', 'addClick');
     me.iidor = new Iid();
     me.world = World.create({x : 0, y : 0, resistance : 0.3, 
-      gForce : Utils.cls.create(World.Force, {value : 3, direction : OP.add(10, 0)})
+      gForce : Utils.cls.create(World.Force, {value : 5, direction : OP.add(10, 0)})
       });
     me.world.on('onAdd', me.addPoint, this);
     me.items = [{
@@ -294,7 +294,7 @@ Ext.define('AM.view.world.World', {
       right : OP.add(150, 60, 0),
       left : OP.add(250, 160, 0),
       isApplyGForce : true,
-      unitForce : 1, elasticity : 0.8, maxEffDis : 2000
+      unitForce : 1, elasticity : 0.8, maxEffDis : 2
     });
     this.world.add({
       type : 'circle',
@@ -303,17 +303,18 @@ Ext.define('AM.view.world.World', {
       z : 0,
       edges : 10,
       radius : 100,
-      unitForce : 1, elasticity : 0.8, maxEffDis : 2000
+      unitForce : 1, elasticity : 0.8, maxEffDis : 2
     });
     this.world.add({
       type : 'circle',
-      x : 800, 
-      y : 200,
+      x : 500, 
+      y : 150,
       z : 0,
       edges : 250,
-      radius : 300,
+      radius : 500,
       isApplyGForce : false,
-      unitForce : 1, elasticity : 0.6, maxEffDis : 2000
+      unitForce : 1, elasticity : 0.6, maxEffDis : 200,
+      anchor : true
     });
 //    this.world.add({
 //      type : 'circle',

@@ -61,7 +61,7 @@ World.World = Utils.cls.extend(Observable, {
                 //TODO don't know how far is good , 10?
                 distance : currentP.crashRadius + testP.crashRadius, 
                 maxEffDis : currentP.crashRadius + testP.crashRadius + 2/*see notes below*/, 
-                isDual: true, repeat : 10/*see notes below*/}); 
+                isDual: true, repeat : 5/*see notes below*/}); 
                 // NOTES :  about the number 2 and 10, they are experiment value, 
                 //which help to stablize the crash objects 
             }
@@ -392,6 +392,11 @@ World.Circle = Utils.cls.extend(World.Object, {
    */
   edges : 3,
   
+  /**
+   * True to anchor object to screen
+   */
+  anchor : false,
+  
   points : [],
   
   //  World.Circle.prototype.constructor.call(World.Circle.prototype, config);
@@ -438,7 +443,7 @@ World.Circle = Utils.cls.extend(World.Object, {
         distance : radius, 
         maxEffDis : config.maxEffDis, 
         minEffDis : 0,
-        isDual: true});
+        isDual: !this.anchor});
       if(prePoint){
         dis2Pre = !isEmpty(dis2Pre) ? dis2Pre : Utils.getDisXY(prePoint, point);
         this.world.link({pre : prePoint, post : point, 
