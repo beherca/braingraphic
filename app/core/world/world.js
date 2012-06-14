@@ -176,7 +176,7 @@ World.World = Utils.cls.extend(Observable, {
     // NOTES : about the repeat time and maxEffDis, they are experiment value, 
     // which help to stable the crash objects 
     var defaultSfc = { 
-        unitForce : 0.9, elasticity : 0.8, 
+        unitForce : 1, elasticity : 0.8, 
         //TODO don't know how far is good , 10?
         distance : pre.crashRadius + post.crashRadius, 
         maxEffDis : 10/*see notes above*/, 
@@ -188,7 +188,14 @@ World.World = Utils.cls.extend(Observable, {
     for(var key in defaultSfc){
       mergeLink[key] = (preSfc[key] + postSfc[key])/2;
     }
-    this.link(Utils.apply(mergeLink, {pre : pre, post : post, isDual: true}));
+    if(!pre.isCrashable && post.isCrashable){
+      this.link(Utils.apply(mergeLink, {pre : pre, post : post, isDual: false}));
+    }else if(pre.isCrashable && !post.isCrashable){
+      this.link(Utils.apply(mergeLink, {pre : post, post : pre, isDual: false}));
+    }else if(pre.isCrashable && post.isCrashable){
+      this.link(Utils.apply(mergeLink, {pre : post, post : pre, isDual: true}));
+    }
+    
   }
 });
 
@@ -278,12 +285,23 @@ World.Point = Utils.cls.extend(Observable, {
   crash : function(point){
     if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
       console.log('crashed');
-      var vx = Math.abs(this.vx + point.vx);
-      var vy = Math.abs(this.vy + point.vy);
-      this.vx = parseInt(this.vx > 0 ? -vx : vx);
-      this.vy = parseInt(this.vy > 0 ? -vy : vy);
-      point.vx = parseInt(point.vx > 0 ? -vx : vx);
-      point.vy = parseInt(point.vx > 0 ? -vx : vx);
+      var pos = {vx : 0, vy : 0, vz : 0};
+
+      if(!this.isCrashable && point.isCrashable){
+        for(var key in pos){
+          point[key] = parseInt(point[key] > 0 ? -point[key] : point[key]);
+        }
+      }else if(this.isCrashable && !point.isCrashable){
+        for(var key in pos){
+          this[key] = parseInt(this[key] > 0 ? -this[key] : this[key]);
+        }
+      }else if(this.isCrashable && point.isCrashable){
+        for(var key in pos){
+          pos[key] = Math.abs(this[key] + point[key]);
+          this[key] = parseInt(this[key] > 0 ? -pos[key] : pos[key]);
+          point[key] = parseInt(point[key] > 0 ? -pos[key] : pos[key]);
+        }
+      }
       this.isCrashing = true;
       this.fireEvent('onCrash', point, this);
     }else{
@@ -632,14 +650,14 @@ World.Link = Utils.cls.extend(Observable, {
       var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
       postv['v' + key] = parseInt(
           post['v' + key]
-          + (pre[key] - axisDis - post[key]) * uf/w * this.elasticity
+          + ((pre[key] - axisDis - post[key])) * uf/w * this.elasticity
           );
     }
     return postv;
   },
   
   destroy : function(){
-//    console.log('destroy ' + this.type + this.iid);
+    //console.log('destroy ' + this.type + this.iid);
     if(this.pre && this.pre.goneWithLink){
       this.pre.destroy();
     }

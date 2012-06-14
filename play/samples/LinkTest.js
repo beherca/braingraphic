@@ -10,21 +10,21 @@ Ext.define('AM.world.LinkTest', {
     this.callParent(arguments);
     
 
-    function p(me, x, y, isApplyGForce){
+    function p(me, x, y, isApplyGForce, isCrashable){
       return me.world.add({
         type: 'point', 
         isApplyGForce : isApplyGForce,
-        isCrashable : true,
+        isCrashable : isCrashable,
         x : x, y : y
       });
     };
     function l(me, pre, post, isDual){
-      me.world.link({pre : pre, post : post, unitForce : 1, elasticity : 0.2,
+      me.world.link({pre : pre, post : post, unitForce : 1, elasticity : 0.15,
         maxEffDis : 2000, 
         distance : 20, isDual: isDual, type : World.LinkType.B});
     };
-    var p1 = p(this, 300, 150, false);
-    var p2 = p(this,  600, 450, false);
+    var p1 = p(this, 300, 150, false, false);
+    var p2 = p(this,  600, 450, false, true);
     l(this, p1, p2, false);
     
     function c(me, x, y){
@@ -40,6 +40,6 @@ Ext.define('AM.world.LinkTest', {
         isAnchor : false
       });
     };
-    c(this, 500, 250);
+//    c(this, 500, 250);
   }
 });
