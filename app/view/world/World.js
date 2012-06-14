@@ -98,6 +98,7 @@ Ext.define('AM.view.world.Object', {
         });
       }
       me.s.redraw();
+      me.appendText();
     }
   },
 
@@ -285,36 +286,36 @@ Ext.define('AM.view.world.World', {
     this.start();
     this.world.add({
       type: 'point', 
-      isApplyGForce : false,
-      x : 200, y : 300
-    });
-    this.world.add({
-      type : 'triangle',
-      top : OP.add(50, 60, 0),
-      right : OP.add(150, 60, 0),
-      left : OP.add(250, 160, 0),
       isApplyGForce : true,
-      unitForce : 1, elasticity : 0.8, maxEffDis : 2
+      x : 200, y : 150
     });
-    this.world.add({
-      type : 'circle',
-      x : 400, 
-      y : 300,
-      z : 0,
-      edges : 10,
-      radius : 100,
-      unitForce : 1, elasticity : 0.8, maxEffDis : 2
-    });
+//    this.world.add({
+//      type : 'triangle',
+//      top : OP.add(50, 60, 0),
+//      right : OP.add(150, 60, 0),
+//      left : OP.add(250, 160, 0),
+//      isApplyGForce : true,
+//      unitForce : 1, elasticity : 0.8, maxEffDis : 2
+//    });
+//    this.world.add({
+//      type : 'circle',
+//      x : 400, 
+//      y : 300,
+//      z : 0,
+//      edges : 10,
+//      radius : 100,
+//      unitForce : 1, elasticity : 0.8, maxEffDis : 20
+//    });
     this.world.add({
       type : 'circle',
       x : 500, 
       y : 150,
       z : 0,
-      edges : 250,
-      radius : 500,
+      edges : 100,
+      radius : 300,
       isApplyGForce : false,
-      unitForce : 1, elasticity : 0.6, maxEffDis : 200,
-      anchor : true
+      unitForce : 1, elasticity : 0.7, maxEffDis : 200,
+      isAnchor : true
     });
 //    this.world.add({
 //      type : 'circle',
@@ -351,7 +352,7 @@ Ext.define('AM.view.world.World', {
   },
 
   addPoint : function(obj, eventName) {
-    if(isEmpty(obj) || obj.type != 'point') return;
+    if(isEmpty(obj) || isEmpty(obj.obj) || !(obj.obj instanceof World.Point)) return;
     var point = obj.obj;
     var me = this, drawComp = me.down('draw');
     var bno = Ext.create('AM.view.world.Point', {

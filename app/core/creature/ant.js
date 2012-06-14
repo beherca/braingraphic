@@ -10,8 +10,7 @@ var Creature = {
     }
 };
 
-Creature.Life = Utils.cls.extend(World.Object, {
-  world : null,
+Creature.Life = Utils.cls.extend(World.Point, {
   //default center dot, represent body
   body : null,
   brain : null,

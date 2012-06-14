@@ -59,7 +59,7 @@ Ext.define('AM.view.ground.GroundMultPointsTest', {
   addPoint : function(world) {
     var me = this, drawComp = me.down('draw');
     
-    var p = world.add({type: 'point', x : 800 * Math.random(), y : 600 * Math.random(), crashable : false});
+    var p = world.add({type: 'point', x : 800 * Math.random(), y : 600 * Math.random(), isCrashable : false});
     var bno = Ext.create('AM.view.ground.Point', {
       drawComp : drawComp,
       x : p.x,
