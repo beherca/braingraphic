@@ -56,14 +56,11 @@ World.World = Utils.cls.extend(Observable, {
               }
             }
             if(currentP.crash(testP)){
-              me.link({pre : currentP, post : testP, 
-                unitForce : 0.9, elasticity : 0.8, 
-                //TODO don't know how far is good , 10?
-                distance : currentP.crashRadius + testP.crashRadius, 
-                maxEffDis : 10/*see notes below*/, 
-                isDual: true, repeat : 10/*see notes below*/}); 
-                // NOTES :  about the number 2 and 10, they are experiment value, 
-                //which help to stablize the crash objects 
+              /*
+               *create surface link, which is a part of crash, this link both push
+               *points away and attach each other
+               */
+              me.surfaceLink(currentP, testP);
             }
           }
         }
@@ -173,6 +170,25 @@ World.World = Utils.cls.extend(Observable, {
     this.links[link.iid] = link;
     this.fireEvent('onAdd', {type : 'link', obj : link});
     return link;
+  },
+  
+  surfaceLink : function(pre, post){
+    // NOTES : about the repeat time and maxEffDis, they are experiment value, 
+    // which help to stable the crash objects 
+    var defaultSfc = { 
+        unitForce : 0.9, elasticity : 0.8, 
+        //TODO don't know how far is good , 10?
+        distance : pre.crashRadius + post.crashRadius, 
+        maxEffDis : 10/*see notes above*/, 
+        repeat : 10/*see notes above*/};
+
+    var preSfc = isEmpty(pre.surfaceLinkConfig) ? defaultSfc : pre.surfaceLinkConfig;
+    var postSfc = isEmpty(post.surfaceLinkConfig) ? defaultSfc : post.surfaceLinkConfig;
+    var mergeLink = {};
+    for(var key in defaultSfc){
+      mergeLink[key] = (preSfc[key] + postSfc[key])/2;
+    }
+    this.link(Utils.apply(mergeLink, {pre : pre, post : post, isDual: true}));
   }
 });
 
@@ -244,6 +260,12 @@ World.Point = Utils.cls.extend(Observable, {
   goneWithLink : false,
   
   /**
+   * this is the configuration that define the surface feature of current point.
+   * this configuration will be used by link which is created when the point crash other points
+   */
+  surfaceLinkConfig : null,
+  
+  /**
    * whether to apply global force
    */
   isApplyGForce : true,
@@ -272,7 +294,7 @@ World.Point = Utils.cls.extend(Observable, {
   
   move : function(){
 //    console.log('move to : x =' + this.x + '  y =' + this.y);
-    console.log('speed  : vx =' + this.vx + '  vy =' + this.vy);
+//    console.log('speed  : vx =' + this.vx + '  vy =' + this.vy);
     if(this.vx != 0 || this.vy !=0 || this.vz !=0){
       this.x += this.vx;
       this.y += this.vy;
