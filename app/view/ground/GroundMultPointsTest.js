@@ -38,7 +38,7 @@ Ext.define('AM.view.ground.GroundMultPointsTest', {
       if(pre)
 //      for(var k in this.points){
 //        var cp = this.points[k];
-        var link = world.link({pre : pre.point, post : p.point, elasticity : 0.9, unitForce : 0.9, distance : 50, effDis : 2000, isDual: true, repeat : 12});
+        var link = world.link({pre : pre.point, post : p.point, elasticity : 0.9, unitForce : 0.9, distance : 50, maxEffDis : 2000, isDual: true, repeat : 12});
 //      }
       this.points.push(p);
       pre = p;

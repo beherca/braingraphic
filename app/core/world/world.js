@@ -64,7 +64,7 @@ World.World = Utils.cls.extend(Observable, {
                 unitForce : 0.9, elasticity : 0.8, 
                 //TODO don't know how far is good , 10?
                 distance : currentP.crashRadius + testP.crashRadius, 
-                effDis : currentP.crashRadius + testP.crashRadius + 2/*see notes below*/, 
+                maxEffDis : currentP.crashRadius + testP.crashRadius + 2/*see notes below*/, 
                 isDual: true, repeat : 10/*see notes below*/}); 
                 // NOTES :  about the number 2 and 10, they are experiment value, 
                 //which help to stablize the crash objects 
@@ -155,8 +155,8 @@ World.World = Utils.cls.extend(Observable, {
   },
   
   gLink : function(point){
-    var config = {post : point,  unitForce : 1, elasticity : 0.8, effDis : 2000, distance : 0,
-        isDual: false};
+    var config = {post : point,  unitForce : 1, elasticity : 0.8, maxEffDis : 2000, distance : 0,
+        isDual: false, isBreakable : false};
     var link = Utils.cls.create(World.ForceLink, 
         Utils.apply({world : this, iid : this.iidor.get(), force : this.gForce}, config));
     link.on({'onDestroy' : {fn : this.remove, scope :this}});
@@ -193,7 +193,7 @@ World.Point = Utils.cls.extend(Observable, {
   /**
    * Define the circle crash-detect area with radius
    */
-  crashRadius : 30,
+  crashRadius : 10,
   
   /**
    * for internal use, to check whether is in crashing
@@ -321,7 +321,7 @@ World.Triangle = Utils.cls.extend(World.Object, {
   init : function(config){
     this.callParent(config);
     //make default value to config
-    Utils.apply(config, {unitForce : 0.5, elasticity : 0.5, effDis : 2000}, true);
+    Utils.apply(config, {unitForce : 0.5, elasticity : 0.5, maxEffDis : 2000}, true);
     this.top = this.createPoint(config.top, 'top');
     this.left = this.createPoint(config.left, 'left');
     this.right = this.createPoint(config.right, 'right');
@@ -346,17 +346,17 @@ World.Triangle = Utils.cls.extend(World.Object, {
     this.sdTopRt = this.world.link({pre : this.top, post : this.right, 
       unitForce : config.unitForce, elasticity : config.elasticity, 
       distance : Utils.getDisXY(this.top, this.right), 
-      effDis : config.effDis, 
+      maxEffDis : config.maxEffDis, 
       isDual: true});
     this.sdRtLf = this.world.link({pre : this.right, post : this.left, 
       unitForce : config.unitForce, elasticity : config.elasticity, 
       distance : Utils.getDisXY(this.right, this.left), 
-      effDis : config.effDis, 
+      maxEffDis : config.maxEffDis, 
       isDual: true});
     this.sdLfTop = this.world.link({pre : this.left, post : this.top, 
       unitForce : config.unitForce, elasticity : config.elasticity, 
       distance : Utils.getDisXY(this.left, this.top), 
-      effDis : config.effDis, 
+      maxEffDis : config.maxEffDis, 
       isDual: true});
   }
 });
@@ -374,7 +374,7 @@ World.Circle = Utils.cls.extend(World.Object, {
   init : function(config){
     this.callParent(config);
     //make default value to config
-    Utils.apply(config, {unitForce : 0.5, elasticity : 0.5, effDis : 2000}, true);
+    Utils.apply(config, {unitForce : 0.5, elasticity : 0.5, maxEffDis : 2000}, true);
     Utils.apply(this, config);
     this.gen(config);
   },
@@ -412,14 +412,16 @@ World.Circle = Utils.cls.extend(World.Object, {
       this.world.link({pre : center, post : point, 
         unitForce : config.unitForce, elasticity : config.elasticity, 
         distance : radius, 
-        effDis : config.effDis, 
+        maxEffDis : config.maxEffDis, 
+        minEffDis : 0,
         isDual: true});
       if(prePoint){
         dis2Pre = !isEmpty(dis2Pre) ? dis2Pre : Utils.getDisXY(prePoint, point);
         this.world.link({pre : prePoint, post : point, 
           unitForce : config.unitForce, elasticity : config.elasticity, 
           distance : dis2Pre, 
-          effDis : config.effDis, 
+          maxEffDis : config.maxEffDis, 
+          minEffDis : 0,
           isDual: true});
       }
       prePoint = point;
@@ -427,7 +429,8 @@ World.Circle = Utils.cls.extend(World.Object, {
     this.world.link({pre : prePoint, post : this.points[1], 
       unitForce : config.unitForce, elasticity : config.elasticity, 
       distance : dis2Pre, 
-      effDis : config.effDis, 
+      maxEffDis : config.maxEffDis, 
+      minEffDis : 0,
       isDual: true});
   }
 
@@ -476,6 +479,8 @@ World.LinkType = {S : 'softLink', H : 'hardLink', B : 'bounceLink'};
  * @returns {World.Link}
  */
 World.Link = Utils.cls.extend(Observable, {
+  iid : 0,
+  world : null,
   /**
    * The points to follow when isDual set to false
    */
@@ -485,15 +490,28 @@ World.Link = Utils.cls.extend(Observable, {
    */
   post : null,
   distance : 10,
-  effDis : 200,
-  iid : 0,
-  unitForce : 2,
+  
+  /**
+   * link will be broken when : realDistance - this.distance < minEffDis
+   */
+  minEffDis : null, 
+  
+  /**
+   * link will be broken when : realDistance - this.distance > maxEffDis
+   */
+  maxEffDis : null,
+
+  isBreakable : true,
   isDual : true,
-  world : null,
+  
+  unitForce : 2,
   //smaller harder
   elasticity : 0.9,
+  
   type : World.LinkType.S,
+  
   repeat : 0,
+  
   repeatedCount : 0,
   
   fn : {x : Math.cos, y : Math.sin/*, z : Math.sin*/},
@@ -512,7 +530,11 @@ World.Link = Utils.cls.extend(Observable, {
     }
     var linkType = this.type;
     var linkImpl = isFunction(this[linkType]) ? this[linkType] : {};
-    if(Utils.getDisXY(pre, post) < this.effDis){
+    if(this.checkBrakeForce()){
+      if(this.isBreakable){
+        this.destroy();
+      }
+    }else{
       var postv = linkImpl.call(this, pre, post);
       var prev = null;
       if(this.isDual){
@@ -530,8 +552,6 @@ World.Link = Utils.cls.extend(Observable, {
           pre['v' + key] = parseInt(pre['v' + key] * this.world.resistance); 
         }
       }
-    }else{
-      this.destroy();
     }
     if(this.repeat > 0 ){
       this.repeatedCount++;
@@ -539,6 +559,14 @@ World.Link = Utils.cls.extend(Observable, {
         this.destroy();
       }
     }
+  },
+  
+  checkBrakeForce : function(){
+    var realDisDiff = Math.abs(Utils.getDisXY(this.pre, this.post) - this.distance);
+    var min = !isEmpty(this.minEffDis) ? realDisDiff < this.minEffDis : false;
+    var max = !isEmpty(this.maxEffDis) ? realDisDiff > this.maxEffDis : false;
+    
+    return min|| max;
   },
   
   softLink : function(pre, post){

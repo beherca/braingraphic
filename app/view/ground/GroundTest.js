@@ -39,7 +39,7 @@ Ext.define('AM.view.ground.GroundTest', {
     //pre Point and post Point which will be attached to Neurons
     var pre = world.add({type: 'point', x : 500, y : 200});
     var post = world.add({type: 'point', x : 600, y : 200});
-    var link = world.link({pre : pre, post : post, unitForce : 0.1, distance : 0, effDis : 2000, isDual: true});
+    var link = world.link({pre : pre, post : post, unitForce : 0.1, distance : 0, maxEffDis : 2000, isDual: true});
     
     var task = Ext.TaskManager.start({
     interval : 100,

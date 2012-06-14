@@ -47,28 +47,30 @@ Ext.define('AM.view.world.Object', {
   
   appendText : function(x, y){
     var me = this;
-    x = (Ext.isEmpty(x) ? (me.x) : x) + 10;
-    y =  Ext.isEmpty(y) ? me.y : y;
-    var txt = !Ext.isEmpty(me.text) ? me.iid + "-" + me.text : me.iid;
-    if (!Ext.isEmpty(me.drawComp)) {
-      if (Ext.isEmpty(me.t)) {
-        me.t = me.drawComp.surface.add({
-          type : 'text',
-          text : txt,
-          fill : 'black',
-          font : '14px "Lucida Grande", Helvetica, Arial, sans-serif;',
-          x : x,
-          y : y,
-          zIndex : 201 //one level up 
-        });
-      }else {
-        me.t.setAttributes({
-          text : txt,
-          x : x,
-          y : y
-        });
+    if(me.showText){
+      x = (Ext.isEmpty(x) ? (me.x) : x) + 10;
+      y =  Ext.isEmpty(y) ? me.y : y;
+      var txt = !Ext.isEmpty(me.text) ? me.iid + "-" + me.text : me.iid;
+      if (!Ext.isEmpty(me.drawComp)) {
+        if (Ext.isEmpty(me.t)) {
+          me.t = me.drawComp.surface.add({
+            type : 'text',
+            text : txt,
+            fill : 'black',
+            font : '14px "Lucida Grande", Helvetica, Arial, sans-serif;',
+            x : x,
+            y : y,
+            zIndex : 201 //one level up 
+          });
+        }else {
+          me.t.setAttributes({
+            text : txt,
+            x : x,
+            y : y
+          });
+        }
+        me.t.redraw();
       }
-      me.t.redraw();
     }
   },
   
@@ -96,9 +98,6 @@ Ext.define('AM.view.world.Object', {
         });
       }
       me.s.redraw();
-      if(me.showText){
-        me.appendText();
-      }
     }
   },
 
@@ -174,10 +173,14 @@ Ext.define('AM.view.world.Object', {
   },
 
   destroy : function(){
-    this.s.destroy();
-    this.s = null;
-    this.t.destroy();
-    this.t = null;
+    if(this.s){
+      this.s.destroy();
+      this.s = null;
+    }
+    if(this.t){
+      this.t.destroy();
+      this.t = null;
+    }
     this.callParent(arguments);
   },
   
@@ -238,7 +241,7 @@ Ext.define('AM.view.world.World', {
     this.addEvents('modeChanged', 'addClick');
     me.iidor = new Iid();
     me.world = World.create({x : 0, y : 0, resistance : 0.3, 
-      gForce : Utils.cls.create(World.Force, {value : 20, direction : OP.add(10, 0)})
+      gForce : Utils.cls.create(World.Force, {value : 3, direction : OP.add(10, 0)})
       });
     me.world.on('onAdd', me.addPoint, this);
     me.items = [{
@@ -291,37 +294,37 @@ Ext.define('AM.view.world.World', {
       right : OP.add(150, 60, 0),
       left : OP.add(250, 160, 0),
       isApplyGForce : true,
-      unitForce : 1, elasticity : 0.8, effDis : 2000
+      unitForce : 1, elasticity : 0.8, maxEffDis : 2000
     });
     this.world.add({
       type : 'circle',
       x : 400, 
       y : 300,
       z : 0,
-      edges : 8,
+      edges : 10,
       radius : 100,
-      unitForce : 1, elasticity : 0.8, effDis : 2000
+      unitForce : 1, elasticity : 0.8, maxEffDis : 2000
     });
     this.world.add({
       type : 'circle',
       x : 800, 
       y : 200,
       z : 0,
-      edges : 8,
+      edges : 250,
+      radius : 300,
+      isApplyGForce : false,
+      unitForce : 1, elasticity : 0.6, maxEffDis : 2000
+    });
+    this.world.add({
+      type : 'circle',
+      x : 800, 
+      y : 200,
+      z : 0,
+      edges : 10,
       radius : 100,
       isApplyGForce : false,
-      unitForce : 1, elasticity : 0.6, effDis : 2000
+      unitForce : 1, elasticity : 0.6, maxEffDis : 2000
     });
-//    this.world.add({
-//      type : 'circle',
-//      x : 800, 
-//      y : 200,
-//      z : 0,
-//      edges : 10,
-//      radius : 100,
-//      isApplyGForce : false,
-//      unitForce : 1, elasticity : 0.6, effDis : 2000
-//    });
   },
   
   start : function(){
