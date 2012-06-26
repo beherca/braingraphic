@@ -54,12 +54,24 @@ World.World = Utils.cls.extend(Observable, {
                 continue;
               }
             }
+            //because testP and currentP may have different implementation on isCrashed, so we need both
             if(currentP.isCrashed(testP)){
               /*
                *create surface link, which is a part of crash, this link both push
                *points away and attach each other
                */
-              me.surfaceLink(currentP, testP);
+              if(isEmpty(currentP.crashHandler)){
+                me.surfaceLink(currentP, testP);
+              }else{
+                currentP.crashHandler.call(currentP, testP);
+              }
+            }
+            if(testP.isCrashed(currentP)){
+              if(isEmpty(testP.crashHandler)){
+                me.surfaceLink(currentP, testP);
+              }else{
+                testP.crashHandler.call(testP, currentP);
+              }
             }
           }
         }
@@ -542,7 +554,21 @@ World.Line = Utils.cls.extend(World.Point, {
     var angle = Utils.getAngle(this.start, this.end);
 //    console.log(angle * 180 / Math.PI);
     var y = Math.tan(angle) * point.x;
-    console.log(y);
+    console.log(point.x);
+    console.log(point.y);
+    if(Math.abs(point.y - y) < (this.crashRadius + point.crashRadius)){
+      console.log('crashed');
+      var pos = {vx : 0, vy : 0, vz : 0};
+      for(var key in pos){
+        point[key] = parseInt(point[key] > 0 ? -point[key] : point[key]);
+      }
+      point.move();
+      this.isCrashing = true;
+      this.fireEvent('onCrashed', point, this);
+    }else{
+      this.isCrashing = false;
+    }
+    return this.isCrashing;
   }, 
 
   init : function(config){
@@ -573,6 +599,10 @@ World.Line = Utils.cls.extend(World.Point, {
     this.z = (this.start.z  + this.end.z) / 2; 
     this.isMoving = true;
     this.fireEvent('onMove', this);
+  },
+  
+  crashHandler : function(point){
+//    point.destroy();
   },
   
   createPoint : function(point, name){
@@ -689,6 +719,12 @@ World.Link = Utils.cls.extend(Observable, {
         this.destroy();
       }
     }else{
+      for(var key in this.fn){
+        post['v' + key] = parseInt(post['v' + key] * this.world.resistance); 
+      }
+      for(var key in this.fn){
+        pre['v' + key] = parseInt(pre['v' + key] * this.world.resistance); 
+      }
       var postv = linkImpl.call(this, pre, post);
       var prev = null;
       if(this.isDual){
@@ -696,15 +732,9 @@ World.Link = Utils.cls.extend(Observable, {
       }
       Utils.apply(post, postv); 
       post.move();
-      for(var key in this.fn){
-        post['v' + key] = parseInt(post['v' + key] * this.world.resistance); 
-      }
       if(this.isDual){
         Utils.apply(pre, prev); 
         pre.move();
-        for(var key in this.fn){
-          pre['v' + key] = parseInt(pre['v' + key] * this.world.resistance); 
-        }
       }
     }
     if(this.repeat > 0 ){

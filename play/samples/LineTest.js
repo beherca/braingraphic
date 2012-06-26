@@ -43,7 +43,7 @@ Ext.define('AM.world.LineTest', {
       });
     };
 //    c(this, 500, 250);
-//    p(this,  200, 250, true, true);
+    p(this,  0, 120, true, true);
 //    p(this,  300, 250, true, true);
     function ln(me, start, end){
       me.world.add({
