@@ -49,8 +49,7 @@ World.World = Utils.cls.extend(Observable, {
           var testP = me.points[testKey];
           if(!isEmpty(testP) && testP != currentP && currentP.isCrashable && testP.isCrashable){
             //cancel crash test if isGroupCrash is false
-            if(currentP.group && testP.group 
-                && (currentP.isSameGroup(testP))){
+            if(currentP.isSameGroup(testP)){
               if (!currentP.isGroupCrash || !testP.isGroupCrash){
                 continue;
               }
@@ -540,11 +539,15 @@ World.Line = Utils.cls.extend(World.Point, {
   end :  null,
   
   isCrashed : function(point){
-    
+    var angle = Utils.getAngle(this.start, this.end);
+//    console.log(angle * 180 / Math.PI);
+    var y = Math.tan(angle) * point.x;
+    console.log(y);
   }, 
 
   init : function(config){
     this.callParent(config);
+    this.isGroupCrash = false;
     this.gen(config);
   },
   
@@ -556,7 +559,7 @@ World.Line = Utils.cls.extend(World.Point, {
     var dis = Utils.getDisXY(this.start, this.end);
     this.world.link({pre : this.start, post : this.end, 
       unitForce : config.unitForce, elasticity : config.elasticity, 
-      distance : dis, 
+      distance : dis,
       maxEffDis : config.maxEffDis, 
       minEffDis : 0,
       isDual: true});

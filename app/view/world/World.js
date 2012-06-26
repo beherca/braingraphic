@@ -322,7 +322,7 @@ Ext.define('AM.view.world.World', {
       iid : point.iid,
       point : point,
       text : point.text,
-      showText : false
+      showText : true
     });
     me.iidor.set(point.iid);
     point.on({
