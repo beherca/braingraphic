@@ -3,6 +3,6 @@ Ext.define('AM.view.Viewport', {
     layout: 'fit',
     items: [{
 //      xtype : 'world'
-      xtype : 'linktest'
+      xtype : 'linetest'
     }]
 });

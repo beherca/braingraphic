@@ -55,7 +55,7 @@ World.World = Utils.cls.extend(Observable, {
                 continue;
               }
             }
-            if(currentP.crash(testP)){
+            if(currentP.isCrashed(testP)){
               /*
                *create surface link, which is a part of crash, this link both push
                *points away and attach each other
@@ -125,6 +125,12 @@ World.World = Utils.cls.extend(Observable, {
       this.points[circle.iid] = circle;
       this.fireEvent('onAdd', {type : config.type, obj : circle});
       return circle;
+    }else if(config.type == 'line'){
+      var line = Utils.cls.create(World.Line, Utils.apply({world : this, iid : this.iidor.get()}, config));
+      line.on({'onDestroy' : {fn : me.remove, scope : me}});
+      this.points[line.iid] = line;
+      this.fireEvent('onAdd', {type : config.type, obj : line});
+      return line;
     }
   },
   
@@ -203,9 +209,17 @@ World.Point = Utils.cls.extend(Observable, {
   x : 0,
   y : 0,
   z : 0,
+  /**
+   * cache previous position values
+   */
+  oldX : 0,
+  oldY : 0,
+  oldZ : 0,
+  
   vx : 0,
   vy : 0,
   vz : 0,
+  
   config : null,
   
   world : null,
@@ -245,6 +259,8 @@ World.Point = Utils.cls.extend(Observable, {
    */
   isCrashing : false,
   
+  isPenetrated : false,
+  
   /**
    * for internal use, to check whether is in moving
    */
@@ -282,7 +298,13 @@ World.Point = Utils.cls.extend(Observable, {
     Utils.apply(this, config);
   },
   
-  crash : function(point){
+  /**
+   * Detect whehter there is a touch, if yes return true, 
+   * world will process the detail
+   * @parameter point the point to test crash
+   * @return point this
+   */
+  isCrashed : function(point){
     if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
       console.log('crashed');
       var pos = {vx : 0, vy : 0, vz : 0};
@@ -297,31 +319,49 @@ World.Point = Utils.cls.extend(Observable, {
         }
       }else if(this.isCrashable && point.isCrashable){
         for(var key in pos){
-          pos[key] = Math.abs(this[key] + point[key]);
+          pos[key] = Math.abs(this[key] + point[key])/2;
           this[key] = parseInt(this[key] > 0 ? -pos[key] : pos[key]);
           point[key] = parseInt(point[key] > 0 ? -pos[key] : pos[key]);
         }
       }
       this.isCrashing = true;
-      this.fireEvent('onCrash', point, this);
+      this.fireEvent('onCrashed', point, this);
     }else{
       this.isCrashing = false;
     }
     return this.isCrashing;
   },
   
+  //TODO 
+  isPenetrated : function(point){
+    // if the current point is penetrated by the target point.
+    if((this.x - point.x) * (this.x - point.oldX) < 0 &&
+        (this.y - point.y) * (this.y - point.oldY) < 0){
+      this.isPenetrated = true;
+    }else{
+      this.isPenetrated = false;
+    }
+    return this.isPenetrated;
+  },
+  
   move : function(){
 //    console.log('move to : x =' + this.x + '  y =' + this.y);
 //    console.log('speed  : vx =' + this.vx + '  vy =' + this.vy);
-    if(this.vx != 0 || this.vy !=0 || this.vz !=0){
-      this.x += this.vx;
-      this.y += this.vy;
-      this.z += this.vz;
-      this.isMoving = true;
-      this.fireEvent('onMove', this);
+    var me = this;
+    if(me.vx != 0 || me.vy !=0 || me.vz !=0){
+      Utils.apply(this, {oldX : me.x, oldY : me.y, oldZ : me.z});
+      Utils.apply(this, {
+        x : me.x + me.vx,
+        y : me.y + me.vy,
+        z : me.z + me.vz}
+      );
+      me.isMoving = true;
+      me.fireEvent('onMove', me);
     }else{
-      this.isMoving = false;
-      this.fireEvent('onStop', this);
+      if(me.isMoving){
+        me.isMoving = false;
+        me.fireEvent('onStop', me);
+      }
     }
   },
   
@@ -489,6 +529,62 @@ World.Circle = Utils.cls.extend(World.Point, {
       isDual: true});
   }
 
+});
+
+World.Line = Utils.cls.extend(World.Point, {
+  /**
+   * Start Point
+   */
+  start : null,
+  
+  end :  null,
+  
+  isCrashed : function(point){
+    
+  }, 
+
+  init : function(config){
+    this.callParent(config);
+    this.gen(config);
+  },
+  
+  gen : function(config){
+    this.start = this.createPoint(config.start, 'start');
+    this.start.on('onMove', this.updateCenterPt, this);
+    this.end = this.createPoint(config.end, 'end');
+    this.start.on('onMove', this.updateCenterPt, this);
+    var dis = Utils.getDisXY(this.start, this.end);
+    this.world.link({pre : this.start, post : this.end, 
+      unitForce : config.unitForce, elasticity : config.elasticity, 
+      distance : dis, 
+      maxEffDis : config.maxEffDis, 
+      minEffDis : 0,
+      isDual: true});
+    this.updateCenterPt();
+  },
+  
+  //once start or end point moved, we update the 
+  updateCenterPt : function(){
+    this.x = (this.start.x  + this.end.x) / 2;
+    this.y = (this.start.y  + this.end.y) / 2;
+    this.z = (this.start.z  + this.end.z) / 2; 
+    this.isMoving = true;
+    this.fireEvent('onMove', this);
+  },
+  
+  createPoint : function(point, name){
+    if(!(point instanceof World.Point)){
+      point = this.world.add({
+        type : 'point', 
+        text : name,
+        group : this,
+        isGroupCrash : false,
+        isApplyGForce : this.config.isApplyGForce,//oome in with config
+        x : point.x, y : point.y, z : point.z,
+      });
+    }
+    return point;
+  },
 });
 
 World.Force = Utils.cls.extend(Observable, {

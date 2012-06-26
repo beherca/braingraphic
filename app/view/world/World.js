@@ -243,7 +243,7 @@ Ext.define('AM.view.world.World', {
     var me = this;
     this.addEvents('modeChanged', 'addClick');
     me.iidor = new Iid();
-    me.world = World.create({x : 0, y : 0, resistance : 0.6, 
+    me.world = World.create({x : 0, y : 0, resistance : 0.1, 
       gForce : Utils.cls.create(World.Force, {value : 8, direction : OP.add(10, 0)})
       });
     me.world.on('onAdd', me.addPoint, this);

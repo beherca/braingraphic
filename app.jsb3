@@ -96,6 +96,10 @@
                     "name": "CircleTest.js"
                 },
                 {
+                    "path": "play/samples/",
+                    "name": "LineTest.js"
+                },
+                {
                     "path": "",
                     "name": "app.js"
                 }

@@ -99,9 +99,9 @@ var Observable = function(){
      * Usage 2 
      * this.obj.on('onClick', function(){}, scope[default obj])
      */
-    else if(!isEmpty(arguments) && arguments.length > 2){
+    else if(!isEmpty(arguments) && arguments.length > 1){
       var evtName = arguments[0];
-      var eventHandler = isEmpty(arguments[2]) ? arguments[1] : {fn : arguments[1], scope : arguments[2]};
+      var eventHandler = isEmpty(arguments[2]) ? {fn : arguments[1], scope : this} : {fn : arguments[1], scope : arguments[2]};
       this.addListener(evtName, eventHandler);
     }
   };
@@ -130,7 +130,7 @@ var Observable = function(){
       if(typeof(listener) == 'object'){
         listener.fn.call(listener.scope, obj, name);
       }else if(typeof(listener) == 'function'){
-        listener.call(listener.scope, obj, name);
+        listener.call(this, obj, name);
       }
     }
   };
