@@ -336,7 +336,7 @@ World.Point = Utils.cls.extend(Observable, {
    */
   isCrashed : function(point){
     if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
-      console.log('crashed');
+//      console.log('crashed');
       var pos = {vx : 0, vy : 0, vz : 0};
 
       if(!this.isCrashable && point.isCrashable){
@@ -600,7 +600,7 @@ World.Line = Utils.cls.extend(World.Point, {
       var np = Utils.rotate(point, angle, this.start);
 //      console.log('point ' + np.x + "-" + np.y);
       if(Math.abs(np.y) < (this.crashRadius + point.crashRadius)){
-        console.log('crashed');
+//        console.log('crashed');
         this.world.link({pre : this.start, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.start), 
@@ -842,13 +842,13 @@ World.Link = Utils.cls.extend(Observable, {
   destroy : function(){
     //console.log('destroy ' + this.type + this.iid);
     if(this.pre){
-      this.pre.rmIw(this);
+      this.pre.rmIw(this.post);
       if(this.pre.goneWithLink){
         this.pre.destroy();
       }
     }
     if(this.post){
-      this.post.rmIw(this);
+      this.post.rmIw(this.pre);
       if(this.post.goneWithLink){
         this.post.destroy();
       }
