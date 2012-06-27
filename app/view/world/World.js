@@ -239,12 +239,14 @@ Ext.define('AM.view.world.World', {
   
   offset : OP.add(0, 0),
   
+  showText : true,
+  
   initComponent : function() {
     var me = this;
     this.addEvents('modeChanged', 'addClick');
     me.iidor = new Iid();
     me.world = World.create({x : 0, y : 0, resistance : 0.1, 
-      gForce : Utils.cls.create(World.Force, {value : 8, direction : OP.add(10, 0)})
+      gForce : Utils.cls.create(World.Force, {value : 3, direction : OP.add(10, 0)})
       });
     me.world.on('onAdd', me.addPoint, this);
     me.items = [{
@@ -322,7 +324,7 @@ Ext.define('AM.view.world.World', {
       iid : point.iid,
       point : point,
       text : point.text,
-      showText : true
+      showText : this.showText
     });
     me.iidor.set(point.iid);
     point.on({

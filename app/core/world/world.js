@@ -47,7 +47,7 @@ World.World = Utils.cls.extend(Observable, {
         for(; pk < len; pk++){
           var testKey = keys[pk];
           var testP = me.points[testKey];
-          if(!isEmpty(testP) && testP != currentP && currentP.isCrashable && testP.isCrashable){
+          if(!isEmpty(testP) && testP != currentP){
             //cancel crash test if isGroupCrash is false
             if(currentP.isSameGroup(testP)){
               if (!currentP.isGroupCrash || !testP.isGroupCrash){
@@ -553,30 +553,46 @@ World.Line = Utils.cls.extend(World.Point, {
   isCrashed : function(point){
     if(point.x > (this.start.x > this.end.x ? this.end.x : this.start.x) 
         && point.x <= (this.start.x > this.end.x ? this.start.x : this.end.x) 
-        )
+        || this.start.x == this.end.x)
     {
       var angle = Utils.getAngle(this.start, this.end);
 //    console.log(angle * 180 / Math.PI);
       var np = Utils.rotate(point, angle, this.start);
-      console.log('point ' + np.x + "-" + np.y);
+//      console.log('point ' + np.x + "-" + np.y);
       if(Math.abs(np.y) < (this.crashRadius + point.crashRadius)){
         console.log('crashed');
-        var pos = {vx : 0, vy : 0, vz : 0};
-        for(var key in pos){
-          point[key] = parseInt(point[key] > 0 ? -point[key] : point[key]);
-        }
-        
+//        var pos = {x : 0, y : 0, z : 0};
+//        for(var key in pos){
+//          point['v'+key] = parseInt(point['old' + key.toUpperCase()] - point[key]);
+//        }
+//        point.move();
+        this.world.link({pre : this.start, post : point, 
+          unitForce : 1, elasticity : 0.9, 
+          distance : Utils.getDisXY(point, this.start), 
+          maxEffDis : 200, 
+          minEffDis : 0,
+          isDual: false,
+          repeat : 20});
+        this.world.link({pre : this.end, post : point, 
+          unitForce : 1, elasticity : 0.9, 
+          distance : Utils.getDisXY(point, this.end), 
+          maxEffDis : 200, 
+          minEffDis : 0,
+          isDual: false,
+          repeat : 20});
         this.isCrashing = true;
         this.fireEvent('onCrashed', point, this);
       }else{
         this.isCrashing = false;
       }
     }
+    
     return this.isCrashing;
   }, 
 
   init : function(config){
     this.callParent(config);
+    this.isCrashable = false;
     this.isGroupCrash = false;
     this.gen(config);
   },
@@ -616,6 +632,7 @@ World.Line = Utils.cls.extend(World.Point, {
         text : name,
         group : this,
         isGroupCrash : false,
+        isCrashable : false,
         isApplyGForce : this.config.isApplyGForce,//oome in with config
         x : point.x, y : point.y, z : point.z,
       });
