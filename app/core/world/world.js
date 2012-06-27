@@ -204,11 +204,11 @@ World.World = Utils.cls.extend(Observable, {
     // NOTES : about the repeat time and maxEffDis, they are experiment value, 
     // which help to stable the crash objects 
     var defaultSfc = { 
-        unitForce : 1, elasticity : 0.8, 
+        unitForce : 1, elasticity : 0.6, 
         //TODO don't know how far is good , 10?
         distance : pre.crashRadius + post.crashRadius, 
-        maxEffDis : 10/*see notes above*/, 
-        repeat : 10/*see notes above*/};
+        maxEffDis : 10/*see notes above*//*, 
+        repeat : 10*//*see notes above*/};
 
     var preSfc = isEmpty(pre.surfaceLinkConfig) ? defaultSfc : pre.surfaceLinkConfig;
     var postSfc = isEmpty(post.surfaceLinkConfig) ? defaultSfc : post.surfaceLinkConfig;
@@ -336,7 +336,7 @@ World.Point = Utils.cls.extend(Observable, {
    */
   isCrashed : function(point){
     if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
-//      console.log('crashed');
+      console.log('crashed');
       var pos = {vx : 0, vy : 0, vz : 0};
 
       if(!this.isCrashable && point.isCrashable){
@@ -401,8 +401,7 @@ World.Point = Utils.cls.extend(Observable, {
   
   crashHandler : function(point){
     if(isEmpty(this.getIw(point))){
-      var l = this.world.surfaceLink(this, point);
-      this.setIw(point, l);
+      this.world.surfaceLink(this, point);
     }
   },
   
@@ -604,13 +603,13 @@ World.Line = Utils.cls.extend(World.Point, {
         this.world.link({pre : this.start, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.start), 
-          maxEffDis : 200, 
+          maxEffDis : 500, 
           minEffDis : 0,
           isDual: false});
         this.world.link({pre : this.end, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.end), 
-          maxEffDis : 200, 
+          maxEffDis : 500, 
           minEffDis : 0,
           isDual: false});
         this.isCrashing = true;
@@ -768,7 +767,7 @@ World.Link = Utils.cls.extend(Observable, {
     }
     var linkType = this.type;
     var linkImpl = isFunction(this[linkType]) ? this[linkType] : {};
-    if(this.checkBrakeForce()){
+    if(this.checkBreakForce()){
       if(this.isBreakable){
         this.destroy();
       }
@@ -799,10 +798,10 @@ World.Link = Utils.cls.extend(Observable, {
     }
   },
   
-  checkBrakeForce : function(){
-    var realDisDiff = Math.abs(Utils.getDisXY(this.pre, this.post) - this.distance);
-    var min = !isEmpty(this.minEffDis) ? realDisDiff < this.minEffDis : false;
-    var max = !isEmpty(this.maxEffDis) ? realDisDiff > this.maxEffDis : false;
+  checkBreakForce : function(){
+    var realDisDiff = Utils.getDisXY(this.pre, this.post) - this.distance;
+    var min = !isEmpty(this.minEffDis) ? realDisDiff <= this.minEffDis : false;
+    var max = !isEmpty(this.maxEffDis) ? realDisDiff >= this.maxEffDis : false;
     
     return min|| max;
   },
