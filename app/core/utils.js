@@ -287,7 +287,7 @@ Utils = {
       x : -sideLength * 0.5,
       y : sideLength * cosLengh
     };
-    var origPoints = [ OP, OP.add(p1.x, p1.y), OP.add(p2.x, p2.y) ];
+    var origPoints = [ OP, OP.add(p1.x, p1.y), OP.add(p2.x, p2.y)];
     var points = [];
     Ext.each(origPoints, function(point) {
       points.push(me.rotate(point, angle, OP, startP));

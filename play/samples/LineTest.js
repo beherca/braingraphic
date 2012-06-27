@@ -8,7 +8,7 @@ Ext.define('AM.world.LineTest', {
 
   afterRender : function(){
     this.callParent(arguments);
-
+    this.world.resistance = 0.5;
     function p(me, x, y, isApplyGForce, isCrashable, weight){
       return me.world.add({
         type: 'point', 
@@ -54,6 +54,6 @@ Ext.define('AM.world.LineTest', {
         unitForce : 1, elasticity : 0.1, maxEffDis : 200
       });
     };
-    ln(this, OP.add(100, 100), OP.add(200, 200));
+    ln(this, OP.add(200, 0), OP.add(300, 300));
   }
 });

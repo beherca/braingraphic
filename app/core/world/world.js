@@ -551,22 +551,26 @@ World.Line = Utils.cls.extend(World.Point, {
   end :  null,
   
   isCrashed : function(point){
-    var angle = Utils.getAngle(this.start, this.end);
+    if(point.x > (this.start.x > this.end.x ? this.end.x : this.start.x) 
+        && point.x <= (this.start.x > this.end.x ? this.start.x : this.end.x) 
+        )
+    {
+      var angle = Utils.getAngle(this.start, this.end);
 //    console.log(angle * 180 / Math.PI);
-    var y = Math.tan(angle) * point.x;
-    console.log(point.x);
-    console.log(point.y);
-    if(Math.abs(point.y - y) < (this.crashRadius + point.crashRadius)){
-      console.log('crashed');
-      var pos = {vx : 0, vy : 0, vz : 0};
-      for(var key in pos){
-        point[key] = parseInt(point[key] > 0 ? -point[key] : point[key]);
+      var np = Utils.rotate(point, angle, this.start);
+      console.log('point ' + np.x + "-" + np.y);
+      if(Math.abs(np.y) < (this.crashRadius + point.crashRadius)){
+        console.log('crashed');
+        var pos = {vx : 0, vy : 0, vz : 0};
+        for(var key in pos){
+          point[key] = parseInt(point[key] > 0 ? -point[key] : point[key]);
+        }
+        
+        this.isCrashing = true;
+        this.fireEvent('onCrashed', point, this);
+      }else{
+        this.isCrashing = false;
       }
-      point.move();
-      this.isCrashing = true;
-      this.fireEvent('onCrashed', point, this);
-    }else{
-      this.isCrashing = false;
     }
     return this.isCrashing;
   }, 
