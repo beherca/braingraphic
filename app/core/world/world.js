@@ -61,14 +61,16 @@ World.World = Utils.cls.extend(Observable, {
                *points away and attach each other
                */
               if(isEmpty(currentP.crashHandler)){
-                me.surfaceLink(currentP, testP);
+                var l = me.surfaceLink(currentP, testP);
+                currentP.setIw(testP, l);
               }else{
                 currentP.crashHandler.call(currentP, testP);
               }
             }
             if(testP.isCrashed(currentP)){
               if(isEmpty(testP.crashHandler)){
-                me.surfaceLink(currentP, testP);
+                var l = me.surfaceLink(currentP, testP);
+                testP.setIw(currentP, l);
               }else{
                 testP.crashHandler.call(testP, currentP);
               }
@@ -171,10 +173,19 @@ World.World = Utils.cls.extend(Observable, {
   },
   
   link :  function(config){
-    var link = Utils.cls.create(World.Link, Utils.apply({world : this, iid : this.iidor.get()}, config));
-    link.on({'onDestroy' : {fn : this.remove, scope :this}});
-    this.links[link.iid] = link;
-    this.fireEvent('onAdd', {type : 'link', obj : link});
+    var pre = config.pre;
+    var post = config.post;
+    var link = null;
+    if(isEmpty(pre.getIw(post)) && isEmpty(post.getIw(pre))){
+      link = Utils.cls.create(World.Link, Utils.apply({world : this, iid : this.iidor.get()}, config));
+      pre.setIw(post, link);
+      post.setIw(pre, link);
+      link.on({'onDestroy' : {fn : this.remove, scope :this}});
+      this.links[link.iid] = link;
+      this.fireEvent('onAdd', {type : 'link', obj : link});
+    }else{
+      link = pre.getIw(post);
+    }
     return link;
   },
   
@@ -206,11 +217,11 @@ World.World = Utils.cls.extend(Observable, {
       mergeLink[key] = (preSfc[key] + postSfc[key])/2;
     }
     if(!pre.isCrashable && post.isCrashable){
-      this.link(Utils.apply(mergeLink, {pre : pre, post : post, isDual: false}));
+      return this.link(Utils.apply(mergeLink, {pre : pre, post : post, isDual: false}));
     }else if(pre.isCrashable && !post.isCrashable){
-      this.link(Utils.apply(mergeLink, {pre : post, post : pre, isDual: false}));
+      return this.link(Utils.apply(mergeLink, {pre : post, post : pre, isDual: false}));
     }else if(pre.isCrashable && post.isCrashable){
-      this.link(Utils.apply(mergeLink, {pre : post, post : pre, isDual: true}));
+      return this.link(Utils.apply(mergeLink, {pre : post, post : pre, isDual: true}));
     }
     
   }
@@ -304,6 +315,14 @@ World.Point = Utils.cls.extend(Observable, {
    */
   isApplyGForce : true,
   
+  /**
+   * record the object that currently interact with and the corresponding link.
+   * this is to avoid adding duplicate link with the same object.
+   * key : the iid
+   * value : the link
+   */
+  interactWith : {},
+  
   init : function(config){
     this.config = config;
     Utils.apply(this, config);
@@ -378,6 +397,27 @@ World.Point = Utils.cls.extend(Observable, {
   
   link2 : function(post, config){
     return this.world.link(Utils.apply({pre : this, post : post}, config));
+  },
+  
+  crashHandler : function(point){
+    if(isEmpty(this.getIw(point))){
+      var l = this.world.surfaceLink(this, point);
+      this.setIw(point, l);
+    }
+  },
+  
+  setIw : function(point, link){
+    this.interactWith[point.iid] = link;
+  },
+  
+  getIw : function(point){
+    return this.interactWith[point.iid];
+  },
+  
+  rmIw : function(point){
+    if(!isEmpty(this.getIw(point))){
+      delete this.interactWith[point.iid];
+    }
   },
   
   /**
@@ -561,25 +601,18 @@ World.Line = Utils.cls.extend(World.Point, {
 //      console.log('point ' + np.x + "-" + np.y);
       if(Math.abs(np.y) < (this.crashRadius + point.crashRadius)){
         console.log('crashed');
-//        var pos = {x : 0, y : 0, z : 0};
-//        for(var key in pos){
-//          point['v'+key] = parseInt(point['old' + key.toUpperCase()] - point[key]);
-//        }
-//        point.move();
         this.world.link({pre : this.start, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.start), 
           maxEffDis : 200, 
           minEffDis : 0,
-          isDual: false,
-          repeat : 20});
+          isDual: false});
         this.world.link({pre : this.end, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.end), 
           maxEffDis : 200, 
           minEffDis : 0,
-          isDual: false,
-          repeat : 20});
+          isDual: false});
         this.isCrashing = true;
         this.fireEvent('onCrashed', point, this);
       }else{
@@ -808,11 +841,17 @@ World.Link = Utils.cls.extend(Observable, {
   
   destroy : function(){
     //console.log('destroy ' + this.type + this.iid);
-    if(this.pre && this.pre.goneWithLink){
-      this.pre.destroy();
+    if(this.pre){
+      this.pre.rmIw(this);
+      if(this.pre.goneWithLink){
+        this.pre.destroy();
+      }
     }
-    if(this.post && this.post.goneWithLink){
-      this.post.destroy();
+    if(this.post){
+      this.post.rmIw(this);
+      if(this.post.goneWithLink){
+        this.post.destroy();
+      }
     }
     this.fireEvent('onDestroy', this);
   }

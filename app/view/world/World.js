@@ -235,7 +235,7 @@ Ext.define('AM.view.world.World', {
   
   worldTick : null,
   
-  interval : 100,
+  interval : 10,
   
   offset : OP.add(0, 0),
   

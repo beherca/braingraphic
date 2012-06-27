@@ -5,6 +5,7 @@ Ext.define('AM.world.LineTest', {
   extend : 'AM.view.world.World',
   alias : 'widget.linetest',
   title : 'Line Test',
+  interval : 10,
   
   afterRender : function(){
     this.showText = false;
