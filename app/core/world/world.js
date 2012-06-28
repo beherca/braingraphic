@@ -597,10 +597,11 @@ World.Line = Utils.cls.extend(World.Point, {
   end :  null,
   
   /**
+   * Line is bind to link, if link destroy, line should be destroy too
    * Whehter to build new link between start and end
    * usually in the polygen, this is set to false, because there are links between points in polygon
    */
-  buildLink : true,
+  internalLink : null,
   
   init : function(config){
     this.callParent(config);
@@ -647,13 +648,14 @@ World.Line = Utils.cls.extend(World.Point, {
     this.end = this.createPoint(config.end, 'end');
     this.start.on('onMove', this.updateCenterPt, this);
     var dis = Utils.getDisXY(this.start, this.end);
-    if(this.buildLink){
-      this.world.link({pre : this.start, post : this.end, 
+    if(isEmpty(this.internalLink)){
+      this.internalLink = this.world.link({pre : this.start, post : this.end, 
         unitForce : config.unitForce, elasticity : config.elasticity, 
         distance : dis,
         maxEffDis : config.maxEffDis, 
         isDual: true});
     }
+    this.internalLink.on('onDestroy', this.destroy, this);
     this.updateCenterPt();
   },
   
@@ -720,7 +722,7 @@ World.Polygon = Utils.cls.extend(World.Point, {
       currentP = this.points[keys[ikeyArray]];
       if(preP){
         dis = Utils.getDisXY(preP, currentP);
-        this.world.link({
+        var link = this.world.link({
           pre : currentP, post : preP, 
           unitForce : this.config.unitForce, 
           elasticity : this.config.elasticity, 
@@ -730,7 +732,7 @@ World.Polygon = Utils.cls.extend(World.Point, {
         //create boundary
         this.world.add({
           type : 'line',
-          buildLink : 'false',
+          internalLink : link,
           start : preP,
           end : currentP,
           isApplyGForce : false,
