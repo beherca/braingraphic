@@ -13,6 +13,7 @@ Ext.define('AM.world.PolygonTest', {
     this.callParent(arguments);
     this.world.resistance = 0.2;
     this.world.gForce.value = 8;
+    this.world.gForce.direction = OP.add(0, 10);
     
     function pg(me, pointArray, isApplyGForce, isCrashable){
       return me.world.add({
@@ -32,6 +33,10 @@ Ext.define('AM.world.PolygonTest', {
     }
     pg(this, [OP.add(250, 100), OP.add(300, 100), 
               OP.add(250, 250)/*, OP.add(140, 250),
+              OP.add(130, 200), OP.add(100, 160)*/
+              ], true, true);
+    pg(this, [OP.add(50, 50), OP.add(100, 50), 
+              OP.add(100, 100), OP.add(50, 100)/*, OP.add(140, 250),
               OP.add(130, 200), OP.add(100, 160)*/
               ], true, true);
     
@@ -92,11 +97,13 @@ Ext.define('AM.world.PolygonTest', {
         start : start,
         end : end,
         isApplyGForce : false,
-        unitForce : 1, elasticity : 0.1, maxEffDis : 200
+        unitForce : 1, elasticity : 0.1, maxEffDis : 2
       });
     };
 //    ln(this, OP.add(0, 0), OP.add(600, 0));
-    ln(this, OP.add(600, 0), OP.add(600, 400));
+    ln(this, OP.add(0, -500), OP.add(0, 1000));
+    ln(this, OP.add(-600, 500), OP.add(1600, 500));
+    ln(this, OP.add(-600, 550), OP.add(1600, 550));
 //    ln(this, OP.add(700, 0), OP.add(700, 400));
 //    ln(this, OP.add(800, 0), OP.add(800, 400));
 //    ln(this, OP.add(600, 400), OP.add(0, 400));

@@ -409,20 +409,35 @@ World.Point = Utils.cls.extend(Observable, {
     return this.world.link(Utils.apply({pre : this, post : post}, config));
   },
   
+  /**
+   * This is a customized crash handler
+   */
   crashHandler : function(point){
     if(isEmpty(this.getIw(point))){
       this.world.surfaceLink(this, point);
     }
   },
   
+  /**
+   * IW is short for get Interact With
+   * set the link between this and the object that currently interact with
+   */
   setIw : function(point, link){
     this.interactWith[point.iid] = link;
   },
   
+  /**
+   * IW is short for get Interact With
+   * get the link between this and the object that currently interact with
+   */
   getIw : function(point){
     return this.interactWith[point.iid];
   },
   
+  /**
+   * IW is short for get Interact With
+   * get the link between this and the object that currently interact with
+   */
   rmIw : function(point){
     if(!isEmpty(this.getIw(point))){
       delete this.interactWith[point.iid];
@@ -625,12 +640,12 @@ World.Line = Utils.cls.extend(World.Point, {
         this.world.link({pre : this.start, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.start), 
-          maxEffDis : 500, 
+          maxEffDis : 30, 
           isDual: false});
         this.world.link({pre : this.end, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.end), 
-          maxEffDis : 500, 
+          maxEffDis : 30, 
           isDual: false});
         this.isCrashing = true;
         this.fireEvent('onCrashed', point, this);
@@ -647,7 +662,14 @@ World.Line = Utils.cls.extend(World.Point, {
     this.start.on('onMove', this.updateCenterPt, this);
     this.end = this.createPoint(config.end, 'end');
     this.start.on('onMove', this.updateCenterPt, this);
+    this.setLink();
+    this.updateCenterPt();
+  },
+  
+  setLink : function(){
     var dis = Utils.getDisXY(this.start, this.end);
+    var config = this.config;
+    this.internalLink = this.getLink();
     if(isEmpty(this.internalLink)){
       this.internalLink = this.world.link({pre : this.start, post : this.end, 
         unitForce : config.unitForce, elasticity : config.elasticity, 
@@ -656,7 +678,17 @@ World.Line = Utils.cls.extend(World.Point, {
         isDual: true});
     }
     this.internalLink.on('onDestroy', this.destroy, this);
-    this.updateCenterPt();
+    return this.internalLink;
+  },
+  
+  /**
+   * check whether this.internalLink has assigned value by config
+   * and check whether start has link to end
+   */
+  getLink : function(){
+    var link = this.internalLink 
+      ||this.start.getIw(this.end) || this.end.getIw(this.start);
+    return link;
   },
   
   //once start or end point moved, we update the 
@@ -709,7 +741,27 @@ World.Polygon = Utils.cls.extend(World.Point, {
     if(!isEmpty(this.pointArray) && isArray(this.pointArray) && this.pointArray.length > 0){
       this.createPoints();
       this.createLinks();
+      this.createBoundary();
     }
+  },
+  
+  createBoundary : function(){
+    var keys = Object.keys(this.points);
+    var len = keys.length;
+    var preP = null;
+    var currentP = null;
+    var headP = null;
+    for(var ikeyArray = 0; ikeyArray < len; ikeyArray++){
+      currentP = this.points[keys[ikeyArray]];
+      if(preP){
+        //IMPORTANT : create boundary
+        this.line(preP, currentP);
+      }else{
+        headP = currentP;
+      }
+      preP = currentP;
+    }
+    this.line(preP, headP);
   },
   
   createLinks : function(){
@@ -717,43 +769,43 @@ World.Polygon = Utils.cls.extend(World.Point, {
     var len = keys.length;
     var preP = null;
     var currentP = null;
-    var dis = 0;
     for(var ikeyArray = 0; ikeyArray < len; ikeyArray++){
       currentP = this.points[keys[ikeyArray]];
       if(preP){
-        dis = Utils.getDisXY(preP, currentP);
-        var link = this.world.link({
-          pre : currentP, post : preP, 
-          unitForce : this.config.unitForce, 
-          elasticity : this.config.elasticity, 
-          distance : dis,
-          maxEffDis : this.config.maxEffDis, 
-          isDual: true});
-        //create boundary
-        this.world.add({
-          type : 'line',
-          internalLink : link,
-          start : preP,
-          end : currentP,
-          isApplyGForce : false,
-          unitForce : 1, elasticity : 0.1, maxEffDis : 200
-        });
+        this.link(preP, currentP);
         //trace back to the previouse points and link them
         var backLen = ikeyArray - this.dimension + 1;
         for(var isubKeyArray = 0; isubKeyArray < backLen; isubKeyArray++){
           var backTracP = this.points[keys[isubKeyArray]];
-          dis = Utils.getDisXY(currentP, backTracP);
-          this.world.link({
-            pre : currentP, post : backTracP, 
-            unitForce : this.config.unitForce, 
-            elasticity : this.config.elasticity, 
-            distance : dis,
-            maxEffDis : this.config.maxEffDis, 
-            isDual: true});
+          this.link(currentP, backTracP);
         }
       }
       preP = currentP;
     }
+  },
+  
+  /**
+   * this create boundary by creating World.Line between two points
+   */
+  line :function(currentP, preP){
+    this.world.add({
+      type : 'line',
+      start : preP,
+      end : currentP,
+      isApplyGForce : false,
+      unitForce : 1, elasticity : 0.1, maxEffDis : 1
+    });
+  },
+  
+  link : function(currentP, backTracP){
+    var dis = Utils.getDisXY(currentP, backTracP);
+    return this.world.link({
+      pre : currentP, post : backTracP, 
+      unitForce : this.config.unitForce, 
+      elasticity : this.config.elasticity, 
+      distance : dis,
+      maxEffDis : this.config.maxEffDis, 
+      isDual: true});
   },
   
   createPoints : function(){
