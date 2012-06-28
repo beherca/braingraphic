@@ -16,7 +16,7 @@ Ext.define('AM.controller.World', {
     console.log('World Controller Start OK');
     this.control({
       'world' : {
-        add : this.add,
+        pointAdd : this.add,
         update : this.update,
         remove : this.listMap
       }

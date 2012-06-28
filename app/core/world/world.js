@@ -144,6 +144,12 @@ World.World = Utils.cls.extend(Observable, {
       this.points[line.iid] = line;
       this.fireEvent('onAdd', {type : config.type, obj : line});
       return line;
+    }else if(config.type == 'polygon'){
+      var polygon = Utils.cls.create(World.Polygon, Utils.apply({world : this, iid : this.iidor.get()}, config));
+      polygon.on({'onDestroy' : {fn : me.remove, scope : me}});
+      this.points[polygon.iid] = polygon;
+      this.fireEvent('onAdd', {type : config.type, obj : polygon});
+      return polygon;
     }
   },
   
@@ -176,7 +182,9 @@ World.World = Utils.cls.extend(Observable, {
     var pre = config.pre;
     var post = config.post;
     var link = null;
-    if(isEmpty(pre.getIw(post)) && isEmpty(post.getIw(pre))){
+    if(pre && post && pre != post 
+        && isEmpty(pre.getIw(post)) 
+        && isEmpty(post.getIw(pre))){
       link = Utils.cls.create(World.Link, Utils.apply({world : this, iid : this.iidor.get()}, config));
       pre.setIw(post, link);
       post.setIw(pre, link);
@@ -265,6 +273,8 @@ World.Point = Utils.cls.extend(Observable, {
   
   weight : 1,
   
+  visible : true,
+  
   /**
    * Whether isCrashable with other points in the same group
    */
@@ -336,7 +346,7 @@ World.Point = Utils.cls.extend(Observable, {
    */
   isCrashed : function(point){
     if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
-      console.log('crashed');
+//      console.log('crashed');
       var pos = {vx : 0, vy : 0, vz : 0};
 
       if(!this.isCrashable && point.isCrashable){
@@ -558,7 +568,6 @@ World.Circle = Utils.cls.extend(World.Point, {
         unitForce : config.unitForce, elasticity : config.elasticity, 
         distance : radius, 
         maxEffDis : config.maxEffDis, 
-        minEffDis : 0,
         isDual: !this.isAnchor});
       if(prePoint){
         dis2Pre = !isEmpty(dis2Pre) ? dis2Pre : Utils.getDisXY(prePoint, point);
@@ -566,7 +575,6 @@ World.Circle = Utils.cls.extend(World.Point, {
           unitForce : config.unitForce, elasticity : config.elasticity, 
           distance : dis2Pre, 
           maxEffDis : config.maxEffDis, 
-          minEffDis : 0,
           isDual: true});
       }
       prePoint = point;
@@ -575,7 +583,6 @@ World.Circle = Utils.cls.extend(World.Point, {
       unitForce : config.unitForce, elasticity : config.elasticity, 
       distance : dis2Pre, 
       maxEffDis : config.maxEffDis, 
-      minEffDis : 0,
       isDual: true});
   }
 
@@ -588,6 +595,20 @@ World.Line = Utils.cls.extend(World.Point, {
   start : null,
   
   end :  null,
+  
+  /**
+   * Whehter to build new link between start and end
+   * usually in the polygen, this is set to false, because there are links between points in polygon
+   */
+  buildLink : true,
+  
+  init : function(config){
+    this.callParent(config);
+    this.isCrashable = false;
+    this.isGroupCrash = false;
+    this.visible = false;
+    this.gen(config);
+  },
   
   isCrashed : function(point){
     if(point.x > (this.start.x > this.end.x ? this.end.x : this.start.x) 
@@ -604,13 +625,11 @@ World.Line = Utils.cls.extend(World.Point, {
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.start), 
           maxEffDis : 500, 
-          minEffDis : 0,
           isDual: false});
         this.world.link({pre : this.end, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.end), 
           maxEffDis : 500, 
-          minEffDis : 0,
           isDual: false});
         this.isCrashing = true;
         this.fireEvent('onCrashed', point, this);
@@ -622,25 +641,19 @@ World.Line = Utils.cls.extend(World.Point, {
     return this.isCrashing;
   }, 
 
-  init : function(config){
-    this.callParent(config);
-    this.isCrashable = false;
-    this.isGroupCrash = false;
-    this.gen(config);
-  },
-  
   gen : function(config){
     this.start = this.createPoint(config.start, 'start');
     this.start.on('onMove', this.updateCenterPt, this);
     this.end = this.createPoint(config.end, 'end');
     this.start.on('onMove', this.updateCenterPt, this);
     var dis = Utils.getDisXY(this.start, this.end);
-    this.world.link({pre : this.start, post : this.end, 
-      unitForce : config.unitForce, elasticity : config.elasticity, 
-      distance : dis,
-      maxEffDis : config.maxEffDis, 
-      minEffDis : 0,
-      isDual: true});
+    if(this.buildLink){
+      this.world.link({pre : this.start, post : this.end, 
+        unitForce : config.unitForce, elasticity : config.elasticity, 
+        distance : dis,
+        maxEffDis : config.maxEffDis, 
+        isDual: true});
+    }
     this.updateCenterPt();
   },
   
@@ -670,7 +683,99 @@ World.Line = Utils.cls.extend(World.Point, {
       });
     }
     return point;
+  }
+});
+
+World.Polygon = Utils.cls.extend(World.Point, {
+  /**
+   * keep location information of points
+   */
+  pointArray : null,
+  
+  /**
+   * set 2 for 2d, set 3 for 3d
+   */
+  dimension : 2,
+  
+  init : function(config){
+    this.callParent(config);
+    this.visible = false;
+    this.gen(config);
   },
+  
+  gen : function(config){
+    if(!isEmpty(this.pointArray) && isArray(this.pointArray) && this.pointArray.length > 0){
+      this.createPoints();
+      this.createLinks();
+    }
+  },
+  
+  createLinks : function(){
+    var keys = Object.keys(this.points);
+    var len = keys.length;
+    var preP = null;
+    var currentP = null;
+    var dis = 0;
+    for(var ikeyArray = 0; ikeyArray < len; ikeyArray++){
+      currentP = this.points[keys[ikeyArray]];
+      if(preP){
+        dis = Utils.getDisXY(preP, currentP);
+        this.world.link({
+          pre : currentP, post : preP, 
+          unitForce : this.config.unitForce, 
+          elasticity : this.config.elasticity, 
+          distance : dis,
+          maxEffDis : this.config.maxEffDis, 
+          isDual: true});
+        //create boundary
+        this.world.add({
+          type : 'line',
+          buildLink : 'false',
+          start : preP,
+          end : currentP,
+          isApplyGForce : false,
+          unitForce : 1, elasticity : 0.1, maxEffDis : 200
+        });
+        //trace back to the previouse points and link them
+        var backLen = ikeyArray - this.dimension + 1;
+        for(var isubKeyArray = 0; isubKeyArray < backLen; isubKeyArray++){
+          var backTracP = this.points[keys[isubKeyArray]];
+          dis = Utils.getDisXY(currentP, backTracP);
+          this.world.link({
+            pre : currentP, post : backTracP, 
+            unitForce : this.config.unitForce, 
+            elasticity : this.config.elasticity, 
+            distance : dis,
+            maxEffDis : this.config.maxEffDis, 
+            isDual: true});
+        }
+      }
+      preP = currentP;
+    }
+  },
+  
+  createPoints : function(){
+    var len = this.pointArray.length;
+    for(var i = 0; i < len; i++){
+      var currentP = this.createPoint(this.pointArray[i]);
+      this.points[currentP.iid] = currentP;
+    }
+  },
+  
+  createPoint : function(point, name){
+    if(!(point instanceof World.Point)){
+      point = this.world.add({
+        type : 'point', 
+        text : name,
+        group : this,
+        isGroupCrash : false,
+        isCrashable : this.isCrashable,
+        isApplyGForce : this.isApplyGForce,//oome in with config
+        x : point.x, y : point.y, z : point.z,
+      });
+    }
+    return point;
+  }
 });
 
 World.Force = Utils.cls.extend(Observable, {
@@ -730,13 +835,14 @@ World.Link = Utils.cls.extend(Observable, {
   
   /**
    * link will be broken when : realDistance - this.distance < minEffDis
+   * minus number means that the link can be shrink to as far as 100 from point defined by this.distance
    */
-  minEffDis : null, 
+  minEffDis : -100, 
   
   /**
    * link will be broken when : realDistance - this.distance > maxEffDis
    */
-  maxEffDis : null,
+  maxEffDis : 100,
 
   isBreakable : true,
   isDual : true,
@@ -800,8 +906,8 @@ World.Link = Utils.cls.extend(Observable, {
   
   checkBreakForce : function(){
     var realDisDiff = Utils.getDisXY(this.pre, this.post) - this.distance;
-    var min = !isEmpty(this.minEffDis) ? realDisDiff <= this.minEffDis : false;
-    var max = !isEmpty(this.maxEffDis) ? realDisDiff >= this.maxEffDis : false;
+    var min = !isEmpty(this.minEffDis) ? realDisDiff < this.minEffDis : false;
+    var max = !isEmpty(this.maxEffDis) ? realDisDiff > this.maxEffDis : false;
     
     return min|| max;
   },

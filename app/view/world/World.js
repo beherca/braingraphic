@@ -313,7 +313,9 @@ Ext.define('AM.view.world.World', {
   },
 
   addPoint : function(obj, eventName) {
-    if(isEmpty(obj) || isEmpty(obj.obj) || !(obj.obj instanceof World.Point)) return;
+    if(isEmpty(obj) || isEmpty(obj.obj) 
+        || !(obj.obj instanceof World.Point) 
+        || !obj.obj.visible) return;
     var point = obj.obj;
     var me = this, drawComp = me.down('draw');
     var bno = Ext.create('AM.view.world.Point', {

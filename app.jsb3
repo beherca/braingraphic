@@ -93,6 +93,10 @@
                 },
                 {
                     "path": "play/samples/",
+                    "name": "PolygonTest.js" 
+                },
+                {
+                    "path": "play/samples/",
                     "name": "CircleTest.js"
                 },
                 {
