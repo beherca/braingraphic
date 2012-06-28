@@ -247,8 +247,7 @@ Ext.define('AM.view.world.Line', {
           stroke : 'blue',
           path : sPath,
           x : me.x,
-          y : me.y,
-          zIndex : 100
+          y : me.y
         });
         me.registerListeners();
       } else {
