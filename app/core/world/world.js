@@ -17,6 +17,8 @@ World.World = Utils.cls.extend(Observable, {
   links : {},
   points : {},
   
+  indexer : null,
+  
   //TODO
   boundary : null,
   /**
@@ -34,22 +36,28 @@ World.World = Utils.cls.extend(Observable, {
   
   init : function(config){
     Utils.apply(this, config);
+    this.indexer = new Indexer(); 
   },
   
   detectCrash : function(currentP){
     var me = this;
     var keys = Object.keys(this.points);
     var len = keys.length;
-    //private utils
-    var detectFn = function(currentP, start){
-      var pk = start;
+    var pi = 0;//point index
+    for(; pi < len; pi++){
+      /*start point as pi, will not test the 
+       * object with id ahead of pi
+       */
+      var pk = pi + 1;
+      var key = keys[pi];
+      var currentP = this.points[key];
       if(!isEmpty(currentP)){
         for(; pk < len; pk++){
           var testKey = keys[pk];
           var testP = me.points[testKey];
           if(!isEmpty(testP) && testP != currentP){
             //cancel crash test if isGroupCrash is false
-            if(currentP.isSameGroup(testP)){
+            if(!currentP.isAnchor&& !testP.isAnchor && currentP.group && testP.group && currentP.isSameGroup(testP)){
               if (!currentP.isGroupCrash || !testP.isGroupCrash){
                 continue;
               }
@@ -77,21 +85,6 @@ World.World = Utils.cls.extend(Observable, {
             }
           }
         }
-      }
-    };
-    if(!isEmpty(currentP)){
-      //TODO lazy crash detect don't know why, this is just not working
-      detectFn(currentP, 0);
-    }else{
-      var pi = 0;//point index
-      for(; pi < len; pi++){
-        /*start point as pi, will not test the 
-         * object with id ahead of pi
-         */
-        var pk = pi + 1;
-        var key = keys[pi];
-        var currentP = this.points[key];
-        detectFn(currentP, pk);
       }
     }
   },
@@ -167,7 +160,7 @@ World.World = Utils.cls.extend(Observable, {
   },
   
   tick : function(){
-    this.detectCrash();
+//    this.detectCrash();
     this.run(this.links);
   },
   
@@ -242,9 +235,9 @@ World.Point = Utils.cls.extend(Observable, {
   /**
    * cache previous position values
    */
-  oldX : 0,
-  oldY : 0,
-  oldZ : 0,
+  oldx : 0,
+  oldy : 0,
+  oldz : 0,
   
   vx : 0,
   vy : 0,
@@ -336,6 +329,7 @@ World.Point = Utils.cls.extend(Observable, {
   init : function(config){
     this.config = config;
     Utils.apply(this, config);
+    this.world.indexer.add(this);
   },
   
   /**
@@ -388,19 +382,43 @@ World.Point = Utils.cls.extend(Observable, {
 //    console.log('move to : x =' + this.x + '  y =' + this.y);
 //    console.log('speed  : vx =' + this.vx + '  vy =' + this.vy);
     var me = this;
-    if(me.vx != 0 || me.vy !=0 || me.vz !=0){
-      Utils.apply(this, {oldX : me.x, oldY : me.y, oldZ : me.z});
-      Utils.apply(this, {
-        x : me.x + me.vx,
-        y : me.y + me.vy,
-        z : me.z + me.vz}
-      );
-      me.isMoving = true;
-      me.fireEvent('onMove', me);
-    }else{
-      if(me.isMoving){
-        me.isMoving = false;
-        me.fireEvent('onStop', me);
+    var ds = {x : 'x', y : 'y', z : 'z'};
+    for(var d in ds){
+      if(me['v' + d] != 0){
+        var len = Math.abs(me['v' + d]);
+        var i = 0;
+        var dir = me['v' + d] > 0 ? 1 : -1;
+        var pos = 0;
+        var testP = null;
+        var isCrashed = false;
+        while(i*dir < len){
+          i += dir;
+          pos = OP.add(parseInt(me.x), parseInt(me.y), parseInt(me.z));
+          pos[d] += i;
+          testP = me.world.indexer.get(pos, d);
+          if(!isEmpty(testP)){
+            pos[d] += -dir;
+            isCrashed = true;
+            break;
+          }
+        }
+        me['old' + d] = me[d];
+        this.world.indexer.remove(me);
+        me[d] = pos[d];
+        this.world.indexer.add(me);
+        if(isCrashed && !isEmpty(testP)){
+          if(!this.isCrashable && testP.isCrashable){
+            testP['v' + d] = parseInt(testP['v' + d] > 0 ? -testP['v' + d] : testP['v' + d]);
+          }else if(this.isCrashable && !testP.isCrashable){
+            this['v' + d] = parseInt(this['v' + d] > 0 ? -this['v' + d] : this['v' + d]);
+          }else if(this.isCrashable && testP.isCrashable){
+            var avg = Math.abs(this['v' + d] + testP['v' + d])/2;
+            this['v' + d] = parseInt(this['v' + d] > 0 ? -avg : avg);
+            testP['v' + d] = parseInt(testP['v' + d] > 0 ? -avg : avg);
+          }
+        }
+        me.isMoving = true;
+        me.fireEvent('onMove', me/*{obj : me, axis : d}*/);
       }
     }
   },
@@ -546,7 +564,6 @@ World.Circle = Utils.cls.extend(World.Point, {
   //  World.Circle.prototype.constructor.call(World.Circle.prototype, config);
   init : function(config){
     this.text = 'center';
-    this.isCrashable = !this.isAnchor;
     this.callParent(config);
     //make default value to config
     Utils.apply(config, {unitForce : 0.5, elasticity : 0.5, maxEffDis : 2000}, true);
@@ -627,7 +644,7 @@ World.Line = Utils.cls.extend(World.Point, {
   },
   
   isCrashed : function(point){
-    if(point.x > (this.start.x > this.end.x ? this.end.x : this.start.x) 
+    if(point.isCrashable && point.x > (this.start.x > this.end.x ? this.end.x : this.start.x) 
         && point.x <= (this.start.x > this.end.x ? this.start.x : this.end.x) 
         || this.start.x == this.end.x)
     {
@@ -640,12 +657,12 @@ World.Line = Utils.cls.extend(World.Point, {
         this.world.link({pre : this.start, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.start), 
-          maxEffDis : 30, 
+          maxEffDis : 3, 
           isDual: false});
         this.world.link({pre : this.end, post : point, 
           unitForce : 1, elasticity : 0.9, 
           distance : Utils.getDisXY(point, this.end), 
-          maxEffDis : 30, 
+          maxEffDis : 3, 
           isDual: false});
         this.isCrashing = true;
         this.fireEvent('onCrashed', point, this);
@@ -938,9 +955,13 @@ World.Link = Utils.cls.extend(Observable, {
       for(var key in this.fn){
         pre['v' + key] = parseInt(pre['v' + key] * this.world.resistance); 
       }
-      var postv = linkImpl.call(this, pre, post);
+      var postv = null;
+      if(!post.isAnchor){
+        postv = linkImpl.call(this, pre, post);
+      }
+      
       var prev = null;
-      if(this.isDual){
+      if(this.isDual && !pre.isAnchor){
         prev = linkImpl.call(this, post, pre);
       }
       Utils.apply(post, postv); 

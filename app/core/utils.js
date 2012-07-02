@@ -77,6 +77,65 @@ var OP = {
   }
 };
 
+var Indexer  = function(){
+  /**
+   * Index on x axis
+   */
+  this.xi = {};
+  this.yi = {};
+  this.zi = {};
+};
+
+Indexer.prototype = {
+  /**
+   * Dimensions 
+   */
+  ds : {x : 'y', y : 'x'},
+  /**
+   * 
+   * @param point
+   * @param axis which axis of the point is changed
+   * @returns
+   */
+  get : function(point, axis){
+    var result = null;
+    if(!isEmpty(this[axis + 'i'][point[axis]])){
+      result = this[axis + 'i'][point[axis]][point[this.ds[axis]]];
+    }
+    return result;
+  },
+  
+  /**
+   * add function will remove the previous point in the index with current point\
+   * without checking
+   * @param point
+   */
+  add : function(point){
+    for(var d in this.ds){
+      if(isEmpty(this[d + 'i'][point[d]])){
+        this[d + 'i'][point[d]] = {};
+      }
+      this[d + 'i'][point[d]][point[this.ds[d]]] = point;
+    }
+  },
+  
+  /**
+   * remove the point from index
+   * @param point
+   */
+  remove : function(point){
+    for(var d in this.ds){
+      if(!isEmpty(this[d + 'i'][point[d]])){
+        //this.xi.[x = 100][y = 100]
+        delete this[d + 'i'][point[d]][point[this.ds[d]]];
+        if(Object.keys(this[d + 'i'][point[d]]).length == 0){
+          delete this[d + 'i'][point[d]];
+        }
+      }
+    }
+  }
+};
+
 var Observable = function(){
   this.listeners = {};
   this.on = function(){
