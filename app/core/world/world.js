@@ -39,56 +39,6 @@ World.World = Utils.cls.extend(Observable, {
     this.indexer = new Indexer(); 
   },
   
-  detectCrash : function(currentP){
-    var me = this;
-    var keys = Object.keys(this.points);
-    var len = keys.length;
-    var pi = 0;//point index
-    for(; pi < len; pi++){
-      /*start point as pi, will not test the 
-       * object with id ahead of pi
-       */
-      var pk = pi + 1;
-      var key = keys[pi];
-      var currentP = this.points[key];
-      if(!isEmpty(currentP)){
-        for(; pk < len; pk++){
-          var testKey = keys[pk];
-          var testP = me.points[testKey];
-          if(!isEmpty(testP) && testP != currentP){
-            //cancel crash test if isGroupCrash is false
-            if(!currentP.isAnchor&& !testP.isAnchor && currentP.group && testP.group && currentP.isSameGroup(testP)){
-              if (!currentP.isGroupCrash || !testP.isGroupCrash){
-                continue;
-              }
-            }
-            //because testP and currentP may have different implementation on isCrashed, so we need both
-            if(currentP.isCrashed(testP)){
-              /*
-               *create surface link, which is a part of crash, this link both push
-               *points away and attach each other
-               */
-              if(isEmpty(currentP.crashHandler)){
-                var l = me.surfaceLink(currentP, testP);
-                currentP.setIw(testP, l);
-              }else{
-                currentP.crashHandler.call(currentP, testP);
-              }
-            }
-            if(testP.isCrashed(currentP)){
-              if(isEmpty(testP.crashHandler)){
-                var l = me.surfaceLink(currentP, testP);
-                testP.setIw(currentP, l);
-              }else{
-                testP.crashHandler.call(testP, currentP);
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  
   //TODO this create sub new world to check crash
   newChild : function(){
     
@@ -160,7 +110,6 @@ World.World = Utils.cls.extend(Observable, {
   },
   
   tick : function(){
-//    this.detectCrash();
     this.run(this.links);
   },
   
@@ -205,9 +154,9 @@ World.World = Utils.cls.extend(Observable, {
     // NOTES : about the repeat time and maxEffDis, they are experiment value, 
     // which help to stable the crash objects 
     var defaultSfc = { 
-        unitForce : 1, elasticity : 0.6, 
+        unitForce : 1, elasticity : 0.01, 
         //TODO don't know how far is good , 10?
-        distance : pre.crashRadius + post.crashRadius, 
+        distance : 1, 
         maxEffDis : 10/*see notes above*//*, 
         repeat : 10*//*see notes above*/};
 
@@ -332,52 +281,6 @@ World.Point = Utils.cls.extend(Observable, {
     this.world.indexer.add(this);
   },
   
-  /**
-   * Detect whehter there is a touch, if yes return true, 
-   * world will process the detail
-   * @parameter point the point to test crash
-   * @return point this
-   */
-  isCrashed : function(point){
-    if(Utils.getDisXY(this, point) < (this.crashRadius + point.crashRadius)){
-//      console.log('crashed');
-      var pos = {vx : 0, vy : 0, vz : 0};
-
-      if(!this.isCrashable && point.isCrashable){
-        for(var key in pos){
-          point[key] = parseInt(point[key] > 0 ? -point[key] : point[key]);
-        }
-      }else if(this.isCrashable && !point.isCrashable){
-        for(var key in pos){
-          this[key] = parseInt(this[key] > 0 ? -this[key] : this[key]);
-        }
-      }else if(this.isCrashable && point.isCrashable){
-        for(var key in pos){
-          pos[key] = Math.abs(this[key] + point[key])/2;
-          this[key] = parseInt(this[key] > 0 ? -pos[key] : pos[key]);
-          point[key] = parseInt(point[key] > 0 ? -pos[key] : pos[key]);
-        }
-      }
-      this.isCrashing = true;
-      this.fireEvent('onCrashed', point, this);
-    }else{
-      this.isCrashing = false;
-    }
-    return this.isCrashing;
-  },
-  
-  //TODO 
-  isPenetrated : function(point){
-    // if the current point is penetrated by the target point.
-    if((this.x - point.x) * (this.x - point.oldX) < 0 &&
-        (this.y - point.y) * (this.y - point.oldY) < 0){
-      this.isPenetrated = true;
-    }else{
-      this.isPenetrated = false;
-    }
-    return this.isPenetrated;
-  },
-  
   move : function(){
 //    console.log('move to : x =' + this.x + '  y =' + this.y);
 //    console.log('speed  : vx =' + this.vx + '  vy =' + this.vy);
@@ -416,9 +319,10 @@ World.Point = Utils.cls.extend(Observable, {
             this['v' + d] = parseInt(this['v' + d] > 0 ? -avg : avg);
             testP['v' + d] = parseInt(testP['v' + d] > 0 ? -avg : avg);
           }
+          me.world.surfaceLink(me, testP);
         }
         me.isMoving = true;
-        me.fireEvent('onMove', me/*{obj : me, axis : d}*/);
+//        me.fireEvent('onMove', me/*{obj : me, axis : d}*/);
       }
     }
   },
@@ -995,9 +899,10 @@ World.Link = Utils.cls.extend(Observable, {
     var angle = Utils.getAngle(post, pre);
     for (var key in this.fn){
       var axisDis = parseInt(this.distance * this.fn[key].call(this, angle));
+      var dis = pre[key] - axisDis - post[key];
       postv['v' + key] = parseInt(
           post['v' + key] + 
-          (pre[key] - axisDis - post[key]) * uf/w * this.elasticity
+          dis * uf/w * this.elasticity
           );
     }
     return postv;

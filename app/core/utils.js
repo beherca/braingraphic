@@ -128,9 +128,10 @@ Indexer.prototype = {
       if(!isEmpty(this[d + 'i'][point[d]])){
         //this.xi.[x = 100][y = 100]
         delete this[d + 'i'][point[d]][point[this.ds[d]]];
-        if(Object.keys(this[d + 'i'][point[d]]).length == 0){
+        //TODO delete consume a lot cpu
+        /*if(Object.keys(this[d + 'i'][point[d]]).length == 0){
           delete this[d + 'i'][point[d]];
-        }
+        }*/
       }
     }
   }

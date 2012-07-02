@@ -321,6 +321,8 @@ Ext.define('AM.view.world.World', {
   offset : OP.add(0, 0),
 
   showText : true,
+  
+  objs : [],
 
   initComponent : function() {
     var me = this;
@@ -385,6 +387,7 @@ Ext.define('AM.view.world.World', {
         interval : me.interval,
         run : function() {
           me.world.tick();
+          me.syncPos();
         }
       });
     } else {
@@ -396,6 +399,13 @@ Ext.define('AM.view.world.World', {
     console.log('stop');
     if (this.worldTick) {
       Ext.TaskManager.stop(this.worldTick);
+    }
+  },
+  
+  syncPos : function(){
+    for(var i in this.objs){
+      var obj = this.objs[i];
+      obj.syncPos();
     }
   },
 
@@ -423,10 +433,11 @@ Ext.define('AM.view.world.World', {
       endX : line.end.x,
       endY : line.end.y
     });
+    me.objs.push(ln);
     line.on({
-      onMove : function(l) {
-        ln.syncPos();
-      },
+//      onMove : function(l) {
+//        ln.syncPos();
+//      },
       onDestroy : function(l) {
         ln.destroy();
         ln = null;
@@ -450,22 +461,23 @@ Ext.define('AM.view.world.World', {
       text : point.text,
       showText : this.showText
     });
+    me.objs.push(bno);
     me.iidor.set(point.iid);
     point.on({
-      onMove : function(p) {
-        bno.syncPos();
-      },
+//      onMove : function(p) {
+//        bno.syncPos();
+//      },
       onDestroy : function(p) {
         bno.destroy();
         bno = null;
       }
     });
-    bno.on({
-      'onMove' : function(n) {
-        point.x = n.x + me.offset.x;
-        point.y = n.y + me.offset.y;
-      }
-    });
+//    bno.on({
+//      'onMove' : function(n) {
+//        point.x = n.x + me.offset.x;
+//        point.y = n.y + me.offset.y;
+//      }
+//    });
     return bno;
   },
 

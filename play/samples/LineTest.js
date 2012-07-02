@@ -11,7 +11,7 @@ Ext.define('AM.world.LineTest', {
     this.showText = false;
     this.callParent(arguments);
     this.world.resistance = 0.05;
-    this.world.gForce.value = 200;
+    this.world.gForce.value = 20;
     function p(me, x, y, isApplyGForce, isCrashable, weight){
       return me.world.add({
         type: 'point', 
@@ -59,7 +59,7 @@ Ext.define('AM.world.LineTest', {
 //    t(this, 100, 100);
 //    c(this, 100, 250);
     for(var i = 0; i < 20; i++){
-      p(this,  150 * Math.random(), 120 * Math.random(), true, true, 10);
+      p(this,  150 * Math.random(), 120 * Math.random(), true, true);
 //      t(this, 200* Math.random(), 200* Math.random());
     }
 //      p(this,  100, 120, true, true);
