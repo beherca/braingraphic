@@ -322,7 +322,7 @@ Ext.define('AM.view.world.World', {
 
   showText : true,
   
-  objs : [],
+  objs : {},
 
   initComponent : function() {
     var me = this;
@@ -433,12 +433,13 @@ Ext.define('AM.view.world.World', {
       endX : line.end.x,
       endY : line.end.y
     });
-    me.objs.push(ln);
+    me.objs[ln.iid] = ln;
     line.on({
 //      onMove : function(l) {
 //        ln.syncPos();
 //      },
       onDestroy : function(l) {
+        delete me.objs[ln.iid];
         ln.destroy();
         ln = null;
       }
@@ -461,7 +462,7 @@ Ext.define('AM.view.world.World', {
       text : point.text,
       showText : this.showText
     });
-    me.objs.push(bno);
+    me.objs[bno.iid] = bno;
     me.iidor.set(point.iid);
     point.on({
 //      onMove : function(p) {
@@ -469,15 +470,16 @@ Ext.define('AM.view.world.World', {
 //      },
       onDestroy : function(p) {
         bno.destroy();
+        delete me.objs[bno.iid];
         bno = null;
       }
     });
-//    bno.on({
-//      'onMove' : function(n) {
-//        point.x = n.x + me.offset.x;
-//        point.y = n.y + me.offset.y;
-//      }
-//    });
+    bno.on({
+      'onMove' : function(n) {
+        point.x = n.x + me.offset.x;
+        point.y = n.y + me.offset.y;
+      }
+    });
     return bno;
   },
 
