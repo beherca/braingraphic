@@ -84,6 +84,12 @@ var Indexer  = function(){
   this.xi = {};
   this.yi = {};
   this.zi = {};
+  this.maxx = 1000;
+  this.maxy = 1000;
+  this.maxz = 1000;
+  this.minx = 0;
+  this.miny = 0;
+  this.minz = 0;
 };
 
 Indexer.prototype = {
@@ -111,11 +117,22 @@ Indexer.prototype = {
    * @param point
    */
   add : function(point){
+    var isValid = true;
     for(var d in this.ds){
-      if(isEmpty(this[d + 'i'][point[d]])){
-        this[d + 'i'][point[d]] = {};
+      if(point[d] < this['min' + d] || point[d] > this['max' + d]){
+        isValid = false;
+        break;
       }
-      this[d + 'i'][point[d]][point[this.ds[d]]] = point;
+    }
+    if(isValid){
+      for(var d in this.ds){
+        var d1 = (point[d]);
+        var d2 = (point[this.ds[d]]);
+        if(isEmpty(this[d + 'i'][d1])){
+          this[d + 'i'][d1] = {};
+        }
+        this[d + 'i'][d1][d2] = point;
+      }
     }
   },
   

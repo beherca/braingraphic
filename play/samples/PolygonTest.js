@@ -12,8 +12,8 @@ Ext.define('AM.world.PolygonTest', {
     this.showText = false;
     this.callParent(arguments);
     this.world.resistance = 0.8;
-    this.world.gForce.value = 16;
-    this.world.gForce.direction = OP.add(3, 10);
+    this.world.gForce.value = 4;
+    this.world.gForce.direction = OP.add(0, 10);
     
     function pg(me, pointArray, isApplyGForce, isCrashable){
       return me.world.add({
@@ -21,7 +21,8 @@ Ext.define('AM.world.PolygonTest', {
         pointArray : pointArray,
         isApplyGForce : isApplyGForce,
         isCrashable : isCrashable,
-        unitForce : 1, elasticity : 0.7, maxEffDis : 20
+        visible : false,
+        unitForce : 1, elasticity : 0.4, maxEffDis : 100
       });
     };
 //    for(var i = 0; i < 1; i++){
@@ -62,9 +63,12 @@ Ext.define('AM.world.PolygonTest', {
       }
       pg(me, arr, true, true);
     }
-//    pg1(this, 20, 40, OP.add(200, 300));
-//    pg1(this, 3, 40, OP.add(300, 300));
-//    pg1(this, 4, 40, OP.add(400, 300));
+    
+    for(var i =0; i < 3; i ++){
+//      pg1(this, 20, 40, OP.add(500 - 100*i, 0));
+      pg1(this, 3, 20, OP.add(300 - 70*i, 100));
+//      pg1(this, 4, 20, OP.add(400, 200));
+    }
     
     function p(me, x, y, isApplyGForce, isCrashable, weight, isAnchor, isVisible){
       return me.world.add({
@@ -75,24 +79,33 @@ Ext.define('AM.world.PolygonTest', {
         weight : weight,
         visible : Ext.isEmpty(isVisible) ? true : isVisible ,
         isAnchor : isAnchor,
+        surfaceLinkConfig : { 
+            unitForce : 1, elasticity : 0, 
+            //TODO don't know how far is good , 10?
+            distance : 1, 
+            maxEffDis : 1/*see notes above*//*, 
+            repeat : 10*//*see notes above*/},
         x : x, y : y
       });
     };
-    p(this, 400, 100, true, true, 1, false);
+//    p(this, 400, 100, true, true, 1, false);
     for(var i =0; i < 200; i ++){
-      p(this, i + 200, 500, false, true, 1, true, false);
+      p(this, i + 200, 300 + i, false, true, 1, true, true);
     }
     for(var i =0; i < 200; i ++){
-      p(this, i + 400, 500-i, false, true, 1, false, true);
+      p(this, i + 400, 400 - i, false, true, 1, true, true);
     }
-    
-    for(var i =0; i < 200; i ++){
-      p(this, i + 450, 500-i, false, true, 1, false, true);
-    }
-    
-    for(var i =0; i < 200; i ++){
-      p(this, i + 480, 500-i, false, true, 1, false, true);
-    }
+//    for(var i =0; i < 200; i ++){
+//      p(this, i + 400, 500-i, false, true, 1, false, true);
+//    }
+//    
+//    for(var i =0; i < 200; i ++){
+//      p(this, i + 450, 500-i, false, true, 1, false, true);
+//    }
+//    
+//    for(var i =0; i < 200; i ++){
+//      p(this, i + 480, 500-i, false, true, 1, false, true);
+//    }
     function l(me, pre, post, isDual){
       me.world.link({pre : pre, post : post, unitForce : 1, elasticity : 0.3,
         maxEffDis : 2000, 
@@ -129,7 +142,8 @@ Ext.define('AM.world.PolygonTest', {
     };
 //    t(this, 200, 120);
     for(var i = 0; i < 1; i++){
-      p(this,  150 , 100 * Math.random(), true, true, 1, false, true);
+      var pt = p(this,  450 , 100 * Math.random(), true, true, 1, false, true);
+      pt.vy = 50;
 //      t(this, 200* Math.random(), 200* Math.random());
     }
     

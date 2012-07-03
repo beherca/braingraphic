@@ -9,11 +9,22 @@ var World = {
   }
 };
 
-World.World = Utils.cls.extend(Observable, {
+
+World.Object = Utils.cls.extend(Observable, {
+  _x : 0,
+  _y : 0,
+  _z : 0
+});
+
+World.Object.prototype.__defineSetter__('x', function(v){this._x = parseInt(v);});
+World.Object.prototype.__defineSetter__('y', function(v){this._y = parseInt(v);});
+World.Object.prototype.__defineSetter__('z', function(v){this._z = parseInt(v);});
+World.Object.prototype.__defineGetter__('x', function(){return this._x;});
+World.Object.prototype.__defineGetter__('y', function(){return this._y;});
+World.Object.prototype.__defineGetter__('z', function(){return this._z;});
+
+World.World = Utils.cls.extend(World.Object, {
   iidor : new Iid(),
-  x : 0,
-  y : 0,
-  z : 0,
   links : {},
   points : {},
   
@@ -110,13 +121,13 @@ World.World = Utils.cls.extend(Observable, {
   },
   
   tick : function(){
-    this.run(this.links);
-  },
-  
-  run : function(links){
-    for(var key in links){
-      var link = links[key];
-      link.calc();
+    for(var key in this.links){
+      var l = this.links[key];
+      l.calc();
+    }
+    for(var key in this.points){
+      var p = this.points[key];
+      p.move();
     }
   },
   
@@ -157,7 +168,7 @@ World.World = Utils.cls.extend(Observable, {
         unitForce : 1, elasticity : 0.01, 
         //TODO don't know how far is good , 10?
         distance : 1, 
-        maxEffDis : 10/*see notes above*//*, 
+        maxEffDis : 1/*see notes above*//*, 
         repeat : 10*//*see notes above*/};
 
     var preSfc = isEmpty(pre.surfaceLinkConfig) ? defaultSfc : pre.surfaceLinkConfig;
@@ -177,16 +188,7 @@ World.World = Utils.cls.extend(Observable, {
   }
 });
 
-World.Point = Utils.cls.extend(Observable, {
-  x : 0,
-  y : 0,
-  z : 0,
-  /**
-   * cache previous position values
-   */
-  oldx : 0,
-  oldy : 0,
-  oldz : 0,
+World.Point = Utils.cls.extend(World.Object, {
   
   vx : 0,
   vy : 0,
@@ -280,7 +282,7 @@ World.Point = Utils.cls.extend(Observable, {
     Utils.apply(this, config);
     this.world.indexer.add(this);
   },
-  
+
   move : function(){
 //    console.log('move to : x =' + this.x + '  y =' + this.y);
 //    console.log('speed  : vx =' + this.vx + '  vy =' + this.vy);
@@ -311,13 +313,17 @@ World.Point = Utils.cls.extend(Observable, {
         this.world.indexer.add(me);
         if(isCrashed && !isEmpty(testP)){
           if(!this.isCrashable && testP.isCrashable){
-            testP['v' + d] = parseInt(testP['v' + d] > 0 ? -testP['v' + d] : testP['v' + d]);
+            if(!testP.isAnchor)
+              testP['v' + d] = parseInt(testP['v' + d] > 0 ? -testP['v' + d] : testP['v' + d]);
           }else if(this.isCrashable && !testP.isCrashable){
-            this['v' + d] = parseInt(this['v' + d] > 0 ? -this['v' + d] : this['v' + d]);
+            if(!this.isAnchor)
+              this['v' + d] = parseInt(this['v' + d] > 0 ? -this['v' + d] : this['v' + d]);
           }else if(this.isCrashable && testP.isCrashable){
             var avg = Math.abs(this['v' + d] + testP['v' + d])/2;
-            this['v' + d] = parseInt(this['v' + d] > 0 ? -avg : avg);
-            testP['v' + d] = parseInt(testP['v' + d] > 0 ? -avg : avg);
+            if(!this.isAnchor)
+              this['v' + d] = parseInt(this['v' + d] > 0 ? -avg : avg);
+            if(!testP.isAnchor)
+              testP['v' + d] = parseInt(testP['v' + d] > 0 ? -avg : avg);
           }
           me.world.surfaceLink(me, testP);
         }
