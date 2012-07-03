@@ -11,8 +11,8 @@ Ext.define('AM.world.PolygonTest', {
   afterRender : function(){
     this.showText = false;
     this.callParent(arguments);
-    this.world.resistance = 0.8;
-    this.world.gForce.value = 4;
+    this.world.resistance = 0.3;
+    this.world.gForce.value = 10;
     this.world.gForce.direction = OP.add(0, 10);
     
     function pg(me, pointArray, isApplyGForce, isCrashable){
@@ -22,7 +22,7 @@ Ext.define('AM.world.PolygonTest', {
         isApplyGForce : isApplyGForce,
         isCrashable : isCrashable,
         visible : false,
-        unitForce : 1, elasticity : 0.4, maxEffDis : 100
+        unitForce : 1, elasticity : 0.6, maxEffDis : 100
       });
     };
 //    for(var i = 0; i < 1; i++){
@@ -64,10 +64,10 @@ Ext.define('AM.world.PolygonTest', {
       pg(me, arr, true, true);
     }
     
-    for(var i =0; i < 3; i ++){
+    for(var i =0; i < 10; i ++){
 //      pg1(this, 20, 40, OP.add(500 - 100*i, 0));
-      pg1(this, 3, 20, OP.add(300 - 70*i, 100));
-//      pg1(this, 4, 20, OP.add(400, 200));
+//      pg1(this, 3, 20, OP.add(300 - 70*i, 100));
+      pg1(this, 4, 20, OP.add(600 - 30*i, 200));
     }
     
     function p(me, x, y, isApplyGForce, isCrashable, weight, isAnchor, isVisible){
