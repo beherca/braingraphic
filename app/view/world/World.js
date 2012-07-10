@@ -409,17 +409,17 @@ Ext.define('AM.view.world.World', {
     }
   },
 
-  addObject : function(obj, eventName) {
+  addObject : function(obj) {
     if (isEmpty(obj) || isEmpty(obj.obj))
       return;
     if (obj.obj instanceof World.Line) {
-      this.addLine(obj, eventName);
+      this.addLine(obj);
     } else {
-      this.addPoint(obj, eventName);
+      this.addPoint(obj);
     }
   },
 
-  addLine : function(obj, eventName) {
+  addLine : function(obj) {
     if (isEmpty(obj) || isEmpty(obj.obj) || !(obj.obj instanceof World.Line))
       return;
     var me = this, drawComp = me.down('draw');
@@ -446,7 +446,7 @@ Ext.define('AM.view.world.World', {
     });
   },
 
-  addPoint : function(obj, eventName) {
+  addPoint : function(obj) {
     if (isEmpty(obj) || isEmpty(obj.obj) || !(obj.obj instanceof World.Point)
         || !obj.obj.visible)
       return;

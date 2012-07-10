@@ -96,6 +96,10 @@
                     "name": "PolygonTest.js" 
                 },
                 {
+                    "path": "play/samples/thread/",
+                    "name": "ThreadPolygonTest.js" 
+                },
+                {
                     "path": "play/samples/",
                     "name": "CircleTest.js"
                 },

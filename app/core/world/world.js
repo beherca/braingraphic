@@ -132,6 +132,7 @@ World.World = Utils.cls.extend(World.Object, {
   },
   
   link :  function(config){
+//    console.log(Object.keys(this.links).length);
     var pre = config.pre;
     var post = config.post;
     var link = null;
@@ -184,7 +185,18 @@ World.World = Utils.cls.extend(World.Object, {
     }else if(pre.isCrashable && post.isCrashable){
       return this.link(Utils.apply(mergeLink, {pre : post, post : pre, isDual: true}));
     }
-    
+  },
+  
+  getData : function(){
+    var ps = {};
+    for(var key in this.points){
+      ps[key] = this.points[key].toJson();
+    }
+    return ps;
+  },
+  
+  toJson : function(){
+    return {iid : this.iid};
   }
 });
 
@@ -389,6 +401,22 @@ World.Point = Utils.cls.extend(World.Object, {
     //after this point has been removed
     this.destroyed = true;
     this.fireEvent('onDestroy', this);
+  },
+  
+  toJson : function(){
+    var points = {};
+    for(var key in this.points){
+      points[key] = this.points[key].toJson();
+    }
+    return {
+      iid : this.iid,
+      x : this.x,
+      y : this.y,
+      z : this.z,
+      text : this.text,
+      visible : this.visible,
+      points : points
+    };
   }
 });
 
@@ -644,6 +672,14 @@ World.Line = Utils.cls.extend(World.Point, {
       });
     }
     return point;
+  },
+  
+  toJson : function(){
+    return Utils.apply({
+      start : this.start.toJson(),
+      end : this.end.toJson()
+    },
+    this.callParent());
   }
 });
 
