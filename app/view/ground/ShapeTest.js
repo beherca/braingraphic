@@ -153,7 +153,7 @@ Ext.define('AM.view.ground.ShapeTest', {
   start : function(){
     console.log('start');
     var me = this;
-    if(isEmpty(this.worldTick)){
+    if(Ext.isEmpty(this.worldTick)){
       this.worldTick = Ext.TaskManager.start({
         interval : 100,
         run: function(){

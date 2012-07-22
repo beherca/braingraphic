@@ -16,7 +16,7 @@ onmessage = function(e){
     this.world.indexer.miny = -500;
     this.world.resistance = 0.3;
     this.world.gForce.value = 9;
-    this.world.gForce.direction = OP.add(0, 10);
+    this.world.gForce.direction = OP.add(0, -10);
     
     this.world.on('onAdd', onAdd, this);
     
@@ -32,13 +32,14 @@ onmessage = function(e){
 //      pg1(3, 20, OP.add(300 - 70*i, 100));
 //      pg1(4, 20, OP.add(600 - 5*i, 200));
 //    }
-    for(var i =0; i < 150; i ++){
+    for(var i =0; i < 100; i ++){
 //      pg1(20, 20, OP.add(100 - 10*i, 100));
       pg1(3, 10, OP.add(100 - 20*i, 100));
 //      pg1(4, 10, OP.add(600 - 10*i, 100));
     }
     postMessage({event : "onInit", obj : this.world.getData()});
   }else if(e.data === 'start'){
+//    tick();
     ticker = self.setInterval("tick()", 10);
   }else if(e.data === 'stop'){
     self.clearInterval(ticker);

@@ -382,7 +382,7 @@ Ext.define('AM.view.world.World', {
   start : function() {
     console.log('start');
     var me = this;
-    if (isEmpty(this.worldTick)) {
+    if (Ext.isEmpty(this.worldTick)) {
       this.worldTick = Ext.TaskManager.start({
         interval : me.interval,
         run : function() {
@@ -410,7 +410,7 @@ Ext.define('AM.view.world.World', {
   },
 
   addObject : function(obj) {
-    if (isEmpty(obj) || isEmpty(obj.obj))
+    if (Ext.isEmpty(obj) || Ext.isEmpty(obj.obj))
       return;
     if (obj.obj instanceof World.Line) {
       this.addLine(obj);
@@ -420,7 +420,7 @@ Ext.define('AM.view.world.World', {
   },
 
   addLine : function(obj) {
-    if (isEmpty(obj) || isEmpty(obj.obj) || !(obj.obj instanceof World.Line))
+    if (Ext.isEmpty(obj) || Ext.isEmpty(obj.obj) || !(obj.obj instanceof World.Line))
       return;
     var me = this, drawComp = me.down('draw');
     var line = obj.obj;
@@ -447,7 +447,7 @@ Ext.define('AM.view.world.World', {
   },
 
   addPoint : function(obj) {
-    if (isEmpty(obj) || isEmpty(obj.obj) || !(obj.obj instanceof World.Point)
+    if (Ext.isEmpty(obj) || Ext.isEmpty(obj.obj) || !(obj.obj instanceof World.Point)
         || !obj.obj.visible)
       return;
     var point = obj.obj;
