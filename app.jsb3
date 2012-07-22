@@ -138,6 +138,10 @@
                 {
                     "path": "app/core/brain/",
                     "name": "brain.js"
+                },
+                {
+                    "path": "app/core/",
+                    "name": "mconf.js"
                 }
             ]
         },

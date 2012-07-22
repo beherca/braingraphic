@@ -1,49 +1,7 @@
-var isEmpty = function(obj) {
-  return obj == null || typeof obj === "undefined";
-};
-var isObject = function(obj){
-  return !isEmpty(obj) && typeof obj === "object";
-};
-
-var isFunction = function(obj){
-  return typeof obj === "function";
-};
-
-var isArray = function(arr) {
-  return !isEmpty(arr) && arr.constructor == Array;
-};
-
-var round = function(value, accuracy){
-  accuracy = isEmpty(accuracy) ? 0 : accuracy;
-  var e = Math.pow(10, accuracy);
-  var v = (parseInt (value * e))/e;
-  if((v > 0 && v < 1/e) || (v < 0 && v > -1/e)){
-    v = 0;
-  }
-  return v;
-};
-
 /**
  * Internal Id for neuron and Synapse
  */
-IID = {
-  iid : 0,
-
-  get : function() {
-    return this.iid++;
-  },
-  // set offset
-  set : function(offset) {
-    offset++;
-    this.iid = (this.iid < offset) ? offset : this.iid;
-  },
-
-  // reset to
-  reset : function() {
-    this.iid = 0;
-  }
-};
-var Iid = function(){};
+function Iid(){};
 Iid.prototype = {
     iid : 0,
 
@@ -61,23 +19,11 @@ Iid.prototype = {
       this.iid = 0;
     }
 };
-/**
- * Origin Point
- */
-var OP = {
-  x : 0,
-  y : 0,
-  z : 0,
-  add : function(x, y, z) {
-    return {
-      x : x,
-      y : y,
-      z : isEmpty(z) ? 0 : z
-    };
-  }
-};
 
-var Indexer  = function(){
+/**
+ * Indexer to space elements
+ */
+function Indexer(){
   /**
    * Index on x axis
    */
@@ -105,7 +51,7 @@ Indexer.prototype = {
    */
   get : function(point, axis){
     var result = null;
-    if(!isEmpty(this[axis + 'i'][point[axis]])){
+    if(!Utils.isEmpty(this[axis + 'i'][point[axis]])){
       result = this[axis + 'i'][point[axis]][point[this.ds[axis]]];
     }
     return result;
@@ -128,7 +74,7 @@ Indexer.prototype = {
       for(var d in this.ds){
         var d1 = (point[d]);
         var d2 = (point[this.ds[d]]);
-        if(isEmpty(this[d + 'i'][d1])){
+        if(Utils.isEmpty(this[d + 'i'][d1])){
           this[d + 'i'][d1] = {};
         }
         this[d + 'i'][d1][d2] = point;
@@ -142,7 +88,7 @@ Indexer.prototype = {
    */
   remove : function(point){
     for(var d in this.ds){
-      if(!isEmpty(this[d + 'i'][point[d]])){
+      if(!Utils.isEmpty(this[d + 'i'][point[d]])){
         //this.xi.[x = 100][y = 100]
         delete this[d + 'i'][point[d]][point[this.ds[d]]];
         //TODO delete consume a lot cpu
@@ -154,7 +100,10 @@ Indexer.prototype = {
   }
 };
 
-var Observable = function(){
+/**
+ * Enable event for core functions
+ */
+function Observable(){
   this.listeners = {};
   this.on = function(){
     var listeners;
@@ -165,7 +114,7 @@ var Observable = function(){
      *   onDestroy : function(){},
      * })
      */
-    if(!isEmpty(arguments) && arguments.length == 1){
+    if(!Utils.isEmpty(arguments) && arguments.length == 1){
       listeners = arguments[0];
       for(var evtName in listeners){
         var eventHandler = listeners[evtName];
@@ -176,9 +125,9 @@ var Observable = function(){
      * Usage 2 
      * this.obj.on('onClick', function(){}, scope[default obj])
      */
-    else if(!isEmpty(arguments) && arguments.length > 1){
+    else if(!Utils.isEmpty(arguments) && arguments.length > 1){
       var evtName = arguments[0];
-      var eventHandler = isEmpty(arguments[2]) ? {fn : arguments[1], scope : this} : {fn : arguments[1], scope : arguments[2]};
+      var eventHandler = Utils.isEmpty(arguments[2]) ? {fn : arguments[1], scope : this} : {fn : arguments[1], scope : arguments[2]};
       this.addListener(evtName, eventHandler);
     }
   };
@@ -193,7 +142,7 @@ var Observable = function(){
   
   this.fireEvent = function(name, obj){
     var reglists = this.listeners[name];
-    if(!isEmpty(reglists) && Array.isArray(reglists) && reglists.length > 0){
+    if(!Utils.isEmpty(reglists) && Array.isArray(reglists) && reglists.length > 0){
       for(var i in reglists){
         var listener = reglists[i];
         if(typeof(listener) == 'object'){
@@ -202,7 +151,7 @@ var Observable = function(){
           listener.call(this, obj, name);
         }
       }
-    }else if(!isEmpty(reglists) && !Array.isArray(reglists)){
+    }else if(!Utils.isEmpty(reglists) && !Array.isArray(reglists)){
       var listener = reglists;
       if(typeof(listener) == 'object'){
         listener.fn.call(listener.scope, obj, name);
@@ -217,7 +166,49 @@ var Observable = function(){
   return this;
 };
 
+/**
+ * Origin Point
+ */
+OP = {
+  x : 0,
+  y : 0,
+  z : 0,
+  add : function(x, y, z) {
+    return {
+      x : x,
+      y : y,
+      z : Utils.isEmpty(z) ? 0 : z
+    };
+  }
+};
+
 Utils = {
+  isEmpty : function(obj) {
+    return obj == null || typeof obj === "undefined";
+  },
+  
+  isObject : function(obj){
+    return !Utils.isEmpty(obj) && typeof obj === "object";
+  },
+
+  isFunction : function(obj){
+    return typeof obj === "function";
+  },
+
+  isArray : function(arr) {
+    return !Utils.isEmpty(arr) && arr.constructor == Array;
+  },
+
+  round : function(value, accuracy){
+    accuracy = Utils.isEmpty(accuracy) ? 0 : accuracy;
+    var e = Math.pow(10, accuracy);
+    var v = (parseInt (value * e))/e;
+    if((v > 0 && v < 1/e) || (v < 0 && v > -1/e)){
+      v = 0;
+    }
+    return v;
+  },
+
   /**
    * 
    * @param target target to apply values
@@ -228,13 +219,13 @@ Utils = {
   apply : function(target, from, keepDup){
     if(keepDup){
       for(var key in from){
-        if(isEmpty(target[key]) && !isEmpty(from[key])){
+        if(Utils.isEmpty(target[key]) && !Utils.isEmpty(from[key])){
           target[key] = from[key];
         }
       }
     }else{
       for(var key in from){
-        if(!isEmpty(from[key])){
+        if(!Utils.isEmpty(from[key])){
           target[key] = from[key];
         }
       }
@@ -320,7 +311,7 @@ Utils = {
     var disX = this.getDisX(startP, endP);
     var disY = this.getDisY(startP, endP);
     var angle = 0;
-    angle = Math.atan2(disY, disX) + (isEmpty(offset) ? 0 : offset);
+    angle = Math.atan2(disY, disX) + (Utils.isEmpty(offset) ? 0 : offset);
     // console.log(angle*180/3.14);
     return angle;
   },
@@ -403,9 +394,9 @@ Utils.cls = {
     var constructorProps = {};
     for (var name in propConfig) {
       // Check if we're overwriting an existing function
-      if(isFunction(propConfig[name])){
+      if(Utils.isFunction(propConfig[name])){
         // all the functions will copy to current class's prototype
-        parentInst[name] = isFunction(parentInst[name]) && 
+        parentInst[name] = Utils.isFunction(parentInst[name]) && 
         //make sure that this function contains callParent
         this.fnTest.test(propConfig[name]) ? 
         (function(name, fn){
@@ -426,7 +417,7 @@ Utils.cls = {
     //copy properties from parent Classs instance, 
     for(var name in parentInst){
       var p = parentInst[name];
-      if(!isFunction(p)){
+      if(!Utils.isFunction(p)){
         constructorProps[name] = me.deepCopy(p);
       }
     }
@@ -454,11 +445,11 @@ Utils.cls = {
    * Deep copy all properties, so there are no conflicts
    */
   deepCopy : function(from, target){
-    if(isObject(from)){
-      target = target || ((isArray(from)) ? [] : {});
+    if(Utils.isObject(from)){
+      target = target || ((Utils.isArray(from)) ? [] : {});
       for (var i in from){
-        if(isObject(from[i])){
-          target[i] = (isArray(from[i])) ? [] : {};
+        if(Utils.isObject(from[i])){
+          target[i] = (Utils.isArray(from[i])) ? [] : {};
           this.deepCopy(from[i], target[i]);
         }else{
           target[i] = from[i];

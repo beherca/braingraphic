@@ -3,7 +3,7 @@
  * to create a virtual world data, which is used 
  * for present visual world
  */
-var World = {
+World = {
   create : function(config){
     return Utils.cls.create(World.World, config);
   }
@@ -63,7 +63,7 @@ World.World = Utils.cls.extend(World.Object, {
       //TODO lazy crash detect don't know why, this is just not working
       //p.on({'onMove' : {fn : me.detectCrash, scope : me}});
       this.points[p.iid] = p;
-      if(!isEmpty(this.gForce) && p.isApplyGForce){
+      if(!Utils.isEmpty(this.gForce) && p.isApplyGForce){
         this.gLink(p);
       }
       this.fireEvent('onAdd', {type : config.type, obj :p});
@@ -108,7 +108,7 @@ World.World = Utils.cls.extend(World.Object, {
   },
   
   remove : function(obj){
-    if(isEmpty(obj))return;
+    if(Utils.isEmpty(obj))return;
     obj.removeAllListeners();
     if(obj instanceof World.Point){
       delete this.points[obj.iid];
@@ -137,8 +137,8 @@ World.World = Utils.cls.extend(World.Object, {
     var post = config.post;
     var link = null;
     if(pre && post && pre != post 
-        && isEmpty(pre.getIw(post)) 
-        && isEmpty(post.getIw(pre))){
+        && Utils.isEmpty(pre.getIw(post)) 
+        && Utils.isEmpty(post.getIw(pre))){
       link = Utils.cls.create(World.Link, Utils.apply({world : this, iid : this.iidor.get()}, config));
       pre.setIw(post, link);
       post.setIw(pre, link);
@@ -172,8 +172,8 @@ World.World = Utils.cls.extend(World.Object, {
         maxEffDis : 1/*see notes above*//*, 
         repeat : 10*//*see notes above*/};
 
-    var preSfc = isEmpty(pre.surfaceLinkConfig) ? defaultSfc : pre.surfaceLinkConfig;
-    var postSfc = isEmpty(post.surfaceLinkConfig) ? defaultSfc : post.surfaceLinkConfig;
+    var preSfc = Utils.isEmpty(pre.surfaceLinkConfig) ? defaultSfc : pre.surfaceLinkConfig;
+    var postSfc = Utils.isEmpty(post.surfaceLinkConfig) ? defaultSfc : post.surfaceLinkConfig;
     var mergeLink = {};
     for(var key in defaultSfc){
       mergeLink[key] = (preSfc[key] + postSfc[key])/2;
@@ -313,7 +313,7 @@ World.Point = Utils.cls.extend(World.Object, {
           pos = OP.add(parseInt(me.x), parseInt(me.y), parseInt(me.z));
           pos[d] += i;
           testP = me.world.indexer.get(pos, d);
-          if(!isEmpty(testP)){
+          if(!Utils.isEmpty(testP)){
             pos[d] += -dir;
             isCrashed = true;
             break;
@@ -323,7 +323,7 @@ World.Point = Utils.cls.extend(World.Object, {
         this.world.indexer.remove(me);
         me[d] = pos[d];
         this.world.indexer.add(me);
-        if(isCrashed && !isEmpty(testP)){
+        if(isCrashed && !Utils.isEmpty(testP)){
           if(!this.isCrashable && testP.isCrashable){
             if(!testP.isAnchor)
               testP['v' + d] = parseInt(testP['v' + d] > 0 ? -testP['v' + d] : testP['v' + d]);
@@ -353,7 +353,7 @@ World.Point = Utils.cls.extend(World.Object, {
    * This is a customized crash handler
    */
   crashHandler : function(point){
-    if(isEmpty(this.getIw(point))){
+    if(Utils.isEmpty(this.getIw(point))){
       this.world.surfaceLink(this, point);
     }
   },
@@ -379,7 +379,7 @@ World.Point = Utils.cls.extend(World.Object, {
    * get the link between this and the object that currently interact with
    */
   rmIw : function(point){
-    if(!isEmpty(this.getIw(point))){
+    if(!Utils.isEmpty(this.getIw(point))){
       delete this.interactWith[point.iid];
     }
   },
@@ -389,7 +389,7 @@ World.Point = Utils.cls.extend(World.Object, {
    */
   isSameGroup : function(point){
     //search to the top of the inherent tree, if this is root, the group should be null
-    if(!isEmpty(this.group)){
+    if(!Utils.isEmpty(this.group)){
       return point.group == this || this.group.isSameGroup(point);
     }else {
       return point.group == this;
@@ -532,7 +532,7 @@ World.Circle = Utils.cls.extend(World.Point, {
         x : me.x + px, y : me.y + py, z : me.z + pz,
       });
       this.points[point.iid] = point;
-      head = !isEmpty(head) ? head : point;
+      head = !Utils.isEmpty(head) ? head : point;
       
       this.world.link({pre : me, post : point, 
         unitForce : config.unitForce, elasticity : config.elasticity, 
@@ -540,7 +540,7 @@ World.Circle = Utils.cls.extend(World.Point, {
         maxEffDis : config.maxEffDis, 
         isDual: !this.isAnchor});
       if(prePoint){
-        dis2Pre = !isEmpty(dis2Pre) ? dis2Pre : Utils.getDisXY(prePoint, point);
+        dis2Pre = !Utils.isEmpty(dis2Pre) ? dis2Pre : Utils.getDisXY(prePoint, point);
         this.world.link({pre : prePoint, post : point, 
           unitForce : config.unitForce, elasticity : config.elasticity, 
           distance : dis2Pre, 
@@ -625,7 +625,7 @@ World.Line = Utils.cls.extend(World.Point, {
     var dis = Utils.getDisXY(this.start, this.end);
     var config = this.config;
     this.internalLink = this.getLink();
-    if(isEmpty(this.internalLink)){
+    if(Utils.isEmpty(this.internalLink)){
       this.internalLink = this.world.link({pre : this.start, post : this.end, 
         unitForce : config.unitForce, elasticity : config.elasticity, 
         distance : dis,
@@ -701,7 +701,7 @@ World.Polygon = Utils.cls.extend(World.Point, {
   },
   
   gen : function(config){
-    if(!isEmpty(this.pointArray) && isArray(this.pointArray) && this.pointArray.length > 0){
+    if(!Utils.isEmpty(this.pointArray) && Utils.isArray(this.pointArray) && this.pointArray.length > 0){
       this.createPoints();
       this.createLinks();
       this.createBoundary();
@@ -821,7 +821,7 @@ World.Force = Utils.cls.extend(Observable, {
   },
   
   calc : function(){
-    if(!isEmpty(this.value) && !isEmpty(this.direction)){
+    if(!Utils.isEmpty(this.value) && !Utils.isEmpty(this.direction)){
       this.angle = Utils.getAngle(OP, this.direction);
       this.fx = this.value * Math.cos(this.angle);
       this.fy = this.value * Math.sin(this.angle);
@@ -884,12 +884,12 @@ World.Link = Utils.cls.extend(Observable, {
 //    console.log('calc');
     var pre = this.pre;
     var post = this.post;
-    if(isEmpty(pre) || isEmpty(post) || pre.destroyed || post.destroyed){
+    if(Utils.isEmpty(pre) || Utils.isEmpty(post) || pre.destroyed || post.destroyed){
       this.destroy();
       return;
     }
     var linkType = this.type;
-    var linkImpl = isFunction(this[linkType]) ? this[linkType] : {};
+    var linkImpl = Utils.isFunction(this[linkType]) ? this[linkType] : {};
     if(this.checkBreakForce()){
       if(this.isBreakable){
         this.destroy();
@@ -927,8 +927,8 @@ World.Link = Utils.cls.extend(Observable, {
   
   checkBreakForce : function(){
     var realDisDiff = Utils.getDisXY(this.pre, this.post) - this.distance;
-    var min = !isEmpty(this.minEffDis) ? realDisDiff < this.minEffDis : false;
-    var max = !isEmpty(this.maxEffDis) ? realDisDiff > this.maxEffDis : false;
+    var min = !Utils.isEmpty(this.minEffDis) ? realDisDiff < this.minEffDis : false;
+    var max = !Utils.isEmpty(this.maxEffDis) ? realDisDiff > this.maxEffDis : false;
     
     return min|| max;
   },
@@ -988,7 +988,7 @@ World.ForceLink = Utils.cls.extend(World.Link, {
   force : null,
   
   calc : function(){
-    if(!isEmpty(this.force) && !isEmpty(this.post)){
+    if(!Utils.isEmpty(this.force) && !Utils.isEmpty(this.post)){
       this.force.calc();
       this.pre = OP.add(this.post.x + this.force.fx, this.post.y + this.force.fy);
       this.callParent();

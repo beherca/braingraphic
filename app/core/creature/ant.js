@@ -3,7 +3,7 @@
  * to create a virtual world data, which is used 
  * for present visual world
  */
-var Creature = {
+Creature = {
     SEX : {
       M : 'male',
       F : 'female'
@@ -54,7 +54,7 @@ Creature.Ant = Utils.cls.extend(Creature.Life, {
     
     init : function(config){
       Utils.apply(this, config);
-      if(!isEmpty(this.gene)){
+      if(!Utils.isEmpty(this.gene)){
         var bb = new BrainBuilder(this.gene);
         this.brain = bb.build();// build cortex
         this.createBody();
@@ -233,7 +233,7 @@ Creature.Ant = Utils.cls.extend(Creature.Life, {
           }
         }
       }
-      if(!isEmpty(target)){
+      if(!Utils.isEmpty(target)){
         this.smell(target);
       }
     },
@@ -262,7 +262,7 @@ Creature.Ant = Utils.cls.extend(Creature.Life, {
     },
     
     eat : function(other){
-      if(!isEmpty(other) && !isEmpty(other.group)
+      if(!Utils.isEmpty(other) && !Utils.isEmpty(other.group)
           && other.group != this
           && other.group instanceof Creature.Life){
         this.energy += other.group.energy / 1000;

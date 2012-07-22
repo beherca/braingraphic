@@ -1,4 +1,4 @@
-ParseEngine = function(json, addNeuron, addInput, addOutput, connectNeuron, onFinish, scope) {
+function ParseEngine(json, addNeuron, addInput, addOutput, connectNeuron, onFinish, scope) {
   if (typeof (json) != 'string' || !addNeuron || !connectNeuron)
     return;
   var obj = null;

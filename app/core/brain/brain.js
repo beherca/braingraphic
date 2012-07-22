@@ -16,7 +16,7 @@ This file may be used under the terms of the GNU General Public License version 
   /**
    * global g_accuracy, back to 6 decimal
    */
-  var g_accuracy = 6;
+g_accuracy = 6;
   
 /**
  * Neuron Act like a differentiator, multi-synapses as inputs, and
@@ -24,10 +24,10 @@ This file may be used under the terms of the GNU General Public License version 
  * 
  * @returns
  */
-var Neuron = function(iid, decayRate) {
+function Neuron(iid, decayRate) {
   Observable.apply(this);
   /* default id as null, DO NOT CHANGE THIS */
-  this.iid = isEmpty(iid)? 0 : iid;
+  this.iid = Utils.isEmpty(iid)? 0 : iid;
   this.output = 0;
   this.axons = [];
   this.threshold = 1;
@@ -35,7 +35,7 @@ var Neuron = function(iid, decayRate) {
    * This decay Rate is for multiple output, output will be decay in a fixed
    * time
    */
-  this.decayRate = isEmpty(decayRate) ? 0.5 : decayRate;
+  this.decayRate = Utils.isEmpty(decayRate) ? 0.5 : decayRate;
   this.isWatched = false;
   
   /*
@@ -52,7 +52,7 @@ var Neuron = function(iid, decayRate) {
  *          is where the synapse to
  * @returns
  */
-var Synapse = function(soma, postSynapse, isInhibit, strength) {
+function Synapse(soma, postSynapse, isInhibit, strength) {
   Observable.apply(this);
   this.iid = 0;
   this.soma = soma;
@@ -75,7 +75,7 @@ var Synapse = function(soma, postSynapse, isInhibit, strength) {
  * 
  * @returns
  */
-var Cortex = function() {
+function Cortex() {
   Observable.apply(this);
   /**
    * all neurons
@@ -130,7 +130,7 @@ var Cortex = function() {
  * @param
  * @returns
  */
-var Hippocampus = function() {
+function Hippocampus() {
 
 };
 
@@ -139,13 +139,14 @@ var Hippocampus = function() {
  * 
  * @returns
  */
-var Sleep = {
+Sleep = {
   forget : function() {
 
   }
 };
 
-var MotorCortex = function() {
+function MotorCortex() {
+  
 };
 /**
  * The basal ganglia are thus thought to facilitate movement by channelling
@@ -156,7 +157,7 @@ var MotorCortex = function() {
  * cortex in certain interval (TBD, but must greater than cortex loop) and only
  * those fired neurons will allow to invoke actions.
  */
-var BasalGanglia = function() {
+function BasalGanglia() {
 };
 
 /**
@@ -165,7 +166,7 @@ var BasalGanglia = function() {
  * 
  * @returns
  */
-var Engine = {
+Engine = {
   go : function(neuron) {
     neuron.compute();// compute will handle compute the input and determine
     // whether to fire
@@ -174,7 +175,7 @@ var Engine = {
 
 Cortex.prototype = {
   addNeuron : function(iid) {
-    iid = isEmpty(iid) ? this.idCount++ : iid;
+    iid = Utils.isEmpty(iid) ? this.idCount++ : iid;
     var neuron = new Neuron(iid, this.g_decayRate);
     neuron.cortex = this;
     this.neurons.push(neuron);
@@ -285,7 +286,7 @@ Neuron.prototype = {
     if (!this.isWatched) {
       this.isWatched = this.cortex.addWatch(this);
     }
-    this.output = round(synapse.getOutput.call(synapse) + this.output, g_accuracy);
+    this.output = Utils.round(synapse.getOutput.call(synapse) + this.output, g_accuracy);
     if (this.output > this.threshold) {// if the sum is bigger than threshold
       this.fire();
     }
@@ -318,7 +319,7 @@ Neuron.prototype = {
    * this will slow the activity of neuron, simulate the water drop of neuron
    */
   decay : function() {
-    this.output = round(this.output * this.decayRate, g_accuracy);
+    this.output = Utils.round(this.output * this.decayRate, g_accuracy);
   },
 
   destory : function() {
@@ -339,7 +340,7 @@ Synapse.prototype = {
   // immediatly
   // no latency.
   getOutput : function() {
-    var out = round(this.soma.getNormalizedOutput.call(this.soma) * this.strength, g_accuracy);
+    var out = Utils.round(this.soma.getNormalizedOutput.call(this.soma) * this.strength, g_accuracy);
     return this.isInhibit ? -out : out;
   },
 
@@ -348,25 +349,26 @@ Synapse.prototype = {
   }
 };
 
-var BrainBuilder = function(mapsdata) {
+function BrainBuilder(mapsdata) {
   this.synapseCache = [];
   this.cortex = null;
   this.mapsdata = mapsdata;
 };
-var gBrain = {
+
+gBrain = {
   cortex : null, // cortex instance
 
   set : function(inputs) {
-    if (isEmpty(this.cortex)) {
+    if (Utils.isEmpty(this.cortex)) {
       return null;
     }
-    if (!isEmpty(arguments)) {
+    if (!Utils.isEmpty(arguments)) {
       this.cortex.set(inputs);
     }
   },
 
   get : function() {
-    if (isEmpty(this.cortex)) {
+    if (Utils.isEmpty(this.cortex)) {
       return null;
     }
     return this.cortex.get();
@@ -409,7 +411,7 @@ BrainBuilder.prototype = {
     var gsp = {};// grouped Synapse By PostNeuron iid
     for (; i < this.synapseCache.length; i++) {
       var sc = this.synapseCache[i];
-      if (isEmpty(gsp[sc.synapse.postNeuron.iid])) {
+      if (Utils.isEmpty(gsp[sc.synapse.postNeuron.iid])) {
         gsp[sc.synapse.postNeuron.iid] = [ sc ];
       } else {
         gsp[sc.synapse.postNeuron.iid].push(sc);
@@ -448,3 +450,8 @@ BrainBuilder.prototype = {
     this.cortex.updateWatch.apply(this.cortex);
   }
 };
+
+Brain = {};
+Brain.Neuron = Neuron;
+Brain.Synapse = Synapse;
+Brain.Cortex = Cortex;
