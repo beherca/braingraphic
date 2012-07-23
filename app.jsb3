@@ -8,23 +8,23 @@
                 "debug": true
             },
             "files": [{
-                    "path": "app/core/",
+                    "path": "core/",
                     "name": "utils.js"
                 },
                 {
-                    "path": "app/core/world/",
+                    "path": "core/world/",
                     "name": "world.js"
                 },
                 {
-                    "path": "app/core/creature/",
+                    "path": "core/creature/",
                     "name": "ant.js"
                 },
                 {
-                    "path": "app/core/brain/",
+                    "path": "core/brain/",
                     "name": "engine.js"
                 },
                 {
-                    "path": "app/core/brain/",
+                    "path": "core/brain/",
                     "name": "brain.js"
                 },
                 {
@@ -115,32 +115,32 @@
         },
         {
             "name": "All Core Classes",
-            "target": "core.js",
+            "target": "core/core.js",
             "options": {
                 "debug": true
             },
             "files": [{
-                    "path": "app/core/",
+                    "path": "core/",
                     "name": "utils.js"
                 },
                 {
-                    "path": "app/core/world/",
+                    "path": "core/world/",
                     "name": "world.js"
                 },
                 {
-                    "path": "app/core/creature/",
+                    "path": "core/creature/",
                     "name": "ant.js"
                 },
                 {
-                    "path": "app/core/brain/",
+                    "path": "core/brain/",
                     "name": "engine.js"
                 },
                 {
-                    "path": "app/core/brain/",
+                    "path": "core/brain/",
                     "name": "brain.js"
                 },
                 {
-                    "path": "app/core/",
+                    "path": "core/",
                     "name": "mconf.js"
                 }
             ]
@@ -152,23 +152,23 @@
                 "debug": true
             },
             "files": [{
-                    "path": "app/core/",
+                    "path": "core/",
                     "name": "utils.js"
                 },
                 {
-                    "path": "app/core/world/",
+                    "path": "core/world/",
                     "name": "world.js"
                 },
                 {
-                    "path": "app/core/creature/",
+                    "path": "core/creature/",
                     "name": "ant.js"
                 },
                 {
-                    "path": "app/core/brain/",
+                    "path": "core/brain/",
                     "name": "engine.js"
                 },
                 {
-                    "path": "app/core/brain/",
+                    "path": "core/brain/",
                     "name": "brain.js"
                 },
                 {
@@ -233,23 +233,23 @@
                 "debug": true
             },
             "files": [{
-                    "path": "app/core/",
+                    "path": "core/",
                     "name": "utils.js"
                 },
                 {
-                    "path": "app/core/world/",
+                    "path": "core/world/",
                     "name": "world.js"
                 },
                 {
-                    "path": "app/core/creature/",
+                    "path": "core/creature/",
                     "name": "ant.js"
                 },
                 {
-                    "path": "app/core/brain/",
+                    "path": "core/brain/",
                     "name": "engine.js"
                 },
                 {
-                    "path": "app/core/brain/",
+                    "path": "core/brain/",
                     "name": "brain.js"
                 },
                 {

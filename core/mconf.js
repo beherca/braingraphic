@@ -4,4 +4,4 @@
     module.exports.Utils = Utils;
     module.exports.Brain = Brain;
   }
-})(module);
+})(typeof(module) === 'undefined' ? null : module);

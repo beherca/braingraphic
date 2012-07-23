@@ -2,7 +2,7 @@ onmessage = function(e){
   var ticker;
   if ( e.data === "init" ) {
     // Do some computation
-    importScripts('../../../core.js');
+    importScripts('../../../core/core.js');
     this.world = World.create({
       x : 0,
       y : 0,
