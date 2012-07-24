@@ -437,7 +437,9 @@ Utils.cls = {
   create : function(classDef, valConfig){
     var instance = new classDef();
     Utils.apply(instance, valConfig);
-    instance.init(valConfig);
+    if(!Utils.isEmpty(instance.init) && Utils.isFunction(instance.init)){
+      instance.init(valConfig);
+    }
     return instance;// an object
   },
   
