@@ -110,7 +110,10 @@ function Observable(){
     /*
      * Usage 1
      * this.on({
-     *   onClick : function(){},
+     *   onClick : {
+     *     fn : function(){},
+     *     scope : function(){}
+     *   },
      *   onDestroy : function(){},
      * })
      */
@@ -123,11 +126,18 @@ function Observable(){
     }
     /*
      * Usage 2 
-     * this.obj.on('onClick', function(){}, scope[default obj])
+     * this.obj.on('onClick', function(){}, [scope(default obj)], [repeat])
      */
     else if(!Utils.isEmpty(arguments) && arguments.length > 1){
       var evtName = arguments[0];
       var eventHandler = Utils.isEmpty(arguments[2]) ? {fn : arguments[1], scope : this} : {fn : arguments[1], scope : arguments[2]};
+      /*
+       * set repeat time for event handler, 
+       * when repeat times reduce to zero, this handler will be destroy automatically
+      */
+      if(!Utils.isEmpty(arguments[3]) && arguments[3] > 0){
+        eventHandler.repeat = arguments[3];
+      }
       this.addListener(evtName, eventHandler);
     }
   };
@@ -146,17 +156,30 @@ function Observable(){
       for(var i in reglists){
         var listener = reglists[i];
         if(typeof(listener) == 'object'){
-          listener.fn.call(listener.scope, obj, name);
-        }else if(typeof(listener) == 'function'){
-          listener.call(this, obj, name);
+          /*
+           * Check whether current listener comes to the end of its life,
+           * if yes, remove it
+           */
+          if(!Utils.isEmpty(listener.repeat)){
+            if( listener.repeat > 0){
+              listener.repeat += -1;
+              listener.fn.call(listener.scope, obj, name);
+            }else{
+              /**
+               * delete the handler for that listener
+               */
+              if(reglists.length > 1){//more than one
+                var newListeners = reglists;
+                newListeners.splice(i, i + 1);
+                this.listeners[name] = newListeners;
+              }else{
+                delete this.listeners[name];
+              }
+            }
+          }else{
+            listener.fn.call(listener.scope, obj, name);
+          }
         }
-      }
-    }else if(!Utils.isEmpty(reglists) && !Array.isArray(reglists)){
-      var listener = reglists;
-      if(typeof(listener) == 'object'){
-        listener.fn.call(listener.scope, obj, name);
-      }else if(typeof(listener) == 'function'){
-        listener.call(this, obj, name);
       }
     }
   };
@@ -167,15 +190,27 @@ function Observable(){
    * listen to this event will be deleted 
    * @returns the objects that is deleted
    */
-  this.removeListener = function(evtName, func){
+  this.removeListener = function(evtName, fn){
     var removed = null;
     if(!Utils.isEmpty(evtName)){
-      if(!Utils.isEmpty(func)){
+      if(!Utils.isEmpty(fn)){
         var reglist = this.listeners[evtName];
         if(!Utils.isEmpty(reglist)){
-          var i = reglist.indexOf(func);
-          removed = reglist.splice(i, i+1);
-          this.listeners[evtName] = reglist;
+          var ls = reglist.filter(function(obj){
+            if(obj.fn === fn){
+              return true;
+            }
+          });
+          if(ls.length > 0){
+            //found
+            if(reglist.length > 1){
+              var i = reglist.indexOf(ls[0]);
+              removed = reglist.splice(i, i+1);
+              this.listeners[evtName] = reglist;
+            }else{
+              delete this.listeners[evtName];
+            }
+          }
         }
       }else{
         delete this.listeners[evtName];
