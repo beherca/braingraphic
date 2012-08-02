@@ -160,6 +160,30 @@ function Observable(){
       }
     }
   };
+  
+  /**
+   * @param evtName the registered event name
+   * @param func the function that is registered, if this is null, all listeners which
+   * listen to this event will be deleted 
+   * @returns the objects that is deleted
+   */
+  this.removeListener = function(evtName, func){
+    var removed = null;
+    if(!Utils.isEmpty(evtName)){
+      if(!Utils.isEmpty(func)){
+        var reglist = this.listeners[evtName];
+        if(!Utils.isEmpty(reglist)){
+          var i = reglist.indexOf(func);
+          removed = reglist.splice(i, i+1);
+          this.listeners[evtName] = reglist;
+        }
+      }else{
+        delete this.listeners[evtName];
+      }
+    }
+    return removed;
+  },
+  
   this.removeAllListeners = function(){
     this.listeners = {};
   };
