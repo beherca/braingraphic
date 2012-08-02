@@ -163,6 +163,10 @@ function Observable(){
   this.removeAllListeners = function(){
     this.listeners = {};
   };
+  
+  this.destroy = function(){
+    this.listeners = null;
+  };
   return this;
 };
 
