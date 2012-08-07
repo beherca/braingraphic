@@ -64,7 +64,7 @@ Ext.define('AM.world.PolygonTest', {
       pg(me, arr, true, true);
     }
     
-    for(var i =0; i < 100; i ++){
+    for(var i =0; i < 1; i ++){
 //      pg1(this, 20, 40, OP.add(500 - 100*i, 0));
 //      pg1(this, 3, 20, OP.add(300 - 70*i, 100));
       pg1(this, 4, 20, OP.add(600 - 30*i, 200));

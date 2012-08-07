@@ -169,8 +169,9 @@ function Observable(){
                * delete the handler for that listener
                */
               if(reglists.length > 1){//more than one
-                var newListeners = reglists;
-                newListeners.splice(i, i + 1);
+                //copy the list
+                var newListeners = [].concat(reglists);
+                newListeners.splice(i, i);
                 this.listeners[name] = newListeners;
               }else{
                 delete this.listeners[name];
@@ -205,7 +206,7 @@ function Observable(){
             //found
             if(reglist.length > 1){
               var i = reglist.indexOf(ls[0]);
-              removed = reglist.splice(i, i+1);
+              removed = reglist.splice(i, i);
               this.listeners[evtName] = reglist;
             }else{
               delete this.listeners[evtName];
@@ -501,7 +502,7 @@ Utils.cls = {
     var instance = new classDef();
     Utils.apply(instance, valConfig);
     if(!Utils.isEmpty(instance.init) && Utils.isFunction(instance.init)){
-      instance.init(valConfig);
+      instance.init.call(instance, valConfig);
     }
     return instance;// an object
   },
