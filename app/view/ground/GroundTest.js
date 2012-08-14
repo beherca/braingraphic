@@ -41,7 +41,7 @@ Ext.define('AM.view.ground.GroundTest', {
     var post = world.add({type: 'point', x : 600, y : 200});
     var link = world.link({pre : pre, post : post, unitForce : 0.1, distance : 0, maxEffDis : 2000, isDual: true});
     
-    var task = Ext.TaskManager.start({
+    Ext.TaskManager.start({
     interval : 100,
     run: function(){
       world.tick();

@@ -43,7 +43,7 @@ Ext.define('AM.view.ground.GroundMultPointsTest', {
       this.points.push(p);
       pre = p;
     }
-    var task = Ext.TaskManager.start({
+    Ext.TaskManager.start({
     interval : 100,
     run: function(){
       world.tick();

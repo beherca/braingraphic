@@ -29,13 +29,12 @@ Ext.define('AM.view.neuronmap.BrainCharts', {
   },
 
   initComponent : function() {
-    var me = this;
     // use a renderer for values in the data view.
     function perc(v) {
       return v + '%';
     }
 
-    var form = false, rec = false, selectedStoreItem = false,
+    var selectedStoreItem = false,
     // performs the highlight of an item in the bar series
     selectItem = function(storeItem) {
       var name = storeItem.get('company'), series = barChart.series
@@ -107,7 +106,6 @@ Ext.define('AM.view.neuronmap.BrainCharts', {
 
       listeners : {
         selectionchange : function(model, records) {
-          var json, name, i, l, items, series, fields;
           if (records[0]) {
             rec = records[0];
           }
