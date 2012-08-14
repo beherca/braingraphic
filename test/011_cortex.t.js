@@ -6,17 +6,18 @@ StartTest(function(t) {
     t.ok(Synapse, 'Cortex is defined');
 
     t.diag("Create first neuron");
-    var neuron = Cortex.addNeuron();
+    var ctx = new Cortex();
+    var neuron = ctx.addNeuron();
     t.ok(neuron, 'neuron created');
     t.is(neuron.iid, 0, 'initial neuron iid is 0');
     
     t.diag("Create sec neuron");
-    var sec_n = Cortex.addNeuron();
+    var sec_n = ctx.addNeuron();
     t.ok(sec_n, 'neuron created');
     t.is(sec_n.iid, 1, 'second neuron iid is 1');
     
     t.diag("Connect both neuron");
-    var s = Cortex.connect(neuron, sec_n);//connect() return synapse
+    var s = ctx.connect(neuron, sec_n);//connect() return synapse
     t.ok(s, 'synapse is created');
     t.ok(s.soma, 'soma is added');
     t.ok(s.postSynapse, 'postSynapse is added');
@@ -29,14 +30,14 @@ StartTest(function(t) {
     var staticInput = new Neuron();
     var inputValue = 2;
     staticInput.output = inputValue;
-    var synapse1 = Cortex.connect(staticInput, neuron);
+    var synapse1 = ctx.connect(staticInput, neuron);
     neuron.compute(synapse1);
     // 1.5 * 0.1, 0.1 is default strength of synapse
     t.is(neuron.output.toFixed(3), 0.1, 'neuron\'s output after compute');
-    t.is(Cortex.watchedNeurons.length, 1, 'number of watched neurons should be 1 after compute, because sec_n is not activated');
+    t.is(Object.keys(ctx.watchedNeurons).length, 1, 'number of watched neurons should be 1 after compute, because sec_n is not activated');
     
     neuron.compute(synapse1);
-    t.is(Cortex.watchedNeurons.length, 1, 'number of watched neurons should be still 1 after dual compute() call');
+    t.is(Object.keys(ctx.watchedNeurons).length, 1, 'number of watched neurons should be still 1 after dual compute() call');
     t.is(neuron.getNormalizedOutput(), 0, 'no output ,should be 0');
     
     t.diag("Sitimulation comming twice, need to compute again. but the input is not strong enough to activate the neuron, so do not enhance the synapse strength");

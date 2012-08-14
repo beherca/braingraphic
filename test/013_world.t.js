@@ -8,7 +8,6 @@ StartTest(function(t) {
     t.ok(World.Object, 'World Object is defined');
     t.ok(World.Point, 'World Point is defined');
     t.ok(World.Circle, 'World Circle is defined');
-    t.ok(World.LinkEngine, 'World LinkEngine is defined');
     
     var world = World.create({x : 300, y : 300});
     t.ok(world, 'World Created');
