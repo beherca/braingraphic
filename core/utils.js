@@ -231,6 +231,65 @@ function Observable(){
 };
 
 /**
+ * Unblock looper example, equal to for(var i =start; i< end ; i + step){console.log(i)}
+ * l = Utils.cls.create(Looper)
+ * l.run({name : name, start : 0, end : 10, step : 1, function(i){console.log(i)}})
+ * setInterval(l.tick, 1000); // in browser
+ * process.tick(l.tick) // in nodejs
+ * @returns
+ */
+function Looper(){
+  this.loopees = {};
+};
+
+Looper.prototype =  {
+  tick : function(){
+    for(var name in this.loopees){
+      var loopee = this.loopees[name];
+      if(loopee['index'] < loopee['end']){
+        var i = loopee['index'] + loopee['step'];
+        loopee['handler'](i);
+        loopee['index'] = i;
+      }else{
+        this.remove(name);
+      }
+    }
+  },
+  
+  /**
+   * loopee : {
+        name : name, 
+        start :  start,
+        end : end,
+        step : step,
+        handler : handler,
+        callder : caller
+      }
+   */
+  run : function(loopee){
+    loopee['handler'].bind(loopee['caller']);
+    loopee['index'] = loopee['start'];
+    this.loopees[loopee.name] = loopee;
+  },
+  
+  /**
+   * remove loopee
+   * @param name loopee name
+   */
+  remove : function(name){
+    delete this.loopees[name];
+  },
+  
+  destroy : function(){
+    this.loopees = null;
+  }
+};
+
+Looper.prototype.constructor = Looper;
+  
+
+
+/**
  * Origin Point
  */
 OP = {

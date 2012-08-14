@@ -16,5 +16,6 @@ Harness.start(
     '012_engine.t.js',
     '013_world.t.js',
     '014_ant.t.js',
-    '015_utils.t.js'
+    '015_observable.t.js',
+    '016_looper.t.js'
 );

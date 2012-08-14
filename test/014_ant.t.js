@@ -19,13 +19,15 @@ StartTest(function(t) {
     gene : JSON.stringify(gene),
     sex : Creature.SEX.M
   });
-  var ant_m = world.add({
+  t.ok(ant_m, 'and created');
+  ant_m = world.add({
     type: 'ant', 
     x : 300, y : 100,
     gene : gene,
     sex : Creature.SEX.F
   });
   
+  t.ok(ant_m, 'and created');
   world.tick();
   /*
   Ext.TaskManager.start({

@@ -5,6 +5,7 @@ StartTest(function(t) {
   t.ok(Ext.Window, '.. indeed');
 
   t.ok(Utils, 'Utils is defined');
+  t.ok(Observable, 'Observable is defined');
 
   var A = Utils.cls.extend(Observable, {
     a : 1
