@@ -21,7 +21,7 @@ StartTest(function(t) {
       console.log(i);
       count++;
     },
-    caller : this
+    scope : this
   });
   
   t.is(l.loopees.hasOwnProperty('test'), true, "loopee 'test' has been added");

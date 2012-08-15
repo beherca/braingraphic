@@ -238,21 +238,41 @@ function Observable(){
  * process.tick(l.tick) // in nodejs
  * @returns
  */
-function Looper(){
+function Looper(ticker){
   this.loopees = {};
+  this.forceStop = false;
+  this.ticker = ticker;
 };
 
 Looper.prototype =  {
+  start : function(){
+    this.forceStop = false;
+    this.tick();
+  },
+  
+  stop : function(){
+    this.forceStop = true;
+  },
+  
   tick : function(){
-    for(var name in this.loopees){
-      var loopee = this.loopees[name];
+    var me = this;
+    console.log('tick');
+    for(var name in me.loopees){
+      var loopee = me.loopees[name];
       if(loopee['index'] < loopee['end']){
         var i = loopee['index'] + loopee['step'];
         loopee['handler'](i);
         loopee['index'] = i;
       }else{
-        this.remove(name);
+        me.remove(name);
       }
+    }
+    if(me.forceStop){
+      me.forceStop = false;
+    }else if(me.ticker){
+      me.ticker(function(){
+        me.tick();
+      });
     }
   },
   
@@ -267,7 +287,7 @@ Looper.prototype =  {
       }
    */
   run : function(loopee){
-    loopee['handler'].bind(loopee['caller']);
+    loopee['handler'].bind(loopee['scope']);
     loopee['index'] = loopee['start'];
     this.loopees[loopee.name] = loopee;
   },
