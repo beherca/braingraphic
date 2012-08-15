@@ -256,7 +256,6 @@ Looper.prototype =  {
   
   tick : function(){
     var me = this;
-    console.log('tick');
     for(var name in me.loopees){
       var loopee = me.loopees[name];
       if(loopee['index'] < loopee['end']){
@@ -287,7 +286,7 @@ Looper.prototype =  {
       }
    */
   run : function(loopee){
-    loopee['handler'].bind(loopee['scope']);
+    loopee['handler'] = loopee['handler'].bind(loopee['scope']);
     loopee['index'] = loopee['start'];
     this.loopees[loopee.name] = loopee;
   },
