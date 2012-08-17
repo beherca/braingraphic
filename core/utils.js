@@ -260,7 +260,7 @@ Looper.prototype =  {
       var loopee = me.loopees[name];
       if(loopee['index'] < loopee['end']){
         var i = loopee['index'] + loopee['step'];
-        loopee['handler'](i);
+        loopee['capsule'] = loopee['handler'](i, loopee['capsule']);
         loopee['index'] = i;
       }else{
         me.remove(name);
@@ -288,6 +288,7 @@ Looper.prototype =  {
   run : function(loopee){
     loopee['handler'] = loopee['handler'].bind(loopee['scope']);
     loopee['index'] = loopee['start'];
+    loopee['capsule'] = null;
     this.loopees[loopee.name] = loopee;
   },
   
