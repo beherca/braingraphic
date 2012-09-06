@@ -259,9 +259,9 @@ Looper.prototype =  {
     for(var name in me.loopees){
       var loopee = me.loopees[name];
       if(loopee['index'] < loopee['end']){
-        var i = loopee['index'] + loopee['step'];
+        var i = loopee['index'];
         loopee['capsule'] = loopee['handler'](i, loopee['capsule']);
-        loopee['index'] = i;
+        loopee['index'] = i + loopee['step'];
       }else{
         me.remove(name);
       }
