@@ -7,5 +7,10 @@
     module.exports.Iid = Iid;
     module.exports.Indexer = Indexer;
     module.exports.Looper = Looper;
+    //Project Light
+    module.exports.Frame = Frame;
+    module.exports.SpaceDef = SpaceDef;
+    module.exports.Scene = Scene;
+    module.exports.Frame = Frame;
   }
 })(typeof(module) === 'undefined' ? null : module);
