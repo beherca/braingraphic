@@ -7,26 +7,7 @@
             "options": {
                 "debug": true
             },
-            "files": [{
-                    "path": "core/",
-                    "name": "utils.js"
-                },
-                {
-                    "path": "core/world/",
-                    "name": "world.js"
-                },
-                {
-                    "path": "core/creature/",
-                    "name": "ant.js"
-                },
-                {
-                    "path": "core/brain/",
-                    "name": "engine.js"
-                },
-                {
-                    "path": "core/brain/",
-                    "name": "brain.js"
-                },
+            "files": [
                 {
                     "path": "play/",
                     "name": "Viewport.js"
@@ -159,26 +140,7 @@
             "options": {
                 "debug": true
             },
-            "files": [{
-                    "path": "core/",
-                    "name": "utils.js"
-                },
-                {
-                    "path": "core/world/",
-                    "name": "world.js"
-                },
-                {
-                    "path": "core/creature/",
-                    "name": "ant.js"
-                },
-                {
-                    "path": "core/brain/",
-                    "name": "engine.js"
-                },
-                {
-                    "path": "core/brain/",
-                    "name": "brain.js"
-                },
+            "files": [
                 {
                     "path": "app/view/",
                     "name": "Viewport.js"
@@ -240,26 +202,7 @@
             "options": {
                 "debug": true
             },
-            "files": [{
-                    "path": "core/",
-                    "name": "utils.js"
-                },
-                {
-                    "path": "core/world/",
-                    "name": "world.js"
-                },
-                {
-                    "path": "core/creature/",
-                    "name": "ant.js"
-                },
-                {
-                    "path": "core/brain/",
-                    "name": "engine.js"
-                },
-                {
-                    "path": "core/brain/",
-                    "name": "brain.js"
-                },
+            "files": [
                 {
                     "path": "app/view/",
                     "name": "Viewport.js"

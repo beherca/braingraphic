@@ -8,7 +8,7 @@ FrameConfig = Utils.cls.extend(Observable, {
    */
   count : 10,
   /**
-   * Repeat times to calculate during one frame
+   * Repeat times of calculation during one frame
    */
   rate : 10,
   
@@ -39,6 +39,10 @@ Frame = Utils.cls.extend(Observable, {
   
 });
 
+FrameManager = Utils.cls.extend(Observable, {
+  
+});
+
 //module.exports.Frame = Frame;
 
 /**
@@ -65,9 +69,32 @@ Scene  = Utils.cls.extend(Observable, {
   fc : null,
   
   /**
+   * Frames 
+   */
+  fm : null,
+  /**
    * Space Definitions
    */
-  sd : null
+  sd : null,
+  
+  /**
+   * config = {sd : sd, fc : fc}
+   * @param config
+   */
+  init : function(config){
+    this.config = config;
+    this.fm = Utils.cls.create(FrameManager);
+    this.start();
+  },
+  
+  start : function(){
+    this.generateFrames();
+  },
+  
+  generateFrames : function(){
+    this.frames = this.fm.gen(this.fc);
+  }
+
 });
 
 

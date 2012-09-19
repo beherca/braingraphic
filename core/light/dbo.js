@@ -11,21 +11,30 @@ BlockIndex = Utils.cls.extend(Observable, {
    */
   dividedBy : 'x',
   
+  parent : null,
+  
   /**
    * Left tree
    */
-  l : null,
+  lf : null,
   
   /**
    * Right tree
    */
-  r : null
+  rt : null,
+  
+  /**
+   * block on this node
+   */
+  block : null
 });
 
 /**
  * Block that contains particles
  */
 Block = Utils.cls.extend(Observable, {
+  
+  iid : null,
   /**
    * start points
    */

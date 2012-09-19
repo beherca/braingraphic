@@ -6,6 +6,7 @@ Harness.configure({
     preload     : [
         '../extjs/resources/css/ext-all.css',
         '../extjs/ext-all-debug.js',
+        '../core.js',
         '../all-classes.js'
     ]
 });
@@ -17,5 +18,6 @@ Harness.start(
     '013_world.t.js',
     '014_ant.t.js',
     '015_observable.t.js',
-    '016_looper.t.js'
+    '016_looper.t.js',
+    '017_light.t.js'
 );
