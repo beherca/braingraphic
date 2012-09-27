@@ -2,6 +2,63 @@
  * Copyright(c) 2012 Kai Li
  * Scene
  */
+Distributable  = Utils.cls.extend(Observable, {
+  /**
+   * Top is parent
+   */
+  t : null,
+  
+  /**
+   * left node
+   */
+  l : null,
+  
+  /**
+   * right node
+   */
+  r : null,
+  
+  shadows : [],
+  
+  /**
+   * Self-split into two sub self
+   * @returns
+   */
+  split : function(){
+    //return two new self
+    return null;
+  },
+  
+  /**
+   * combine the sub-self into parent self
+   */
+  combine : function(){
+    
+  },
+  
+  /**
+   * Margin merge
+   */
+  merge : function(){
+    
+  },
+  
+  /**
+   * transfrom back to DNA
+   */
+  transform : function(){
+    
+  },
+  
+  /**
+   * the logic part of computation
+   */
+  compute : function(){
+    
+  }
+  
+});
+
 FrameConfig = Utils.cls.extend(Observable, {
   /**
    * Total of frames within this scene
@@ -40,7 +97,9 @@ Frame = Utils.cls.extend(Observable, {
 });
 
 FrameManager = Utils.cls.extend(Observable, {
-  
+  gen : function(fc){
+    
+  }
 });
 
 //module.exports.Frame = Frame;
@@ -57,7 +116,7 @@ SpaceDef = Utils.cls.extend(Observable, {
 
 //module.exports.SpaceDef = SpaceDef;
 
-Scene  = Utils.cls.extend(Observable, {
+Scene  = Utils.cls.extend(Distributable, {
   /**
    * frames of current Scene
    */
@@ -69,7 +128,7 @@ Scene  = Utils.cls.extend(Observable, {
   fc : null,
   
   /**
-   * Frames 
+   * Frames  manager
    */
   fm : null,
   /**
@@ -93,6 +152,10 @@ Scene  = Utils.cls.extend(Observable, {
   
   generateFrames : function(){
     this.frames = this.fm.gen(this.fc);
+  },
+  
+  updateFrame : function(frame){
+    this.fm.update(frame);
   }
 
 });
