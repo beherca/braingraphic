@@ -577,8 +577,15 @@ Utils.cls = {
   /**
    * equal to new then call init()
    */
-  create : function(classDef, valConfig){
+  create : function(classDef, valConfig, mixins){
     var instance = new classDef();
+    if(mixins && Utils.isArray(mixins) && mixins.length > 0){
+      mixins.forEach(function(cls){
+        var mixin = new cls();
+        //never override instance properties and function with mixin's
+        Utils.apply(instance, mixin, true);
+      });
+    }
     Utils.apply(instance, valConfig);
     if(!Utils.isEmpty(instance.init) && Utils.isFunction(instance.init)){
       instance.init.call(instance, valConfig);
