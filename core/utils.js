@@ -341,6 +341,22 @@ Utils = {
   isArray : function(arr) {
     return !Utils.isEmpty(arr) && arr.constructor == Array;
   },
+  
+  /**
+   * Tojson helper
+   */
+  tj : function(from){
+    var target = {};
+    Utils.apply(target, from, false, function(obj){
+      if(obj && obj.toJson){
+        return obj.toJson();
+      }else{
+        return obj;
+      }
+      
+    });
+    return target;
+  },
 
   round : function(value, accuracy){
     accuracy = Utils.isEmpty(accuracy) ? 0 : accuracy;
@@ -359,17 +375,17 @@ Utils = {
    * @param keepDup refer to whether to override the existed value in target
    * @returns
    */
-  apply : function(target, from, keepDup){
+  apply : function(target, from, keepDup, solver){
     if(keepDup){
       for(var key in from){
         if(Utils.isEmpty(target[key]) && !Utils.isEmpty(from[key])){
-          target[key] = from[key];
+          target[key] = solver ? solver(from[key]) : from[key];
         }
       }
     }else{
       for(var key in from){
         if(!Utils.isEmpty(from[key])){
-          target[key] = from[key];
+          target[key] = solver ? solver(from[key]) : from[key];
         }
       }
     }
