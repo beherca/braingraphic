@@ -163,7 +163,7 @@ function Observable(){
           if(!Utils.isEmpty(listener.repeat)){
             if( listener.repeat > 0){
               listener.repeat += -1;
-              listener.fn.call(listener.scope, obj, name);
+              listener.fn.call(listener.scope, obj, name, this);
             }else{
               /**
                * delete the handler for that listener
@@ -178,7 +178,7 @@ function Observable(){
               }
             }
           }else{
-            listener.fn.call(listener.scope, obj, name);
+            listener.fn.call(listener.scope, obj, name, this);
           }
         }
       }
