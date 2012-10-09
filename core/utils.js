@@ -586,7 +586,9 @@ Utils.cls = {
         Utils.apply(instance, mixin, true);
       });
     }
-    Utils.apply(instance, valConfig);
+    if(!Utils.isEmpty(valConfig)){
+      Utils.apply(instance, valConfig);
+    }
     if(!Utils.isEmpty(instance.init) && Utils.isFunction(instance.init)){
       instance.init.call(instance, valConfig);
     }
