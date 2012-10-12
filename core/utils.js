@@ -550,6 +550,7 @@ Utils.cls = {
     var me = this;
     var parentParent = parentClass.prototype;
     var parentInst = new parentClass();
+    var CLASS_ALIAS = 'alias';
     var constructorProps = {};
     for (var name in propConfig) {
       // Check if we're overwriting an existing function
@@ -579,7 +580,7 @@ Utils.cls = {
       var p = parentInst[name];
       if(!Utils.isFunction(p)){
         //'cls' is a key word of class system, skip it 
-        if(name !== 'cls'){
+        if(name !== CLASS_ALIAS){
           constructorProps[name] = me.deepCopy(p);
         }
       }
@@ -588,7 +589,7 @@ Utils.cls = {
     //must use deep copy to copy the props config, otherwise, the prop will be changed during runtime
     var holder = {};
     //check null and replace all non-charactors case-insensitive but keep $
-    var clsName = propConfig['cls'] == null ? '' : propConfig['cls'].replace(/[^A-Za-z$_]+/gi, '');
+    var clsName = propConfig[CLASS_ALIAS] == null ? '' : propConfig[CLASS_ALIAS].replace(/[^A-Za-z$_]+/gi, '');
     var expName = (clsName == '') ? 'ChildClass' : clsName;
     var evalStr = 'holder["'+ expName +'"] = function ' + clsName + '(){ Utils.apply(this, me.deepCopy(constructorProps));}';
     var cls = null;

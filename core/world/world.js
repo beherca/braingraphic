@@ -11,7 +11,7 @@ World = {
 
 
 World.Object = Utils.cls.extend(Observable, {
-  cls : 'World_Object',
+  alias : 'World_Object',
   _x : 0,
   _y : 0,
   _z : 0
@@ -26,7 +26,7 @@ World.Object.prototype.__defineGetter__('z', function(){return this._z;});
 
 World.World = Utils.cls.extend(World.Object, {
   
-  cls : 'World_World',
+  alias : 'World_World',
   
   iidor : new Iid(),
   links : {},
@@ -206,7 +206,7 @@ World.World = Utils.cls.extend(World.Object, {
 
 World.Point = Utils.cls.extend(World.Object, {
   
-  cls : 'World_Point',
+  alias : 'World_Point',
   
   vx : 0,
   vy : 0,
@@ -428,7 +428,7 @@ World.Point = Utils.cls.extend(World.Object, {
 
 World.Triangle = Utils.cls.extend(World.Point, {
   
-  cls : 'World_Triangle',
+  alias : 'World_Triangle',
   
   /**
    * Top point
@@ -503,7 +503,7 @@ World.Triangle = Utils.cls.extend(World.Point, {
 
 World.Circle = Utils.cls.extend(World.Point, {
   
-  cls : 'World_Circle',
+  alias : 'World_Circle',
   
   radius : 10,
   /**
@@ -572,7 +572,7 @@ World.Circle = Utils.cls.extend(World.Point, {
 
 World.Line = Utils.cls.extend(World.Point, {
   
-  cls : 'World_Line',
+  alias : 'World_Line',
   /**
    * Start Point
    */
