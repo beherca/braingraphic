@@ -568,7 +568,8 @@ Utils.cls = {
           };
         })(name, propConfig[name]) : 
           propConfig[name];
-      }else{//make deepcopy , so we can isolate the properties from prototype
+      }else{
+        //make deepcopy , so we can isolate the properties from prototype
         constructorProps[name] = me.deepCopy(propConfig[name]);
       }
     }
@@ -577,17 +578,29 @@ Utils.cls = {
     for(var name in parentInst){
       var p = parentInst[name];
       if(!Utils.isFunction(p)){
-        constructorProps[name] = me.deepCopy(p);
+        //'cls' is a key word of class system, skip it 
+        if(name !== 'cls'){
+          constructorProps[name] = me.deepCopy(p);
+        }
       }
     }
     // set the properties in the constructor, so the properties change will not affect prototype
-    var ChildClass = function(){
-      //must use deep copy to copy the props config, otherwise, the prop will be changed during runtime
-      Utils.apply(this, me.deepCopy(constructorProps));
-    };
-    ChildClass.prototype = parentInst;
-    ChildClass.prototype.constructor = ChildClass;
-    return ChildClass;//a function
+    //must use deep copy to copy the props config, otherwise, the prop will be changed during runtime
+    var holder = {};
+    //check null and replace all non-charactors case-insensitive but keep $
+    var clsName = propConfig['cls'] == null ? '' : propConfig['cls'].replace(/[^A-Za-z$_]+/gi, '');
+    var expName = (clsName == '') ? 'ChildClass' : clsName;
+    var evalStr = 'holder["'+ expName +'"] = function ' + clsName + '(){ Utils.apply(this, me.deepCopy(constructorProps));}';
+    var cls = null;
+    try{
+      eval(evalStr);
+      cls = holder[expName];
+      cls.prototype = parentInst;
+      cls.prototype.constructor = cls;
+    }catch(e){
+      console.log(e);
+    }
+    return cls;//a function
   },
   
   /**
