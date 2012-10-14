@@ -1,7 +1,7 @@
 echo 'Start Building Project'
 sencha build -p app.jsb3 -d ./
 bms='../brainmapstorage/public/'
-ndcp='../ndcp//node_modules/world.core'
+ndcp='../ndcp/node_modules/world.core'
 bg='./'
 cp -f index_production.html $bms/index.html
 cp -f app-all.js $bms
