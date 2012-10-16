@@ -19,6 +19,55 @@ Iid.prototype = {
       this.iid = 0;
     }
 };
+Iid.constructor = Iid;
+
+/**
+ * This is an iid generator
+ * @param prefix the prefix that inherited from parent
+ * @param obj the object that iider live in
+ * @param props the properties of object
+ */
+function Iider(obj, props, prefix){
+  this.iid = null;
+  this.obj = obj;
+  this.props = props;
+  this.prefix = prefix != null ? this.refine(prefix) :'root';
+};
+
+Iider.prototype = {
+  spawn : function(obj, props){
+    if(this.iid){
+      return new Iider(obj, props, this.build([this.prefix, this.iid]));
+    }
+    return null;
+  },
+  
+  getIid : function(){
+    var idElements = [this.prefix];
+    for(var i in this.props){
+      var prop = this.props[i];
+      if(this.obj[prop] != null){
+        var elem = this.refine(this.obj[prop]);
+        if(elem != ''){
+          idElements.push(elem);
+        }
+      }
+    }
+    var suffix = [Date.now()/*, Math.random().toString().replace('.', '')*/]; 
+    this.iid = this.build(idElements.concat(suffix));
+    return this.iid;
+  },
+  
+  build : function(idElements){
+    return idElements != null ? idElements.join('-') : '';
+  },
+  
+  refine : function(str){
+    return str != null ? str.replace(/[^A-Za-z\/-]+/gi, '') : '';
+  }
+};
+
+Iider.constructor = Iider;
 
 /**
  * Indexer to space elements
@@ -104,7 +153,7 @@ Indexer.prototype = {
  * Enable event for core functions
  */
 function Observable(){
-  this.listeners = {};
+  this.__listeners = {};
   this.on = function(){
     var listeners;
     /*
@@ -143,15 +192,15 @@ function Observable(){
   };
   
   this.addListener = function(evtName, eventHandler, scope){
-    if(this.listeners && this.listeners[evtName]){
-      this.listeners[evtName].push(eventHandler);
-    }else if(this.listeners && !this.listeners[evtName]){
-      this.listeners[evtName] = [eventHandler];
+    if(this.__listeners && this.__listeners[evtName]){
+      this.__listeners[evtName].push(eventHandler);
+    }else if(this.__listeners && !this.__listeners[evtName]){
+      this.__listeners[evtName] = [eventHandler];
     }
   };
   
   this.fireEvent = function(name, obj){
-    var reglists = this.listeners[name];
+    var reglists = this.__listeners[name];
     if(!Utils.isEmpty(reglists) && Array.isArray(reglists) && reglists.length > 0){
       for(var i in reglists){
         var listener = reglists[i];
@@ -172,9 +221,9 @@ function Observable(){
                 //copy the list
                 var newListeners = [].concat(reglists);
                 newListeners.splice(i, i);
-                this.listeners[name] = newListeners;
+                this.__listeners[name] = newListeners;
               }else{
-                delete this.listeners[name];
+                delete this.__listeners[name];
               }
             }
           }else{
@@ -195,7 +244,7 @@ function Observable(){
     var removed = null;
     if(!Utils.isEmpty(evtName)){
       if(!Utils.isEmpty(fn)){
-        var reglist = this.listeners[evtName];
+        var reglist = this.__listeners[evtName];
         if(!Utils.isEmpty(reglist)){
           var ls = reglist.filter(function(obj){
             if(obj.fn === fn){
@@ -207,25 +256,25 @@ function Observable(){
             if(reglist.length > 1){
               var i = reglist.indexOf(ls[0]);
               removed = reglist.splice(i, i);
-              this.listeners[evtName] = reglist;
+              this.__listeners[evtName] = reglist;
             }else{
-              delete this.listeners[evtName];
+              delete this.__listeners[evtName];
             }
           }
         }
       }else{
-        delete this.listeners[evtName];
+        delete this.__listeners[evtName];
       }
     }
     return removed;
   },
   
   this.removeAllListeners = function(){
-    this.listeners = {};
+    this.__listeners = {};
   };
   
   this.destroy = function(){
-    this.listeners = null;
+    this.__listeners = null;
   };
   return this;
 };
