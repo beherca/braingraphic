@@ -14,7 +14,7 @@ Ext.define('AM.world.TPolygonTest', {
   
   start : function(){
     var me = this;
-    var worker = me.newWorker();
+    me.newWorker();
     if (isEmpty(this.worldTick)) {
       this.worldTick = Ext.TaskManager.start({
         interval : me.interval,

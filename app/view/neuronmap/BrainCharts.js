@@ -114,7 +114,8 @@ Ext.define('AM.view.neuronmap.BrainCharts', {
     });
 
     // create a bar series to be at the top of the panel.
-    var barChart = Ext.create('Ext.chart.Chart', {
+    var barChart = null;
+    barChart = Ext.create('Ext.chart.Chart', {
       flex : 1,
       shadow : true,
       animate : true,

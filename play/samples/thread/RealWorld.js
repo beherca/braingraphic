@@ -1,5 +1,5 @@
 onmessage = function(e){
-  var ticker;
+  var ticker = null;
   if ( e.data === "init" ) {
     // Do some computation
     importScripts('../../../core/core.js');
