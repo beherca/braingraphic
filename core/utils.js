@@ -590,37 +590,67 @@ Utils = {
   b = Utils.cls.create(B)
  */
 Utils.cls = {
-  fnTest : /xyz/.test(function(){xyz;}) ? /\bcallParent\b/ : /.*/,
   /**
    * @param parentClass 
-   * @param propConfig configures of child class
+   * @param configs configures of child class
    */
-  extend : function(parentClass, propConfig){
+  extend : function(parentClass, configs){
     var me = this;
+    //init some usefull constants
+    var CLASS_ALIAS = 'alias';
+    var hasCallParent = /xyz/.test(function(){xyz;}) ? /\bcallParent\b/ : /.*/;
+    var hasSet = /^set\$(?=([A-Za-z]+$))/;//prefix is set$ and end with characters
+    var hasGet = /^get\$(?=([A-Za-z]+$))/;//prefix is get$ and end with characters
+    
+    //keep useful informations
     var parentParent = parentClass.prototype;
     var parentInst = new parentClass();
-    var CLASS_ALIAS = 'alias';
     var constructorProps = {};
-    for (var name in propConfig) {
-      // Check if we're overwriting an existing function
-      if(Utils.isFunction(propConfig[name])){
-        // all the functions will copy to current class's prototype
-        parentInst[name] = Utils.isFunction(parentInst[name]) && 
-        //make sure that this function contains callParent
-        this.fnTest.test(propConfig[name]) ? 
-        (function(name, fn){
-          return function() {
-            //replace the callParent method with correct parent method
-            this.callParent = parentParent[name];
-            //call the function, and at the same time, callParent is called
-            var ret = fn.apply(this, arguments);
-            return ret;
-          };
-        })(name, propConfig[name]) : 
-          propConfig[name];
+    
+    //loop through user-define properties or functions
+    for (var name in configs) {
+      var configItem = configs[name];
+      // all the functions will be copied to current class's prototype
+      if(configItem != null && Utils.isFunction(configItem)){
+        //Check if we're overwriting an existing function
+        //and whether this function contains callParent
+        if(!Utils.isEmpty(parentInst[name]) && hasCallParent.test(configItem)){
+          parentInst[name] = (function(name, fn){
+            return function() {
+              //replace the callParent method with correct parent method
+              this.callParent = parentParent[name];
+              //call the function, and at the same time, callParent is called
+              var ret = fn.apply(this, arguments);
+              return ret;
+            };
+          })(name, configItem);
+        }else if(hasSet.test(name)){
+          ///^set\$(?=([A-Za-z]+$))/.exec('set$abv') should return ["set$", "abv"]
+          var regx = hasSet.exec(name);
+          var proportyName = regx && regx.length > 1 ? regx[1] : null;
+          if(proportyName){
+            Object.defineProperty(parentInst, proportyName, {
+              set : configItem,
+              enumerable : false,
+              configurable : true
+            });
+          }
+        }else if(hasGet.test(name)){
+          var regx = hasGet.exec(name);
+          var proportyName = regx && regx.length > 1 ? regx[1] : null;
+          if(proportyName){
+            Object.defineProperty(parentInst, proportyName, {
+              get : configItem,
+              enumerable : false,
+              configurable : true
+            });
+          }
+        }else{//the function name in configs without callParent() or set$, get$ prefix
+          parentInst[name] = configItem;
+        }
       }else{
         //make deepcopy , so we can isolate the properties from prototype
-        constructorProps[name] = me.deepCopy(propConfig[name]);
+        constructorProps[name] = me.deepCopy(configItem);
       }
     }
     
@@ -638,7 +668,7 @@ Utils.cls = {
     //must use deep copy to copy the props config, otherwise, the prop will be changed during runtime
     var holder = {};
     //check null and replace all non-charactors case-insensitive but keep $
-    var clsName = propConfig[CLASS_ALIAS] == null ? '' : propConfig[CLASS_ALIAS].replace(/[^A-Za-z$_]+/gi, '');
+    var clsName = configs[CLASS_ALIAS] == null ? '' : configs[CLASS_ALIAS].replace(/[^A-Za-z$_]+/gi, '');
     var expName = (clsName == '') ? 'ChildClass' : clsName;
     var evalStr = 'holder["'+ expName +'"] = function ' + clsName + '(){ Utils.apply(this, me.deepCopy(constructorProps));}';
     var cls = null;

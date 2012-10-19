@@ -19,7 +19,7 @@ Harness.start(
     '014_ant.t.js',
     '015_observable.t.js',
     '016_looper.t.js',
-    '017_light.t.js',
-    '018_class_mixin.t.js',
+    '017_class_mixin.t.js',
+    '018_class_getter_setter.t.js',
     '019_utils_iider.t.js'
 );
