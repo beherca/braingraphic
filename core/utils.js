@@ -27,35 +27,22 @@ Iid.constructor = Iid;
  * @param obj the object that iider live in
  * @param props the properties of object
  */
-function Iider(obj, props, prefix){
-  this.iid = null;
-  this.obj = obj;
-  this.props = props;
-  this.prefix = prefix != null ? this.refine(prefix) :'root';
-};
-
-Iider.prototype = {
-  spawn : function(obj, props){
-    if(this.iid){
-      return new Iider(obj, props, this.build([this.prefix, this.iid]));
-    }
-    return null;
-  },
-  
-  getIid : function(){
-    var idElements = [this.prefix];
-    for(var i in this.props){
-      var prop = this.props[i];
-      if(this.obj[prop] != null){
-        var elem = this.refine(this.obj[prop]);
+Iider = {
+  get : function(obj, props, prefix){
+    prefix = prefix != null ? this.refine(prefix) :'root';
+    var idElements = [prefix];
+    for(var i in props){
+      var prop = props[i];
+      if(obj[prop] != null){
+        var elem = this.refine(obj[prop]);
         if(elem != ''){
           idElements.push(elem);
         }
       }
     }
     var suffix = [Date.now()/*, Math.random().toString().replace('.', '')*/]; 
-    this.iid = this.build(idElements.concat(suffix));
-    return this.iid;
+    var iid = this.build(idElements.concat(suffix));
+    return iid;
   },
   
   build : function(idElements){
@@ -66,8 +53,6 @@ Iider.prototype = {
     return str != null ? str.replace(/[^A-Za-z\/-]+/gi, '') : '';
   }
 };
-
-Iider.constructor = Iider;
 
 /**
  * Indexer to space elements
@@ -153,7 +138,7 @@ Indexer.prototype = {
  * Enable event for core functions
  */
 function Observable(){
-  this.__listeners = {};
+  this._listeners = {};
   this.on = function(){
     var listeners;
     /*
@@ -192,15 +177,15 @@ function Observable(){
   };
   
   this.addListener = function(evtName, eventHandler, scope){
-    if(this.__listeners && this.__listeners[evtName]){
-      this.__listeners[evtName].push(eventHandler);
-    }else if(this.__listeners && !this.__listeners[evtName]){
-      this.__listeners[evtName] = [eventHandler];
+    if(this._listeners && this._listeners[evtName]){
+      this._listeners[evtName].push(eventHandler);
+    }else if(this._listeners && !this._listeners[evtName]){
+      this._listeners[evtName] = [eventHandler];
     }
   };
   
   this.fireEvent = function(name, obj){
-    var reglists = this.__listeners[name];
+    var reglists = this._listeners[name];
     if(!Utils.isEmpty(reglists) && Array.isArray(reglists) && reglists.length > 0){
       for(var i in reglists){
         var listener = reglists[i];
@@ -221,9 +206,9 @@ function Observable(){
                 //copy the list
                 var newListeners = [].concat(reglists);
                 newListeners.splice(i, i);
-                this.__listeners[name] = newListeners;
+                this._listeners[name] = newListeners;
               }else{
-                delete this.__listeners[name];
+                delete this._listeners[name];
               }
             }
           }else{
@@ -244,7 +229,7 @@ function Observable(){
     var removed = null;
     if(!Utils.isEmpty(evtName)){
       if(!Utils.isEmpty(fn)){
-        var reglist = this.__listeners[evtName];
+        var reglist = this._listeners[evtName];
         if(!Utils.isEmpty(reglist)){
           var ls = reglist.filter(function(obj){
             if(obj.fn === fn){
@@ -256,25 +241,25 @@ function Observable(){
             if(reglist.length > 1){
               var i = reglist.indexOf(ls[0]);
               removed = reglist.splice(i, i);
-              this.__listeners[evtName] = reglist;
+              this._listeners[evtName] = reglist;
             }else{
-              delete this.__listeners[evtName];
+              delete this._listeners[evtName];
             }
           }
         }
       }else{
-        delete this.__listeners[evtName];
+        delete this._listeners[evtName];
       }
     }
     return removed;
   },
   
   this.removeAllListeners = function(){
-    this.__listeners = {};
+    this._listeners = {};
   };
   
   this.destroy = function(){
-    this.__listeners = null;
+    this._listeners = null;
   };
   return this;
 };

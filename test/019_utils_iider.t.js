@@ -32,9 +32,7 @@ StartTest(function(t) {
   var normalprefix = 'root';
   var inormalprefix = '!@#!@#!$$' + normalprefix + '_)(*&^%$#@!1112345432';
   
-  var aiidr = new Iider(A, ['id', 'name'], normalprefix);
-  
-  var aiid = aiidr.getIid();
+  var aiid = Iider.get(A, ['id', 'name'], normalprefix);
   console.log("A's Iid is " + aiid);
   var expectAIid = '[' + [normalprefix, A_id, Aexpectname].join('/-') + ']';
   console.log('expect A\'s iid is ' + expectAIid);
@@ -43,9 +41,7 @@ StartTest(function(t) {
   
   t.is(result, true, 'A\'s iid is correct');
   
-  var biidr = aiidr.spawn(B, ['id', 'name'], inormalprefix);
-  
-  var biid = biidr.getIid();
+  var biid = Iider.get(B, ['id', 'name'], inormalprefix);
   
   console.log("B's Iid is " + biid);
   
