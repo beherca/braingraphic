@@ -1,6 +1,7 @@
 (function(module){
   if(module){
     module.exports.World = World;
+    module.exports.OP = OP;
     module.exports.Utils = Utils;
     module.exports.Brain = Brain;
     module.exports.Observable = Observable;
