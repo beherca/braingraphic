@@ -12,6 +12,7 @@ Harness.configure({
 });
 
 Harness.start(
+    '000_blank.t.js',
     '010_brain.t.js',
     '011_cortex.t.js',
     '012_engine.t.js',
