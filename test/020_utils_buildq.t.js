@@ -102,7 +102,7 @@ StartTest(function(t) {
   t.is(buildinT > totalTime, false, 'Of course We Lost');
   
   d = Date.now();
-  Utils.buildQ({x : 0.5}, prop, a);
+  Utils.buildQ({x : -100}, prop, a);
   tm = Date.now() - d;
   console.log(tm);
   t.is(buildinT > tm, true, 'But we win here!!! We Win');
