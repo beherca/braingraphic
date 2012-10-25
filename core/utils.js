@@ -427,6 +427,80 @@ Utils = {
   },
   
   /**
+   * Build ascend queue of descend queue
+   * @param ps
+   * @param point
+   * @param prop
+   */
+  buildQ : function(point, prop, ps, ascend){
+    if(!ps || !point || !prop){
+      return;
+    }
+    //default as ascend sort
+    if(ascend == null){
+      ascend = true;
+    }
+    var len = ps.length;
+    //point's property to compare with
+    var pp = point[prop];
+    //candidate point to compare with pp
+    var cp = null;
+    if(len == 0){
+      ps.push(point);
+    }else if(len == 1){
+      cp = ps[0];
+      var cpp = cp[prop];
+      if(cpp < pp){
+        ps.push(point);
+      }else{
+        ps.unshift(point);
+      }
+    }else if(len >= 2){
+      var start = 0;// >= start
+      var end = len - 1;// < end
+      if(pp <= ps[start][prop]){
+          //add to the begining
+          ps.unshift(point);
+      }else if(pp >= ps[end][prop]){
+          //add to last one
+          ps.push(point);
+      }else{
+        while(true){
+          //number of elements in array ps
+          var numofEl = end - start + 1;
+          //the middle key of array;
+          var mid = parseInt(numofEl / 2) + start;
+          //the object in the array's middle
+          var midp = ps[mid];
+          //middle point property
+          var mpp = midp[prop];
+          if( mpp == pp){
+            //add before middle point
+            ps.splice(mid, 0, point);
+            break;
+          }else if(mpp > pp){
+            if(numofEl < 3){
+              ps.splice(mid, 0, point);
+              break;
+            }else{
+              end = mid;
+            }
+          }else if(mpp < pp){
+            if(numofEl < 3){
+              ps.splice(mid + 1, 0, point);
+              break;
+            }else{
+              start = mid;
+            }
+          }
+        }
+      }
+    }else{
+      //DO NOTHING
+    }
+  },
+  
+  /**
    * To get the curve path
    * 
    * @test Utils.getCurvePath({x : 0, y :0}, {x : 100, y :0}, 20, 40) "M 0 0 C 0
