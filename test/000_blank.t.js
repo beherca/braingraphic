@@ -17,21 +17,28 @@ StartTest(function(t) {
       },
       
       has : function(obj, initD){
-        var currentD = initD;
+        var currD = initD;
+        //result of search
         var hasObj = false;
+        //check whether is the first loop
         var isInitLoop = true;
+        //the key store in current dimension and will be used to search next dimension array
         var key4NextD = -1;
         while(true){
-          var nextD = this.next(currentD);
-          var curObjP = obj[currentD];
-          var nextObjP = obj[nextD];
-          var dimdata = this['d' + currentD];
-          var currDim = dimdata[curObjP];
-          if(currDim != null){
-            key4NextD = currDim[currDim.indexOf(nextObjP)];
-            if(key4NextD >= 0){
-              console.log('found key4NextD : ' + key4NextD + ' on dimension ' + currentD);
-              if(initD == currentD && !isInitLoop){
+          var nextD = this.next(currD);
+          var currPropVal = obj[currD];
+          var nextPropVal = obj[nextD];
+          //get dimension data array according to currD prefix with d
+          var currDim = this['d' + currD];
+          //get next 
+          var nextDim = currDim[currPropVal];
+          if(nextDim != null){
+            //nextDim's index
+            var ndi = nextDim.indexOf(nextPropVal);
+            if(ndi >= 0){
+              key4NextD = nextDim[ndi];
+              console.log('found key4NextD : ' + key4NextD + ' on dimension ' + currD);
+              if(initD == currD && !isInitLoop){
                 hasObj = true;
                 break;
               }
@@ -41,7 +48,7 @@ StartTest(function(t) {
           }else{
             break;
           }
-          currentD = nextD;
+          currD = nextD;
           isInitLoop = false;
         }
         return hasObj;
