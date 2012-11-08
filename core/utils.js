@@ -186,9 +186,12 @@ function Observable(){
   
   this.fireEvent = function(name, obj){
     var reglists = this._listeners[name];
+    //collect all listeners return results if it has any, for RuleEngine to use
+    var collectedResults = [];
     if(!Utils.isEmpty(reglists) && Array.isArray(reglists) && reglists.length > 0){
       for(var i in reglists){
         var listener = reglists[i];
+        var result = null;
         if(typeof(listener) == 'object'){
           /*
            * Check whether current listener comes to the end of its life,
@@ -197,7 +200,7 @@ function Observable(){
           if(!Utils.isEmpty(listener.repeat)){
             if( listener.repeat > 0){
               listener.repeat += -1;
-              listener.fn.call(listener.scope, obj, name, this);
+              result = listener.fn.call(listener.scope, obj, name, this);
             }else{
               /**
                * delete the handler for that listener
@@ -212,11 +215,15 @@ function Observable(){
               }
             }
           }else{
-            listener.fn.call(listener.scope, obj, name, this);
+            result = listener.fn.call(listener.scope, obj, name, this);
           }
+        }
+        if(result){
+          collectedResults.push(result);
         }
       }
     }
+    return collectedResults;
   };
   
   /**
@@ -359,7 +366,7 @@ OP = {
   }
 };
 
-Utils = {
+var Utils = {
   isEmpty : function(obj) {
     return obj == null || typeof obj === "undefined";
   },
@@ -783,3 +790,33 @@ Utils.cls = {
     }
   }
 };
+
+
+/**
+ * Utility to Set up rules
+ */
+var RulesEngine = Utils.cls.extend(Observale, {
+  check : function(ruleName){
+    var rs = this.fireEvent(ruleName);
+    var isValid = true;
+    rs.every(function(r){
+      var result = r.result;
+      var operator = r.opt;
+      isValid = operator == '&&' ? isValid && result : isValid || result; 
+    });
+  },
+  
+  /**
+   * rule = {name : name, desc : desc, opt : opt, fn : fn}
+   * @param rule
+   */
+  add : function(rule){
+    var name = rule.name;
+    var operator = rule.opt;
+    var fn = rule.fn;
+    var scope = rule.scope ? rule.scope : this;
+    this.on(name, function(){
+      return {result : fn.apply(scope, scope), opt : operator};
+    });
+  }
+});

@@ -9,5 +9,6 @@
     module.exports.Iider = Iider;
     module.exports.Indexer = Indexer;
     module.exports.Looper = Looper;
+    module.exports.RulesEngine = RulesEngine;
   }
 })(typeof(module) === 'undefined' ? null : module);
