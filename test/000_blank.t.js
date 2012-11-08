@@ -49,7 +49,10 @@ StartTest(function(t) {
             break;
           }
           currD = nextD;
-          isInitLoop = false;
+          //set isInitLoop to be false to mark first loop is done
+          if(isInitLoop){
+            isInitLoop = false;
+          }
         }
         return hasObj;
       }
