@@ -804,6 +804,7 @@ var RulesEngine = Utils.cls.extend(Observale, {
       var operator = r.opt;
       isValid = operator == '&&' ? isValid && result : isValid || result; 
     });
+    return isValid;
   },
   
   /**
