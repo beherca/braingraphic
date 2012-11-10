@@ -134,6 +134,68 @@ Indexer.prototype = {
   }
 };
 
+function Euclidean(){
+  this._x = 0;
+  this._y = 0;
+  this._z = 0;
+  this._width = 0;
+  this._height = 0;
+  this._depth = 0;
+};
+
+Euclidean.prototype = {
+  get x(){
+    return this._x;
+  },
+  
+  set x(v){
+    this._x = v;
+  },
+  
+  get y(){
+    return this._y;
+  },
+  
+  set y(v){
+    this._y = v;
+  },
+  
+  get z(){
+    return this._z;
+  },
+  
+  set z(v){
+    this._z = v;
+  },
+  
+  //---
+  get width(){
+    return this._width;
+  },
+  
+  set width(v){
+    this._width = v;
+  },
+  
+  get height(){
+    return this._height;
+  },
+  
+  set height(v){
+    this._height = v;
+  },
+  
+  get depth(){
+    return this._depth;
+  },
+  
+  set depth(v){
+    this._depth = v;
+  }
+};
+
+Euclidean.prototype.constructor = Euclidean;
+
 /**
  * Enable event for core functions
  */
@@ -795,9 +857,11 @@ Utils.cls = {
 /**
  * Utility to Set up rules
  */
-var RulesEngine = Utils.cls.extend(Observale, {
-  check : function(ruleName){
-    var rs = this.fireEvent(ruleName);
+var RulesEngine = Utils.cls.extend(Observable, {
+  _scope : null,
+
+  check : function(ruleName, config){
+    var rs = this.fireEvent(ruleName, config);
     var isValid = true;
     rs.every(function(r){
       var result = r.result;
@@ -815,9 +879,17 @@ var RulesEngine = Utils.cls.extend(Observale, {
     var name = rule.name;
     var operator = rule.opt;
     var fn = rule.fn;
-    var scope = rule.scope ? rule.scope : this;
-    this.on(name, function(){
-      return {result : fn.apply(scope, scope), opt : operator};
+    this.on(name, function(obj, name, target){
+      return {result : fn.apply(this.scope, obj, target), opt : operator};
     });
+  },
+  
+  get$scope : function(){
+    return this._scope;
+  },
+  
+  set$scope : function(v){
+    this._scope = v;
   }
 });
+
