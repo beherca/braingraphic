@@ -50,7 +50,7 @@ Iider = {
   },
   
   refine : function(str){
-    return str != null ? str.replace(/[^A-Za-z\/-]+/gi, '') : '';
+    return str != null ? str.replace(/[^A-Za-z0-9\/-]+/gi, '') : '';
   }
 };
 
