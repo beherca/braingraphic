@@ -32,6 +32,8 @@ StartTest(function(t) {
   var normalprefix = 'root';
   var inormalprefix = '!@#!@#!$$' + normalprefix + '_)(*&^%$#@!1112345432';
   
+  //--------------------------------------------------
+  t.diag("Iider Test A normal prefix === object, and use a property ###without### special characters");
   var aiid = Iider.get(A, ['id', 'name'], normalprefix);
   console.log("A's Iid is " + aiid);
   var expectAIid = '[' + [normalprefix, A_id, Aexpectname].join('/-') + ']';
@@ -41,6 +43,8 @@ StartTest(function(t) {
   
   t.is(result, true, 'A\'s iid is correct');
   
+  //--------------------------------------------------
+  t.diag("Iider Test B normal prefix === object, and use a property ###with### special characters");
   var biid = Iider.get(B, ['id', 'name'], inormalprefix);
   
   console.log("B's Iid is " + biid);
@@ -54,6 +58,17 @@ StartTest(function(t) {
   result = exp.test(biid);
   
   t.is(result, true, 'B\'s iid is correct');
+  
+  //--------------------------------------------------
+  t.diag("Iider Test C prefix === non-object(string, number)");
+  
+  var cprefix = 'hi';
+  var nonObjectElem = 1;
+  var expectedCIid = '[' + [cprefix, nonObjectElem].join('/-') + ']';
+  var ciid = Iider.get(nonObjectElem, null, cprefix);
+  var exp = new RegExp(expectedCIid + "{1}", 'gi');
+  result = exp.test(ciid);
+  t.is(result, true, 'C\'s iid is correct');
   
   t.done(); // Optional, marks the correct exit point from the test
 });

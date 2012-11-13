@@ -31,13 +31,20 @@ Iider = {
   get : function(obj, props, prefix){
     prefix = prefix != null ? this.refine(prefix) :'root';
     var idElements = [prefix];
-    for(var i in props){
-      var prop = props[i];
-      if(obj[prop] != null){
-        var elem = this.refine(obj[prop]);
-        if(elem != ''){
-          idElements.push(elem);
+    if(Utils.isObject(obj)){
+      for(var i in props){
+        var prop = props[i];
+        if(obj[prop] != null){
+          var elem = this.refine(obj[prop]);
+          if(elem != ''){
+            idElements.push(elem);
+          }
         }
+      }
+    }else{
+      var elem = this.refine(obj.toString());
+      if(elem != ''){
+        idElements.push(elem);
       }
     }
     var suffix = [Date.now()/*, Math.random().toString().replace('.', '')*/]; 
