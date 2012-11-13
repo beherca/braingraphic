@@ -481,12 +481,23 @@ var Utils = {
   tj : function(from){
     var target = {};
     Utils.apply(target, from, false, function(obj){
-      if(obj && obj.toJson){
-        return obj.toJson();
+      if(obj ){
+        if(Utils.isObject(obj)){
+          if(obj.toJson){
+            return obj.toJson();
+          }else{
+            return obj;
+          }
+        }else if(Utils.isArray(obj)){
+          var newArray = [];
+          obj.forEach(function(obj){
+            newArray.push(tj(obj));
+          });
+          return newArray;
+        }
       }else{
         return obj;
       }
-      
     });
     return target;
   },
