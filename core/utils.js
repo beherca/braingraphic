@@ -485,8 +485,6 @@ var Utils = {
         if(Utils.isObject(obj)){
           if(obj.toJson){
             return obj.toJson();
-          }else{
-            return obj;
           }
         }else if(Utils.isArray(obj)){
           var newArray = [];
@@ -495,9 +493,8 @@ var Utils = {
           });
           return newArray;
         }
-      }else{
-        return obj;
       }
+      return obj;
     });
     return target;
   },
