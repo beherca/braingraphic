@@ -138,9 +138,9 @@ function Euclidean(){
   this._x = 0;
   this._y = 0;
   this._z = 0;
-  this._width = 0;
-  this._height = 0;
-  this._depth = 0;
+  this._ex = 0;
+  this._ey = 0;
+  this._ez = 0;
 };
 
 Euclidean.prototype = {
@@ -168,29 +168,52 @@ Euclidean.prototype = {
     this._z = v;
   },
   
-  //---
-  get width(){
-    return this._width;
+  get ex(){
+    return this._ex;
   },
   
-  set width(v){
-    this._width = v;
+  set ex(v){
+    this._ex = v;
   },
+  
+  get ey(){
+    return this._ey;
+  },
+  
+  set ey(v){
+    this._ey = v;
+  },
+  
+  get ez(){
+    return this._ez;
+  },
+  
+  set ez(v){
+    this._ez = v;
+  },
+
+  get width(){
+    return (this.ex - this.x);
+  },
+  
   
   get height(){
-    return this._height;
-  },
-  
-  set height(v){
-    this._height = v;
+    return (this.ey - this.y);
   },
   
   get depth(){
-    return this._depth;
+    return (this.ez - this.z);
   },
   
-  set depth(v){
-    this._depth = v;
+  toJson : function(){
+    return {
+      x : this.x,
+      y : this.y,
+      z : this.z,
+      ex : this.ex,
+      ey : this.ey,
+      ez : this.ez
+    };
   }
 };
 
