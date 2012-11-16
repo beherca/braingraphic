@@ -6,6 +6,7 @@
     module.exports.Brain = Brain;
     module.exports.Observable = Observable;
     module.exports.Iid = Iid;
+    module.exports.Dims = Dims;
     module.exports.Iider = Iider;
     module.exports.Indexer = Indexer;
     module.exports.Looper = Looper;

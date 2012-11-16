@@ -226,6 +226,24 @@ Euclidean.prototype = {
 
 Euclidean.prototype.constructor = Euclidean;
 
+
+function Dims(dims, start){
+  this.dims = dims ? dims : ['x', 'y', 'z'];
+  this.currDim = start;
+}
+
+Dims.prototype = {
+  next : function (){
+    var currentIndex = dims.indexOf(this.currDim);
+    var nextIndex = currentIndex + 1 >= this.dims.length ? 0 : currentIndex + 1;
+    var dim = this.dims[nextIndex];
+    this.currDim = dim;
+    return dim;
+  }
+};
+
+Dims.prototype.constructor = Dims;
+
 /**
  * Enable event for core functions
  */
