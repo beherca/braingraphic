@@ -234,7 +234,7 @@ function Dims(dims, start){
 
 Dims.prototype = {
   next : function (){
-    var currentIndex = dims.indexOf(this.currDim);
+    var currentIndex = this.dims.indexOf(this.currDim);
     var nextIndex = currentIndex + 1 >= this.dims.length ? 0 : currentIndex + 1;
     var dim = this.dims[nextIndex];
     this.currDim = dim;
