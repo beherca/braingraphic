@@ -239,6 +239,10 @@ Dims.prototype = {
     var dim = this.dims[nextIndex];
     this.currDim = dim;
     return dim;
+  }, 
+  
+  all : function(){
+    return this.dims;
   }
 };
 
@@ -463,7 +467,7 @@ Looper.prototype.constructor = Looper;
 /**
  * Origin Point
  */
-OP = {
+var OP = {
   x : 0,
   y : 0,
   z : 0,
@@ -475,6 +479,8 @@ OP = {
     };
   }
 };
+
+var AXIS = {X : 'x', Y : 'y', Z : 'z'};
 
 var Utils = {
   isEmpty : function(obj) {
@@ -801,10 +807,25 @@ Utils.cls = {
         if(!Utils.isEmpty(parentInst[name]) && hasCallParent.test(configItem)){
           parentInst[name] = (function(name, fn){
             return function() {
+              /*  
+               * in case call parent is call twice from 
+               * one function like 
+               * function a(){
+               *   b();
+               *   this.callParent();
+               * },
+               * 
+               * function b(){
+               *   this.callParent();
+               * }
+               * */
+              var tmp = this.callParent;
               //replace the callParent method with correct parent method
               this.callParent = parentParent[name];
               //call the function, and at the same time, callParent is called
               var ret = fn.apply(this, arguments);
+              //recover previous call parent
+              this.callParent = tmp;
               return ret;
             };
           })(name, configItem);

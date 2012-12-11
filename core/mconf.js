@@ -2,6 +2,7 @@
   if(module){
     module.exports.World = World;
     module.exports.OP = OP;
+    module.exports.AXIS = AXIS;
     module.exports.Utils = Utils;
     module.exports.Brain = Brain;
     module.exports.Observable = Observable;
