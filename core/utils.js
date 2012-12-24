@@ -537,25 +537,24 @@ var Utils = {
    * Partial apply, include the listed part only
    * @param target target to apply values
    * @param from is where the values are from
-   * @param options includes
+   * @param options contain
    *         keepDup true to retain the existed value in target but not override it by from object
    *         solver the customized function to copy object
-   *         include copy specify properties only
+   *         includes copy specify properties only
+   *         regx regular expression to include
    * @returns new target
    */
   include : function(target, from, options){
     options = options ? options : {};
     var keepDup = options.keepDup;
     var solver = options.solver;
-    var include = options.include;
+    var includes = options.includes;
+    var regx = (options.regx && (options.regx instanceof RegExp)) ? options.regx : null;
     for(var key in from){
-      if(include && include.length > 0){
-        if(include.indexOf(key) < 0){
-          continue;
+      if((includes && includes.indexOf(key) >= 0) || regx && regx.test(key)){
+        if((Utils.isEmpty(target[key]) || !keepDup) && !Utils.isEmpty(from[key])){
+          target[key] = solver ? solver(from[key]) : from[key];
         }
-      }
-      if((Utils.isEmpty(target[key]) || !keepDup) && !Utils.isEmpty(from[key])){
-        target[key] = solver ? solver(from[key]) : from[key];
       }
     }
     return target;
@@ -565,22 +564,27 @@ var Utils = {
    * Partial apply, copy those properties in which is not the list
    * @param target target to apply values
    * @param from is where the values are from
-   * @param options includes
+   * @param options contain
    *         keepDup true to retain the existed value in target but not override it by from object
    *         solver the customized function to copy object
-   *         exclude copy those properties in which is not the list
+   *         excludes copy those properties in which is not the list
+   *         regx regular expression to exclude
    * @returns new target
    */
   exclude : function(target, from, options){
     options = options ? options : {};
     var keepDup = options.keepDup;
     var solver = options.solver;
-    var exclude = options.exclude;
+    var excludes = options.excludes;
+    var regx = (options.regx && (options.regx instanceof RegExp)) ? options.regx : null;
     for(var key in from){
-      if(exclude && exclude.length > 0){
-        if(exclude.indexOf(key) >= 0){
+      if(excludes && excludes.length > 0){
+        if(excludes.indexOf(key) >= 0){
           continue;
         }
+      }
+      if(regx && regx.test(key)){
+        continue;
       }
       if((Utils.isEmpty(target[key]) || !keepDup) && !Utils.isEmpty(from[key])){
         target[key] = solver ? solver(from[key]) : from[key];

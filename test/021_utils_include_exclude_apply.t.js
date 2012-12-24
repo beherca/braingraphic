@@ -12,36 +12,63 @@ StartTest(function(t) {
   t.ok(Utils.include, 'Include is ready');
   t.ok(Utils.exclude, 'Exclude is ready');
   
-  t.diag("Test Include");
+  t.diag("Test Include && Exclude suite");
   var cpfrom = {
     a : 1,
     b : 2,
     c : 3,
-    d : 4
+    d : 4,
+    _d : 5,
+    _e : 6
   };
+  
+  t.diag("Test Include Array");
   var includeCopyto = {};
-  var excludeCopyto = {};
   var includes = ['a', 'b'];
-  var excludes = ['c', 'd'];
-  
-  Utils.include(includeCopyto, cpfrom, {include : includes});
-  Utils.exclude(excludeCopyto, cpfrom, {exclude : excludes});
-  
-  for(var key in includeCopyto){
+  Utils.include(includeCopyto, cpfrom, {includes : includes});
+  for(var key in cpfrom){
     if(includes.indexOf(key) >= 0){
-      t.is(includeCopyto.hasOwnProperty(key), true, 'target has property ' + key + ' in which is the includes list');
+      t.is(includeCopyto.hasOwnProperty(key), true, 'target has property ' + key);
     }
     else{
-      t.is(includeCopyto.hasOwnProperty(key), false, 'target has no property ' + key + ' in which is not the includes list');
+      t.is(includeCopyto.hasOwnProperty(key), false, 'target has NO!!!! property ' + key);
     }
   }
   
-  for(var key in excludeCopyto){
+  t.diag("Test Exclude Array");
+  var excludeCopyto = {};
+  var excludes = ['c', 'd'];
+  Utils.exclude(excludeCopyto, cpfrom, {excludes : excludes});
+  for(var key in cpfrom){
     if(excludes.indexOf(key) >= 0){
-      t.is(excludeCopyto.hasOwnProperty(key), false, 'target has no property ' + key + ' in which is the exludes list');
+      t.is(excludeCopyto.hasOwnProperty(key), false, 'target has NO!!!! property ' + key);
     }
     else{
-      t.is(excludeCopyto.hasOwnProperty(key), true, 'target has property ' + key + ' in which is not the exludes list');
+      t.is(excludeCopyto.hasOwnProperty(key), true, 'target has property ' + key);
+    }
+  }
+  
+  t.diag("Test Include Regular Expression");
+  includeCopyto = {};
+  var regx = /^_/g;
+  Utils.include(includeCopyto, cpfrom, {regx : regx});
+  for(var key in cpfrom){
+    if(regx.test(key)){
+      t.is(includeCopyto.hasOwnProperty(key), true, 'target has property ' + key);
+    }else{
+      t.is(includeCopyto.hasOwnProperty(key), false, 'target has NO!!!! property ' + key);
+    }
+  }
+  
+  t.diag("Test Exclude Regular Expression");
+  excludeCopyto = {};
+  Utils.exclude(excludeCopyto, cpfrom, {regx : regx});
+  for(var key in cpfrom){
+    if(regx.test(key)){
+      t.is(excludeCopyto.hasOwnProperty(key), false, 'target has NO!!!! property ' + key);
+    }
+    else{
+      t.is(excludeCopyto.hasOwnProperty(key), true, 'target has property ' + key);
     }
   }
   
