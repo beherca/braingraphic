@@ -121,14 +121,6 @@
                     "name": "brain.js"
                 },
                 {
-                    "path": "core/light/",
-                    "name": "scene.js"
-                },
-                {
-                    "path": "core/light/",
-                    "name": "dbo.js"
-                },
-                {
                     "path": "core/",
                     "name": "mconf.js"
                 }
