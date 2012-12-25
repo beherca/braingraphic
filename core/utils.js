@@ -619,14 +619,14 @@ var Utils = {
     if(keepDup){
       for(var key in from){
         var value = solver ? solver(from[key]) : from[key];
-        if(Utils.isEmpty(target[key]) && !value){
+        if(Utils.isEmpty(target[key]) && value){
           target[key] = value;
         }
       }
     }else{
       for(var key in from){
         var value = solver ? solver(from[key]) : from[key];
-        if(!Utils.isEmpty(from[key]) && !value){
+        if(!Utils.isEmpty(from[key]) && value){
           target[key] = value;
         }
       }
