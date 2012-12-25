@@ -501,20 +501,27 @@ var Utils = {
   
   /**
    * Tojson helper
+   * @param options contain
+   *  excludeEmpty :  if an object is null or an array contains no element, then exclude it 
    */
-  tj : function(from){
+  tj : function(from, options){
     var target = {};
+    options = options ? options : {};
+    var excludeEmpty = options.excludeEmpty != null ? options.excludeEmpty : true;
     Utils.apply(target, from, false, function(obj){
-      if(obj ){
+      if(obj){
         if(Utils.isObject(obj)){
           if(obj.toJson){
             return obj.toJson();
           }
         }else if(Utils.isArray(obj)){
-          var newArray = [];
-          obj.forEach(function(obj){
-            newArray.push(tj(obj));
-          });
+          var newArray = null;
+          if(!excludeEmpty || obj.length > 0){
+            newArray = [];
+            obj.forEach(function(obj){
+              newArray.push(tj(obj));
+            });
+          }
           return newArray;
         }
       }
@@ -542,6 +549,7 @@ var Utils = {
    *         solver the customized function to copy object
    *         includes copy specify properties only
    *         regx regular expression to include
+   *         excludeEmpty true to exclude Empty
    * @returns new target
    */
   include : function(target, from, options){
@@ -550,10 +558,13 @@ var Utils = {
     var solver = options.solver;
     var includes = options.includes;
     var regx = (options.regx && (options.regx instanceof RegExp)) ? options.regx : null;
+    var excludeEmpty = options.excludeEmpty != null ? options.excludeEmpty : true;
     for(var key in from){
       if((includes && includes.indexOf(key) >= 0) || regx && regx.test(key)){
-        if((Utils.isEmpty(target[key]) || !keepDup) && !Utils.isEmpty(from[key])){
-          target[key] = solver ? solver(from[key]) : from[key];
+        var value = solver ? solver(from[key]) : from[key];
+        if((Utils.isEmpty(target[key]) || !keepDup) //check duplicate
+            && (!excludeEmpty || value)){ //check exclude empty
+            target[key] = value;
         }
       }
     }
@@ -569,6 +580,7 @@ var Utils = {
    *         solver the customized function to copy object
    *         excludes copy those properties in which is not the list
    *         regx regular expression to exclude
+   *         excludeEmpty true to exclude Empty
    * @returns new target
    */
   exclude : function(target, from, options){
@@ -577,6 +589,7 @@ var Utils = {
     var solver = options.solver;
     var excludes = options.excludes;
     var regx = (options.regx && (options.regx instanceof RegExp)) ? options.regx : null;
+    var excludeEmpty = options.excludeEmpty != null ? options.excludeEmpty : true;
     for(var key in from){
       if(excludes && excludes.length > 0){
         if(excludes.indexOf(key) >= 0){
@@ -586,8 +599,10 @@ var Utils = {
       if(regx && regx.test(key)){
         continue;
       }
-      if((Utils.isEmpty(target[key]) || !keepDup) && !Utils.isEmpty(from[key])){
-        target[key] = solver ? solver(from[key]) : from[key];
+      var value = solver ? solver(from[key]) : from[key];
+      if((Utils.isEmpty(target[key]) || !keepDup) //check duplicate
+          && (!excludeEmpty || value)){ //check exclude empty
+          target[key] = value;
       }
     }
     return target;
@@ -603,14 +618,16 @@ var Utils = {
   apply : function(target, from, keepDup, solver){
     if(keepDup){
       for(var key in from){
-        if(Utils.isEmpty(target[key]) && !Utils.isEmpty(from[key])){
-          target[key] = solver ? solver(from[key]) : from[key];
+        var value = solver ? solver(from[key]) : from[key];
+        if(Utils.isEmpty(target[key]) && !value){
+          target[key] = value;
         }
       }
     }else{
       for(var key in from){
-        if(!Utils.isEmpty(from[key])){
-          target[key] = solver ? solver(from[key]) : from[key];
+        var value = solver ? solver(from[key]) : from[key];
+        if(!Utils.isEmpty(from[key]) && !value){
+          target[key] = value;
         }
       }
     }
