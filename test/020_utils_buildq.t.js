@@ -25,26 +25,32 @@ StartTest(function(t) {
   
   Utils.buildQ({x : 1}, prop, a);
   console.log(ts(a));
-  t.is(ts(a), '1', 'done');
+  t.is(ts(a), '1', 'Added 1');
   Utils.buildQ({x : 2}, prop, a);
   console.log(ts(a));
-  t.is(ts(a), '1,2', 'done');
+  t.is(ts(a), '1,2', 'Added 2');
   Utils.buildQ({x : 3}, prop, a);
   console.log(ts(a));
-  t.is(ts(a), '1,2,3', 'done');
+  t.is(ts(a), '1,2,3', 'Added 3');
   Utils.buildQ({x : 0}, prop, a);
   console.log(ts(a));
-  t.is(ts(a), '0,1,2,3', 'done');
+  t.is(ts(a), '0,1,2,3', 'Added 0');
   Utils.buildQ({x : 6}, prop, a);
   console.log(ts(a));
-  t.is(ts(a), '0,1,2,3,6', 'done');
+  t.is(ts(a), '0,1,2,3,6', 'Added 6');
   Utils.buildQ({x : 5}, prop, a);
   console.log(ts(a));
-  t.is(ts(a), '0,1,2,3,5,6', 'done');
+  t.is(ts(a), '0,1,2,3,5,6', 'Added 5');
   Utils.buildQ({x : 5}, prop, a);
   console.log(ts(a));
-  t.is(ts(a), '0,1,2,3,5,5,6', 'done');
+  t.is(ts(a), '0,1,2,3,5,5,6', 'Added 5 again');
   
+  t.diag('Building Queue on wrong property will return without sorting');
+  Utils.buildQ({x : 'ok'}, prop, a);
+  t.is(ts(a), '0,1,2,3,5,5,6', 'Tried adding a character and unsuccessful');
+  
+  Utils.buildQ({x : null}, prop, a);
+  t.is(ts(a), '0,1,2,3,5,5,6', 'Tried adding a null and unsuccessful');
   
   t.diag('Generate Numbers Randomly and test match');
   var stress = [];
@@ -62,7 +68,7 @@ StartTest(function(t) {
     totalTime += tm;
   }
   
-  
+  /*
   console.log('Total Time of $$$$our$$$$ implementation Test1: ' + totalTime);
   
   var b = [];
@@ -105,7 +111,7 @@ StartTest(function(t) {
   Utils.buildQ({x : -100}, prop, a);
   tm = Date.now() - d;
   console.log(tm);
-  t.is(buildinT > tm, true, 'But we win here!!! We Win');
+  t.is(buildinT > tm, true, 'But we win here!!! We Win');*/
   
 /***********  NOT SUPPORT *********************
   t.diag("Start Descend Queue Adding");

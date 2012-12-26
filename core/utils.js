@@ -641,7 +641,7 @@ var Utils = {
    * @param prop
    */
   buildQ : function(point, prop, ps, ascend){
-    if(!ps || !point || !prop){
+    if(!ps || !point || !prop || point[prop] == null || isNaN(point[prop])){
       return;
     }
     //default as ascend sort
