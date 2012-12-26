@@ -19,7 +19,10 @@ StartTest(function(t) {
     c : 3,
     d : 4,
     _d : 5,
-    _e : 6
+    _e : 6,
+    e : null,
+    f : undefined,
+    g : 0
   };
   
   t.diag("Test Include Array");
@@ -27,7 +30,20 @@ StartTest(function(t) {
   var includes = ['a', 'b'];
   Utils.include(includeCopyto, cpfrom, {includes : includes});
   for(var key in cpfrom){
-    if(includes.indexOf(key) >= 0){
+    if(includes.indexOf(key) >= 0 && cpfrom[key] != null){
+      t.is(includeCopyto.hasOwnProperty(key), true, 'target has property ' + key);
+    }
+    else{
+      t.is(includeCopyto.hasOwnProperty(key), false, 'target has NO!!!! property ' + key);
+    }
+  }
+  
+  t.diag("Test Include Array with option excludeEmpty = false");
+  includeCopyto = {};
+  includes = ['a', 'b', 'e', 'f', 'g'];
+  Utils.include(includeCopyto, cpfrom, {includes : includes, excludeEmpty : false});
+  for(var key in cpfrom){
+    if(includes.indexOf(key) >= 0 || cpfrom[key] == null){
       t.is(includeCopyto.hasOwnProperty(key), true, 'target has property ' + key);
     }
     else{
@@ -40,7 +56,7 @@ StartTest(function(t) {
   var excludes = ['c', 'd'];
   Utils.exclude(excludeCopyto, cpfrom, {excludes : excludes});
   for(var key in cpfrom){
-    if(excludes.indexOf(key) >= 0){
+    if(excludes.indexOf(key) >= 0 || cpfrom[key] == null/*default to exclude all */){
       t.is(excludeCopyto.hasOwnProperty(key), false, 'target has NO!!!! property ' + key);
     }
     else{
@@ -63,6 +79,18 @@ StartTest(function(t) {
   t.diag("Test Exclude Regular Expression");
   excludeCopyto = {};
   Utils.exclude(excludeCopyto, cpfrom, {regx : regx});
+  for(var key in cpfrom){
+    if(regx.test(key) || cpfrom[key] == null){
+      t.is(excludeCopyto.hasOwnProperty(key), false, 'target has NO!!!! property ' + key);
+    }
+    else{
+      t.is(excludeCopyto.hasOwnProperty(key), true, 'target has property ' + key);
+    }
+  }
+  
+  t.diag("Test Exclude Regular Expression with option excludeEmpty = false");
+  excludeCopyto = {};
+  Utils.exclude(excludeCopyto, cpfrom, {regx : regx, excludeEmpty : false});
   for(var key in cpfrom){
     if(regx.test(key)){
       t.is(excludeCopyto.hasOwnProperty(key), false, 'target has NO!!!! property ' + key);

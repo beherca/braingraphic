@@ -563,7 +563,7 @@ var Utils = {
       if((includes && includes.indexOf(key) >= 0) || regx && regx.test(key)){
         var value = solver ? solver(from[key]) : from[key];
         if((Utils.isEmpty(target[key]) || !keepDup) //check duplicate
-            && (!excludeEmpty || value)){ //check exclude empty
+            && (!excludeEmpty || value != null)){ //check exclude empty
             target[key] = value;
         }
       }
@@ -601,7 +601,7 @@ var Utils = {
       }
       var value = solver ? solver(from[key]) : from[key];
       if((Utils.isEmpty(target[key]) || !keepDup) //check duplicate
-          && (!excludeEmpty || value)){ //check exclude empty
+          && (!excludeEmpty || value != null)){ //check exclude empty
           target[key] = value;
       }
     }
@@ -619,14 +619,14 @@ var Utils = {
     if(keepDup){
       for(var key in from){
         var value = solver ? solver(from[key]) : from[key];
-        if(Utils.isEmpty(target[key]) && value){
+        if(Utils.isEmpty(target[key]) && value != null){
           target[key] = value;
         }
       }
     }else{
       for(var key in from){
         var value = solver ? solver(from[key]) : from[key];
-        if(!Utils.isEmpty(from[key]) && value){
+        if(!Utils.isEmpty(from[key]) && value != null){
           target[key] = value;
         }
       }

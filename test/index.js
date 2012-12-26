@@ -24,5 +24,6 @@ Harness.start(
     '018_class_getter_setter.t.js',
     '019_utils_iider.t.js',
     '020_utils_buildq.t.js',
-    '021_utils_include_exclude_apply.t.js'
+    '021_utils_include_exclude_apply.t.js',
+    '022_utils_apply.t.js'
 );
