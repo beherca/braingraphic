@@ -467,7 +467,7 @@ Looper.prototype.constructor = Looper;
 /**
  * Origin Point
  */
-var OP = {
+OP = {
   x : 0,
   y : 0,
   z : 0,
@@ -480,7 +480,7 @@ var OP = {
   }
 };
 
-var AXIS = {X : 'x', Y : 'y', Z : 'z'};
+AXIS = {X : 'x', Y : 'y', Z : 'z'};
 
 var Utils = {
   isEmpty : function(obj) {

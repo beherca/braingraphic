@@ -443,6 +443,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
   itemId : 'neuronMap',
   extend : 'Ext.panel.Panel',
   alias : 'widget.neuronmapview',
+  iider : null,
 
   layout : {
     type : 'border',
@@ -488,6 +489,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     var me = this;
     this.mixins.fm.constructor.call(this);
     this.addEvents([ 'mapSave', 'mapListShow', 'modeChanged' ]);
+    this.iider = new Iid();
     this.items = [ {
       xtype : 'toolbar',
       title : 'Brain Map Designer',
@@ -910,21 +912,21 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
 
   engAddN : function(neuron){
     //let IID has the correct offset
-    IID.set(neuron.iid);
+    this.iider.set(neuron.iid);
     var newNeuron = this.addNeuron(OP.add(neuron.x, neuron.y), 0, neuron.iid);
     return newNeuron;
   },
   
   engAddI : function(neuron){
     //let IID has the correct offset
-    IID.set(neuron.iid);
+    this.iider.set(neuron.iid);
     newNeuron = this.addInput(OP.add(neuron.x, neuron.y), 0, neuron.iid);
     return newNeuron;
   },
   
   engAddO : function(neuron){
     //let IID has the correct offset
-    IID.set(neuron.iid);
+    this.iider.set(neuron.iid);
     var newNeuron = this.addOutput(OP.add(neuron.x, neuron.y), 0, neuron.iid);
     return newNeuron;
   },
@@ -940,7 +942,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
       var results = me.findNeuron(sc.synapse.postNeuron);
       if (results && results.length > 0){
         var postN = results[0];
-        IID.set(sc.synapse.iid);
+        me.iider.set(sc.synapse.iid);
         var mode = sc.synapse.isInhibit ? MODE.SYNAPSE_R : MODE.SYNAPSE;
         me.addSynapse(sc.neuron, postN, mode, sc.synapse.iid);
         //let IID has the correct offset
@@ -1034,7 +1036,7 @@ Ext.define('AM.view.neuronmap.NeuronMap', {
     if(this.brainBuilder){
       this.brainBuilder = null;
     }
-    IID.reset();
+    this.iider.reset();
   },
   
   toJson : function(){
