@@ -22,7 +22,8 @@ StartTest(function(t) {
     _e : 6,
     e : null,
     f : undefined,
-    g : 0
+    g : 0, 
+    h : [2, 3]
   };
   
   t.diag("Test Include Array");
