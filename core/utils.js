@@ -513,8 +513,9 @@ var Utils = {
     REGX : 'regx',
     DATE : 'date',
     BOOL : 'boolean',
-    OBJ : 'objext'
+    OBJ : 'object'
   },
+  
   type : function(obj){
     if(obj == null){//empty means both null and undefined
       return Utils.T.EMPTY;
@@ -580,6 +581,9 @@ var Utils = {
   
   /**
    * Tojson helper
+   * the purpose of this function is to automatically call toJson of the object's property,
+   * and if property is an array, it will loop the array and call toJson for each element.
+   * this function has no intend to make any deep copy of target object 
    * @param options contain
    *  excludeEmpty :  if an object is null or an array contains no element, then exclude it 
    */
@@ -587,25 +591,39 @@ var Utils = {
     var target = {};
     options = options ? options : {};
     var excludeEmpty = options.excludeEmpty != null ? options.excludeEmpty : true;
-    Utils.apply(target, from, false, function(obj){
-      if(obj){
-        if(Utils.isObject(obj)){
-          if(Utils.isArray(obj)){
-            var newArray = null;
-            if(!excludeEmpty || obj.length > 0){
-              newArray = [];
-              obj.forEach(function(obj){
-                newArray.push(Utils.tj(obj));
-              });
+    for(var key in from){
+      if(from.hasOwnProperty(key)){
+        var prop = from[key];
+        switch(Utils.type(prop)){
+          case Utils.T.INST :
+            if(prop.toJson){
+              target[key] = prop.toJson();
+            }else{
+              target[key] = prop;
             }
-            return newArray;
-          }else if(obj.toJson){
-            return obj.toJson();
-          }
+            break;
+          case Utils.T.ARRAY :
+            if(!excludeEmpty || prop.length > 0){
+              var copy = [];
+              prop.forEach(function(obj){
+                //simple check
+                if(obj.toJson){
+                  copy.push(obj.toJson());
+                }else{
+                  copy.push(obj);
+                }
+              });
+              target[key] = copy;
+            }
+            break;
+          default : 
+            if(!excludeEmpty || prop != null){
+              target[key] = prop;
+            }
+            break;
         }
       }
-      return obj;
-    });
+    }
     return target;
   },
 

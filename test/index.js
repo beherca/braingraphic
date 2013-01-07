@@ -25,5 +25,9 @@ Harness.start(
     '019_utils_iider.t.js',
     '020_utils_buildq.t.js',
     '021_utils_include_exclude_apply.t.js',
-    '022_utils_apply.t.js'
+    '022_utils_apply.t.js',
+    '023_utils.t.js',
+    '024_utils_tj.t.js',
+    '025_utils_type.t.js',
+    '026_utils_deepcopy.t.js'
 );
