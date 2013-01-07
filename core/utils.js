@@ -484,19 +484,98 @@ AXIS = {X : 'x', Y : 'y', Z : 'z'};
 
 var Utils = {
   isEmpty : function(obj) {
-    return obj == null || typeof obj === "undefined";
+    return obj == null /*implecit convert null, and undefined*/|| typeof obj === "undefined";
   },
   
-  isObject : function(obj){
-    return !Utils.isEmpty(obj) && typeof obj === "object";
+  /**
+   * set restrict true : Must be an object, not array, function ,regx, number, string and so on
+   */
+  isObject : function(obj, restrict){
+    return !Utils.isEmpty(obj) && typeof obj === "object" 
+      && (!restrict || (obj.constructor && obj.constructor === Object));
   },
 
   isFunction : function(obj){
-    return typeof obj === "function";
+    return typeof obj === "function" && obj.constructor && obj.constructor === Function;
   },
 
   isArray : function(arr) {
     return !Utils.isEmpty(arr) && arr.constructor == Array;
+  },
+  
+  T : {
+    EMPTY : 'empty',
+    ARRAY : 'array',
+    FUNC : 'function',
+    INST : 'instance',
+    STR : 'string',
+    NUM : 'number',
+    REGX : 'regx',
+    DATE : 'date',
+    BOOL : 'boolean',
+    OBJ : 'objext'
+  },
+  type : function(obj){
+    if(obj == null){//empty means both null and undefined
+      return Utils.T.EMPTY;
+    }else if(typeof obj === 'string'){//string
+      return Utils.T.STR;
+    }else if(typeof obj === 'number'){//number
+      return Utils.T.NUM;
+    }else if(typeof obj === 'boolean'){//boolean
+      return Utils.T.BOOL;
+    }else if(typeof obj === 'function' && obj.constructor && obj.constructor === Function){//function 
+      return Utils.T.FUNC;
+    }else if (typeof obj === 'object'){//Object
+      if(obj.constructor && obj.constructor === Array){//array
+        return Utils.T.ARRAY;
+      }else if(obj.constructor && obj.constructor === RegExp){//regular expression
+        return Utils.T.REGX;
+      }else if(obj.constructor && obj.constructor === Date){//date
+        return Utils.T.DATE;
+      }else if(obj.constructor && obj.constructor === Object /*equals to obj instanceof Object*/){//instance
+        return Utils.T.OBJ;
+      }else{
+        return Utils.T.INST;
+      }
+    }
+    return null;
+  },
+  
+  deepcopy : function(from, options){
+    var target = null;
+    switch(Utils.type(from)){
+      case Utils.T.OBJ :
+        target = {};
+        for(var key in from){
+          var prop = from[key];
+          if(prop != null){
+            target[key] = Utils.deepcopy(prop);
+          }
+        }
+        break;
+      case Utils.T.INST :
+        target = Utils.cls.create(from.constructor);
+        for(var key in from){
+          if(from.hasOwnProperty(key)){//exclude properties from prototype
+            var prop = from[key];
+            if(prop != null){
+              target[key] = Utils.deepcopy(prop);
+            }
+          }
+        }
+        break;
+      case Utils.T.ARRAY :
+        target = [];
+        from.forEach(function(obj){
+          target.push(Utils.deepcopy(obj));
+        });
+        break;
+      default : //either string, number, booean, function, come to here
+        target = from;
+        break;
+    }
+    return target;
   },
   
   /**
@@ -511,18 +590,18 @@ var Utils = {
     Utils.apply(target, from, false, function(obj){
       if(obj){
         if(Utils.isObject(obj)){
-          if(obj.toJson){
+          if(Utils.isArray(obj)){
+            var newArray = null;
+            if(!excludeEmpty || obj.length > 0){
+              newArray = [];
+              obj.forEach(function(obj){
+                newArray.push(Utils.tj(obj));
+              });
+            }
+            return newArray;
+          }else if(obj.toJson){
             return obj.toJson();
           }
-        }else if(Utils.isArray(obj)){
-          var newArray = null;
-          if(!excludeEmpty || obj.length > 0){
-            newArray = [];
-            obj.forEach(function(obj){
-              newArray.push(tj(obj));
-            });
-          }
-          return newArray;
         }
       }
       return obj;
@@ -932,7 +1011,7 @@ Utils.cls = {
         }
       }else{
         //make deepcopy , so we can isolate the properties from prototype
-        constructorProps[name] = me.deepCopy(configItem);
+        constructorProps[name] = Utils.deepcopy(configItem);
       }
     }
     
@@ -942,7 +1021,7 @@ Utils.cls = {
       if(!Utils.isFunction(p)){
         //'cls' is a key word of class system, skip it 
         if(name !== CLASS_ALIAS){
-          constructorProps[name] = me.deepCopy(p);
+          constructorProps[name] = Utils.deepcopy(p);
         }
       }
     }
@@ -952,7 +1031,7 @@ Utils.cls = {
     //check null and replace all non-charactors case-insensitive but keep $
     var clsName = configs[CLASS_ALIAS] == null ? '' : configs[CLASS_ALIAS].replace(/[^A-Za-z$_]+/gi, '');
     var expName = (clsName == '') ? 'ChildClass' : clsName;
-    var evalStr = 'holder["'+ expName +'"] = function ' + clsName + '(){ Utils.apply(this, me.deepCopy(constructorProps));}';
+    var evalStr = 'holder["'+ expName +'"] = function ' + clsName + '(){ Utils.apply(this, Utils.deepcopy(constructorProps));}';
     var cls = null;
     try{
       eval(evalStr);
@@ -984,26 +1063,6 @@ Utils.cls = {
       instance.init.call(instance, valConfig);
     }
     return instance;// an object
-  },
-  
-  /**
-   * Deep copy all properties, so there are no conflicts
-   */
-  deepCopy : function(from, target){
-    if(Utils.isObject(from)){
-      target = target || ((Utils.isArray(from)) ? [] : {});
-      for (var i in from){
-        if(Utils.isObject(from[i])){
-          target[i] = (Utils.isArray(from[i])) ? [] : {};
-          this.deepCopy(from[i], target[i]);
-        }else{
-          target[i] = from[i];
-        }
-      }
-      return target;
-    }else{//if from is not a object, return itself
-      return from;
-    }
   }
 };
 
