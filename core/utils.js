@@ -332,7 +332,7 @@ function Observable(){
             result = listener.fn.call(listener.scope, obj, name, this);
           }
         }
-        if(result){
+        if(result != null){
           collectedResults.push(result);
         }
       }
